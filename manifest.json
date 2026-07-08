@@ -1,0 +1,39 @@
+{
+  "name": "Bill-Hive",
+  "short_name": "Bill-Hive",
+  "description": "Fast, offline-first POS billing app",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#228be6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "finance", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Create Bill",
+      "short_name": "New Bill",
+      "url": "/index.html#create-bill",
+      "description": "Start a new invoice"
+    },
+    {
+      "name": "Sale Summary",
+      "short_name": "Summary",
+      "url": "/index.html#sale-summary",
+      "description": "View sales analytics"
+    }
+  ]
+}
