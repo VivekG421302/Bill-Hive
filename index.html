@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bill-Hive</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#228be6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Bill-Hive">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+</head>
+<body class="light-mode">
+    <!-- ===================== SIDEBAR ===================== -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <svg class="sidebar-logo" viewBox="0 0 48 48" fill="none">
+                    <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                    <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
+                    <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+                </svg>
+                <span class="sidebar-title">Bill-Hive</span>
+            </div>
+            <button class="sidebar-close" onclick="closeSidebar()" aria-label="Close sidebar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="sidebar-link active" data-page="create-bill" onclick="navigateTo('create-bill')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <line x1="12" y1="8" x2="12" y2="16"/>
+                    <line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+                <span>Create Bill</span>
+            </a>
+            <a href="#" class="sidebar-link" data-page="past-bills" onclick="navigateTo('past-bills')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                <span>Past Bills</span>
+            </a>
+            <a href="#" class="sidebar-link" data-page="items" onclick="navigateTo('items')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                </svg>
+                <span>Items</span>
+            </a>
+            <a href="#" class="sidebar-link" data-page="stock" onclick="navigateTo('stock')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+                <span>Stock</span>
+            </a>
+            <a href="#" class="sidebar-link" data-page="sales-return" onclick="navigateTo('sales-return')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"/>
+                    <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+                </svg>
+                <span>Sales Return</span>
+            </a>
+            <a href="#" class="sidebar-link" data-page="sale-summary" onclick="navigateTo('sale-summary')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                <span>Sale Summary</span>
+            </a>
+            <div class="sidebar-divider"></div>
+            <a href="brands.html" class="sidebar-link" data-page="brands">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2 12.01V2h10.01l8.58 8.58a2 2 0 010 2.83z"/>
+                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+                <span>Your Brands</span>
+            </a>
+            <a href="suppliers.html" class="sidebar-link" data-page="suppliers">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="3" width="15" height="13"/>
+                    <path d="M16 8h4l3 3v5h-7V8z"/>
+                    <circle cx="5.5" cy="18.5" r="2.5"/>
+                    <circle cx="18.5" cy="18.5" r="2.5"/>
+                </svg>
+                <span>Suppliers</span>
+            </a>
+            <a href="fulfillment.html" class="sidebar-link" data-page="fulfillment">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                <span>Fulfillment</span>
+            </a>
+            <a href="catalogue.html" class="sidebar-link" data-page="catalogue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+                </svg>
+                <span>Catalogue</span>
+            </a>
+            <div class="sidebar-divider"></div>
+            <a href="#" class="sidebar-link" data-page="your-data" onclick="navigateTo('your-data')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Your Data</span>
+            </a>
+            <a href="#" class="sidebar-link" data-page="settings" onclick="navigateTo('settings')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                </svg>
+                <span>Settings</span>
+            </a>
+            <div class="sidebar-divider"></div>
+            <button class="sidebar-link theme-toggle-btn" onclick="toggleTheme()">
+                <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/>
+                    <line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+                <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                </svg>
+                <span>Theme</span>
+            </button>
+        </nav>
+            <div class="sidebar-divider" id="pwa-install-divider" style="display:none;"></div>
+            <button class="sidebar-link pwa-install-btn" id="pwa-install-btn" onclick="installPWA()" style="display:none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Install App</span>
+            </button>
+        <div class="sidebar-footer">
+            <p>Bill-Hive v2.2</p>
+            <p>Simple billing, done right</p>
+        </div>
+    </aside>
+
+    <!-- ===================== HEADER ===================== -->
+    <header class="app-header">
+        <div class="header-left">
+            <img src="favicon.svg" class="header-brand-icon" alt="Bill-Hive">
+        </div>
+        <div class="header-center">
+            <div class="logo-container" id="header-logo-container">
+                <img id="header-logo" src="" alt="Company Logo" style="display:none;">
+                <div class="logo-placeholder" id="header-logo-placeholder">
+                    <svg viewBox="0 0 48 48" fill="none">
+                        <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                        <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
+                        <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+                    </svg>
+                    <span class="logo-placeholder-text">Bill-Hive</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="header-menu-btn" onclick="openSidebar()" aria-label="Open menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===================== MAIN CONTENT ===================== -->
+    <main class="main-content">
+        <!-- CREATE BILL PAGE -->
+        <section id="page-create-bill" class="page active">
+            <div class="bill-container">
+                <!-- Bill To Section -->
+                <div class="bill-section">
+                    <div class="section-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <h2>Bill To</h2>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Customer Name <span class="required">*</span></label>
+                            <input type="text" id="customer-name" placeholder="Enter customer name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Number</label>
+                            <input type="tel" id="customer-contact" placeholder="Enter contact number">
+                        </div>
+                        <div class="form-group">
+                            <label>Invoice No. <span class="required">*</span></label>
+                            <input type="text" id="invoice-no" readonly class="readonly-field">
+                        </div>
+                        <div class="form-group">
+                            <label>Invoice Date <span class="required">*</span></label>
+                            <input type="date" id="invoice-date" required>
+                        </div>
+                        <div class="form-group optional-field">
+                            <label>Due Date</label>
+                            <input type="date" id="due-date">
+                        </div>
+                        <div class="form-group optional-field">
+                            <label>Due Amount</label>
+                            <input type="number" id="due-amount" placeholder="Auto-filled from total" step="0.01">
+                        </div>
+                        <div class="form-group optional-field full-width">
+                            <label>Delivery Address</label>
+                            <textarea id="delivery-address" rows="2" placeholder="Enter delivery address"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Line Items Section -->
+                <div class="bill-section">
+                    <div class="section-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                            <rect x="9" y="3" width="6" height="4" rx="1"/>
+                            <path d="M9 14l2 2 4-4"/>
+                        </svg>
+                        <h2>Line Items</h2>
+                    </div>
+                    <div class="line-items-container" id="line-items-container">
+                        <!-- Line items will be rendered here -->
+                    </div>
+                    <button class="add-item-btn" onclick="addLineItem()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                        Add Item
+                    </button>
+                </div>
+
+                <!-- Totals Section -->
+                <div class="bill-section totals-section">
+                    <div class="section-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                        </svg>
+                        <h2>Totals</h2>
+                    </div>
+                    <div class="totals-grid">
+                        <div class="total-row">
+                            <span class="total-label">Bill Amount</span>
+                            <span class="total-value" id="bill-amount">0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="total-label">Discount Amount</span>
+                            <span class="total-value discount" id="discount-amount">0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="total-label">Tax Amount</span>
+                            <span class="total-value tax" id="tax-amount">0.00</span>
+                        </div>
+                        <div class="total-row grand-total">
+                            <span class="total-label">Grand Total</span>
+                            <span class="total-value" id="grand-total">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes Section -->
+                <div class="bill-section">
+                    <div class="section-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                        <h2>Notes & Payment</h2>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Payment Mode</label>
+                            <div class="payment-modes" id="payment-modes">
+                                <button type="button" class="payment-mode-btn active" data-mode="cash" onclick="selectPaymentMode('cash')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="6" width="20" height="12" rx="2"/>
+                                        <circle cx="12" cy="12" r="2"/>
+                                        <path d="M6 12h.01M18 12h.01"/>
+                                    </svg>
+                                    Cash
+                                </button>
+                                <button type="button" class="payment-mode-btn" data-mode="card" onclick="selectPaymentMode('card')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="1" y="4" width="22" height="16" rx="2"/>
+                                        <line x1="1" y1="10" x2="23" y2="10"/>
+                                    </svg>
+                                    Card
+                                </button>
+                                <button type="button" class="payment-mode-btn" data-mode="bank" onclick="selectPaymentMode('bank')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 21h18M5 21V7l8-4 8 4v14M9 21v-6h6v6"/>
+                                    </svg>
+                                    Bank
+                                </button>
+                                <button type="button" class="payment-mode-btn" data-mode="upi" onclick="selectPaymentMode('upi')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                        <path d="M2 17l10 5 10-5"/>
+                                        <path d="M2 12l10 5 10-5"/>
+                                    </svg>
+                                    UPI
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Notes</label>
+                            <textarea id="bill-notes" rows="2" placeholder="Add any notes..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="action-btn btn-save-print" onclick="saveAndPrint()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        Save & Print
+                    </button>
+                    <button class="action-btn btn-save" onclick="saveBill()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        Save
+                    </button>
+                    <button class="action-btn btn-clear" onclick="clearBill()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                        </svg>
+                        Clear
+                    </button>
+                    <button class="action-btn btn-preview" onclick="previewBill()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Preview
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAST BILLS PAGE -->
+        <section id="page-past-bills" class="page">
+            <div class="page-header">
+                <h1>Past Bills</h1>
+                <p>View and manage your previous invoices</p>
+            </div>
+            <div class="toolbar">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="bills-search" placeholder="Search by customer or invoice no..." oninput="renderPastBills()">
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Amount</th><th>Payment</th><th></th></tr>
+                    </thead>
+                    <tbody id="past-bills-body"></tbody>
+                </table>
+                <div id="past-bills-empty" class="placeholder-content">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <p>No bills saved yet. Bills you save will appear here.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ITEMS PAGE -->
+        <section id="page-items" class="page">
+            <div class="page-header">
+                <h1>Items</h1>
+                <p>Manage your product catalog</p>
+            </div>
+            <div class="toolbar">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="items-search" placeholder="Search items..." oninput="renderItemsTable()">
+                </div>
+                <button class="action-btn btn-save" onclick="openItemModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    Add Item
+                </button>
+                <button class="action-btn btn-clear" onclick="downloadItemsTemplate()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download Template
+                </button>
+                <button class="action-btn btn-clear" onclick="document.getElementById('items-excel-input').click()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Import Excel
+                </button>
+                <input type="file" id="items-excel-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importItemsFromExcel(event)">
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th><th>SKU</th><th>Brand</th><th>Price</th><th>Cost</th><th>Disc %</th><th>Tax %</th><th>Stock</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="items-table-body"></tbody>
+                </table>
+                <div id="items-empty" class="placeholder-content" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+                    </svg>
+                    <p>No items yet. Add your first product or service.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- STOCK PAGE -->
+        <section id="page-stock" class="page">
+            <div class="page-header">
+                <h1>Stock</h1>
+                <p>Track your inventory levels</p>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Item</th><th>Tracking</th><th>Current Stock</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody id="stock-table-body"></tbody>
+                </table>
+                <div id="stock-empty" class="placeholder-content" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                    <p>Add items first to track their stock here.</p>
+                </div>
+            </div>
+            <div class="bill-section" style="margin-top:16px;">
+                <div class="section-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <h2>Recent Stock Movements</h2>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Date</th><th>Item</th><th>Type</th><th>Qty</th><th>Reference</th></tr></thead>
+                        <tbody id="stock-log-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SALES RETURN PAGE -->
+        <section id="page-sales-return" class="page">
+            <div class="page-header">
+                <h1>Sales Return</h1>
+                <p>Process returns and refunds against a saved bill</p>
+            </div>
+            <div class="bill-section">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Select Bill</label>
+                        <select id="return-bill-select" onchange="loadBillForReturn()">
+                            <option value="">-- Select an invoice --</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="return-items-container"></div>
+                <div id="return-summary" style="display:none;">
+                    <div class="totals-grid">
+                        <div class="total-row grand-total">
+                            <span class="total-label">Refund Amount</span>
+                            <span class="total-value" id="return-refund-amount">0.00</span>
+                        </div>
+                    </div>
+                    <div class="form-group full-width" style="margin-top:12px;">
+                        <label>Reason</label>
+                        <textarea id="return-reason" rows="2" placeholder="Reason for return (optional)"></textarea>
+                    </div>
+                    <button class="action-btn btn-save" onclick="processSalesReturn()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+                        Process Return
+                    </button>
+                </div>
+            </div>
+            <div class="bill-section">
+                <div class="section-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+                    <h2>Past Returns</h2>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Refund</th></tr></thead>
+                        <tbody id="returns-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SALE SUMMARY PAGE -->
+        <section id="page-sale-summary" class="page">
+            <div class="page-header">
+                <h1>Sale Summary</h1>
+                <p>View your sales analytics</p>
+            </div>
+            <div class="stats-grid" id="summary-stats"></div>
+            <div class="bill-section">
+                <div class="section-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2 12.01V2h10.01l8.58 8.58a2 2 0 010 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    <h2>Sales by Brand</h2>
+                </div>
+                <div id="summary-brand-section"></div>
+            </div>
+            <div class="bill-section">
+                <div class="section-header">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+                    <h2>Top Selling Items</h2>
+                </div>
+                <div id="summary-top-items"></div>
+            </div>
+        </section>
+
+        <!-- YOUR DATA PAGE -->
+        <section id="page-your-data" class="page">
+            <div class="page-header page-header-with-action">
+                <div>
+                    <h1>Your Data</h1>
+                    <p>Manage your business information</p>
+                </div>
+                <button class="pencil-edit-btn" id="your-data-edit-btn" onclick="enterYourDataEdit()" title="Edit business information" aria-label="Edit business information">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- VIEW-ONLY MODE -->
+            <div class="data-view" id="your-data-view">
+                <div class="data-view-logo-wrap">
+                    <img id="view-company-logo" src="" alt="Company Logo" style="display:none;">
+                    <div class="data-view-logo-placeholder" id="view-company-logo-placeholder">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span>No logo uploaded</span>
+                    </div>
+                </div>
+                <div class="data-view-row">
+                    <span class="data-view-label">Company Name</span>
+                    <span class="data-view-value" id="view-company-name">—</span>
+                </div>
+                <div class="data-view-row">
+                    <span class="data-view-label">GST Number</span>
+                    <span class="data-view-value" id="view-company-gst">—</span>
+                </div>
+                <div class="data-view-row">
+                    <span class="data-view-label">Address</span>
+                    <span class="data-view-value" id="view-company-address">—</span>
+                </div>
+                <div class="data-view-row">
+                    <span class="data-view-label">Phone</span>
+                    <span class="data-view-value" id="view-company-phone">—</span>
+                </div>
+                <div class="data-view-row">
+                    <span class="data-view-label">Email</span>
+                    <span class="data-view-value" id="view-company-email">—</span>
+                </div>
+            </div>
+
+            <!-- EDIT MODE -->
+            <div class="data-form" id="your-data-edit" style="display:none;">
+                <div class="form-group">
+                    <label>Company Name</label>
+                    <input type="text" id="company-name" placeholder="Your Company Name">
+                </div>
+                <div class="form-group">
+                    <label>GST Number</label>
+                    <input type="text" id="company-gst" placeholder="e.g., 24AAKPP1343N1ZR">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea id="company-address" rows="2" placeholder="Your business address"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="company-phone" placeholder="Contact number">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="company-email" placeholder="Email address">
+                </div>
+                <div class="form-group">
+                    <label>Company Logo</label>
+                    <div class="logo-upload-area" id="logo-upload-area">
+                        <input type="file" id="company-logo-input" accept="image/*" onchange="handleLogoUpload(event)">
+                        <div class="logo-upload-content">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span>Click to upload logo</span>
+                            <small>4:1 ratio recommended (e.g. 800×200px) &middot; PNG, JPG, SVG &middot; max 2MB</small>
+                        </div>
+                        <img id="company-logo-preview" src="" alt="Logo Preview" style="display:none;">
+                    </div>
+                </div>
+                <div class="edit-actions">
+                    <button class="action-btn btn-save" onclick="saveCompanyData()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                        </svg>
+                        Save Data
+                    </button>
+                    <button class="action-btn btn-clear" onclick="exitYourDataEdit()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SETTINGS PAGE -->
+        <section id="page-settings" class="page">
+            <div class="page-header">
+                <h1>Settings</h1>
+                <p>Configure your billing preferences</p>
+            </div>
+            <div class="settings-container">
+                <div class="settings-group">
+                    <h3>Thank You Messages</h3>
+                    <p class="settings-desc">Random messages will be picked from this list for your bills</p>
+                    <div class="settings-list" id="thank-you-messages">
+                        <div class="settings-item">
+                            <input type="text" value="Thank you for your business!" class="settings-input">
+                            <button class="settings-remove" onclick="removeSettingItem(this)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="settings-item">
+                            <input type="text" value="Have a nice day!" class="settings-input">
+                            <button class="settings-remove" onclick="removeSettingItem(this)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="settings-item">
+                            <input type="text" value="We appreciate your trust in us." class="settings-input">
+                            <button class="settings-remove" onclick="removeSettingItem(this)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="add-setting-btn" onclick="addThankYouMessage()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                        Add Message
+                    </button>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Terms & Conditions</h3>
+                    <p class="settings-desc">This will be printed at the bottom of every bill</p>
+                    <textarea id="terms-conditions" rows="4" class="settings-textarea" placeholder="Enter your terms and conditions...">Goods once sold will not be taken back.&#10;All disputes subject to local jurisdiction.</textarea>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Currency</h3>
+                    <div class="form-group">
+                        <label>Currency Symbol</label>
+                        <input type="text" id="currency-symbol" value="₹" class="settings-input" style="max-width:100px;">
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Print Setup</h3>
+                    <p class="settings-desc">Control how bold and how wide your printed/previewed bills are. Company logo always prints in black &amp; white.</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Font Weight</label>
+                            <select id="print-font-weight">
+                                <option value="normal">Normal</option>
+                                <option value="bold" selected>Bold</option>
+                                <option value="black">Extra Bold</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Print Size (Thermal Paper Width)</label>
+                            <select id="print-paper-size">
+                                <option value="58mm">58mm (narrow)</option>
+                                <option value="80mm" selected>80mm (standard)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="data-actions" style="margin-top:14px;">
+                        <button class="action-btn btn-clear" onclick="previewDummyBill()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            Preview Dummy Bill
+                        </button>
+                        <button class="action-btn btn-save" onclick="printDummyBill()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                            Print Dummy Bill
+                        </button>
+                    </div>
+                </div>
+
+                <button class="action-btn btn-save" onclick="saveSettings()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                    </svg>
+                    Save Settings
+                </button>
+
+                <div class="settings-group">
+                    <h3>Data Management</h3>
+                    <p class="settings-desc">Everything is stored locally in your browser. Export a full backup any time, or restore from a previously exported file.</p>
+                    <div class="data-actions">
+                        <button class="action-btn btn-save" onclick="exportAllData()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Export All Data (JSON)
+                        </button>
+                        <label class="action-btn btn-clear import-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Import Data
+                            <input type="file" accept="application/json" id="import-file-input" style="display:none;" onchange="importAllData(event)">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Database Configuration <span class="badge-soon">Coming soon</span></h3>
+                    <p class="settings-desc">Bill-Hive currently runs fully offline using your browser's local storage. These fields are saved for when cloud/database sync becomes available in a future update — they don't connect to anything yet.</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Provider</label>
+                            <select id="config-db-provider">
+                                <option value="none">None (Local storage only)</option>
+                                <option value="firebase">Firebase</option>
+                                <option value="supabase">Supabase</option>
+                                <option value="rest">Custom REST API</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>API URL</label>
+                            <input type="text" id="config-api-url" placeholder="https://api.example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>API Key</label>
+                            <input type="password" id="config-api-key" placeholder="Enter API key">
+                        </div>
+                        <div class="form-group">
+                            <label>Sync</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="config-sync-enabled" disabled>
+                                <span class="toggle-slider"></span>
+                                <span style="margin-left:8px;font-size:0.8125rem;color:var(--text-muted);">Disabled until a provider is connected</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button class="action-btn btn-save" onclick="saveConfig()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+                        Save Configuration
+                    </button>
+                </div>
+
+                <div class="settings-group">
+                    <h3 style="color:var(--accent-danger);">Danger Zone</h3>
+                    <p class="settings-desc">Permanently erase all bills, items, stock, returns and settings from this browser. This cannot be undone.</p>
+                    <button class="action-btn btn-clear" style="border-color:var(--accent-danger);color:var(--accent-danger);" onclick="resetAllData()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                        Erase All Data
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===================== FOOTER ===================== -->
+    <footer class="app-footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <svg class="footer-logo" viewBox="0 0 48 48" fill="none">
+                    <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                    <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                    <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
+                    <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+                </svg>
+                <span>Bill-Hive</span>
+            </div>
+            <p class="footer-tagline">Simple billing, done right. v2.2</p>
+        </div>
+    </footer>
+
+    <datalist id="items-datalist"></datalist>
+
+    <!-- ===================== ITEM MODAL ===================== -->
+    <div id="item-modal" class="modal">
+        <div class="modal-overlay" onclick="closeItemModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="item-modal-title">Add Item</h3>
+                <button class="modal-close" onclick="closeItemModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Item Name <span class="required">*</span></label>
+                        <input type="text" id="item-form-name" placeholder="e.g., Cotton T-Shirt">
+                    </div>
+                    <div class="form-group">
+                        <label>SKU Code</label>
+                        <input type="text" id="item-form-sku" placeholder="e.g., SKU-001">
+                    </div>
+                    <div class="form-group">
+                        <label>EAN / Barcode</label>
+                        <input type="text" id="item-form-ean" placeholder="e.g., 8901234567890">
+                    </div>
+                    <div class="form-group">
+                        <label>Item Number</label>
+                        <input type="text" id="item-form-itemno" placeholder="e.g., ITM-2024-001">
+                    </div>
+                    <div class="form-group">
+                        <label>Brand</label>
+                        <input type="text" id="item-form-brand" list="brands-datalist" placeholder="e.g., Nike">
+                        <datalist id="brands-datalist"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label>Cost (Purchase Price)</label>
+                        <input type="number" id="item-form-cost" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Price (Selling Price)</label>
+                        <input type="number" id="item-form-price" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Discount %</label>
+                        <input type="number" id="item-form-discount" min="0" max="100" step="0.01" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Tax %</label>
+                        <input type="number" id="item-form-tax" min="0" step="0.01" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Opening Stock</label>
+                        <input type="number" id="item-form-stock" min="0" step="1" placeholder="0">
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="item-form-track-stock" checked>
+                            <span class="toggle-slider"></span>
+                            <span style="margin-left:8px;font-size:0.8125rem;">Track stock for this item</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn btn-save" onclick="saveItemForm()">Save Item</button>
+                <button class="action-btn btn-clear" onclick="closeItemModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== STOCK ADJUST MODAL ===================== -->
+    <div id="stock-modal" class="modal">
+        <div class="modal-overlay" onclick="closeStockModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adjust Stock</h3>
+                <button class="modal-close" onclick="closeStockModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label id="stock-modal-item-label">Item</label>
+                    </div>
+                    <div class="form-group">
+                        <label>Adjustment Type</label>
+                        <select id="stock-adjust-type">
+                            <option value="add">Add Stock (Purchase/Restock)</option>
+                            <option value="remove">Remove Stock (Damage/Correction)</option>
+                            <option value="set">Set Exact Quantity</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="stock-adjust-qty" min="0" step="1" placeholder="0">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Note</label>
+                        <input type="text" id="stock-adjust-note" placeholder="Optional note">
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="stock-adjust-no-inventory">
+                            <span class="toggle-slider"></span>
+                            <span style="margin-left:8px;font-size:0.8125rem;">Don't add to inventory (log as damaged stock)</span>
+                        </label>
+                        <p class="stock-adjust-hint">When checked, this quantity is recorded in the stock log for reference but is NOT added to or removed from the item's stock count — use this for damaged/unsellable stock.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn btn-save" onclick="applyStockAdjustment()">Apply</button>
+                <button class="action-btn btn-clear" onclick="closeStockModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== PREVIEW MODAL ===================== -->
+    <div id="preview-modal" class="modal">
+        <div class="modal-overlay" onclick="closePreview()"></div>
+        <div class="modal-content preview-modal-content">
+            <div class="modal-header">
+                <h3>Bill Preview</h3>
+                <button class="modal-close" onclick="closePreview()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="preview-bill-container" class="preview-bill"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn btn-save-print" onclick="printFromPreview()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 6 2 18 2 18 9"/>
+                        <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+                        <rect x="6" y="14" width="12" height="8"/>
+                    </svg>
+                    Print
+                </button>
+                <button class="action-btn btn-clear" onclick="closePreview()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== TOAST ===================== -->
+    <div id="toast" class="toast">
+        <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span id="toast-message">Saved successfully!</span>
+    </div>
+
+    <script src="script.js"></script>
+
+    <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
+</body>
+</html>
