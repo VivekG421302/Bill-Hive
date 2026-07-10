@@ -2312,6 +2312,192 @@ a {
     z-index: 91;
 }
 
+
+/* Task 7: Column Visibility Selector */
+
+.col-hidden {
+    display: none !important;
+}
+
+.column-toggle-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.column-toggle-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.column-toggle-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    z-index: 60;
+    min-width: 180px;
+}
+
+.column-toggle-dropdown.open {
+    display: block;
+}
+
+.column-toggle-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+}
+
+.column-toggle-item:hover {
+    background: var(--bg-secondary);
+}
+
+.column-toggle-item input {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+}
+
+/* Task 8: Custom Checkbox */
+
+.custom-checkbox {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.custom-checkbox .checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-input);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-checkbox:hover .checkmark {
+    border-color: var(--accent-primary);
+}
+
+.custom-checkbox input:checked + .checkmark {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.custom-checkbox input:checked + .checkmark::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-bottom: 2px;
+}
+
+.custom-checkbox input:focus + .checkmark {
+    box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.2);
+}
+
+/* Task 9: Purchase Order Journey Timeline */
+
+.po-journey {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 4px 4px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.po-journey-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.po-journey-step-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    transition: all var(--transition-fast);
+}
+
+.po-journey-step-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.po-journey-step-completed .po-journey-step-circle {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+}
+
+.po-journey-step-completed .po-journey-step-label {
+    color: var(--text-primary);
+}
+
+.po-journey-step-active .po-journey-step-circle {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.2);
+}
+
+.po-journey-step-active .po-journey-step-label {
+    color: var(--accent-primary);
+}
+
+.po-journey-connector {
+    flex: 1 1 auto;
+    height: 2px;
+    background: var(--border-color);
+    margin-top: 15px;
+    min-width: 20px;
+}
+
+.po-journey-connector-completed {
+    background: var(--accent-primary);
+}
     </style>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -2627,11 +2813,12 @@ a {
 // Standalone pages don't load script.js, so they carry their own copy
 // of the IndexedDB wrapper.
 const DB_NAME = 'billhive-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // v4.01.0 Task 7: bumped to add the 'columnVisibility' store
 
 const STORE_NAMES = [
     'company', 'settings', 'config', 'items', 'stocklog',
-    'bills', 'returns', 'brands', 'suppliers', 'purchaseOrders', 'meta', 'theme'
+    'bills', 'returns', 'brands', 'suppliers', 'purchaseOrders', 'meta', 'theme',
+    'columnVisibility'
 ];
 
 const STORE_MAP = {
