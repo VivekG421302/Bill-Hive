@@ -2312,6 +2312,192 @@ a {
     z-index: 91;
 }
 
+
+/* Task 7: Column Visibility Selector */
+
+.col-hidden {
+    display: none !important;
+}
+
+.column-toggle-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.column-toggle-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.column-toggle-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    z-index: 60;
+    min-width: 180px;
+}
+
+.column-toggle-dropdown.open {
+    display: block;
+}
+
+.column-toggle-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+}
+
+.column-toggle-item:hover {
+    background: var(--bg-secondary);
+}
+
+.column-toggle-item input {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+}
+
+/* Task 8: Custom Checkbox */
+
+.custom-checkbox {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.custom-checkbox .checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-input);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-checkbox:hover .checkmark {
+    border-color: var(--accent-primary);
+}
+
+.custom-checkbox input:checked + .checkmark {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.custom-checkbox input:checked + .checkmark::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-bottom: 2px;
+}
+
+.custom-checkbox input:focus + .checkmark {
+    box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.2);
+}
+
+/* Task 9: Purchase Order Journey Timeline */
+
+.po-journey {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 4px 4px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.po-journey-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.po-journey-step-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    transition: all var(--transition-fast);
+}
+
+.po-journey-step-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.po-journey-step-completed .po-journey-step-circle {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+}
+
+.po-journey-step-completed .po-journey-step-label {
+    color: var(--text-primary);
+}
+
+.po-journey-step-active .po-journey-step-circle {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.2);
+}
+
+.po-journey-step-active .po-journey-step-label {
+    color: var(--accent-primary);
+}
+
+.po-journey-connector {
+    flex: 1 1 auto;
+    height: 2px;
+    background: var(--border-color);
+    margin-top: 15px;
+    min-width: 20px;
+}
+
+.po-journey-connector-completed {
+    background: var(--accent-primary);
+}
     </style>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -2544,9 +2730,16 @@ a {
                 <div class="section-header">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     <h2>Purchase Orders</h2>
+                    <div class="column-toggle-wrap" style="margin-left:auto;">
+                        <button class="action-btn btn-clear column-toggle-btn" onclick="toggleColumnDropdown('po-table')" title="Choose visible columns">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>
+                            Columns
+                        </button>
+                        <div class="column-toggle-dropdown" id="po-table-column-dropdown"></div>
+                    </div>
                 </div>
                 <div class="table-wrap">
-                    <table class="data-table">
+                    <table class="data-table" id="po-table">
                         <thead>
                             <tr><th>PO No.</th><th>Date</th><th>Supplier</th><th>Items</th><th>Status</th><th></th></tr>
                         </thead>
@@ -2636,11 +2829,12 @@ a {
 // Standalone pages don't load script.js, so they carry their own copy
 // of the IndexedDB wrapper.
 const DB_NAME = 'billhive-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // v4.01.0 Task 7: bumped to add the 'columnVisibility' store
 
 const STORE_NAMES = [
     'company', 'settings', 'config', 'items', 'stocklog',
-    'bills', 'returns', 'brands', 'suppliers', 'purchaseOrders', 'meta', 'theme'
+    'bills', 'returns', 'brands', 'suppliers', 'purchaseOrders', 'meta', 'theme',
+    'columnVisibility'
 ];
 
 const STORE_MAP = {
@@ -2761,6 +2955,89 @@ function dbRemove(storeName) {
 function dbClearAll() {
     return Promise.all(STORE_NAMES.map(name => dbRemove(name)));
 }
+
+// ===================== COLUMN VISIBILITY (v4.01.0 — Task 7) =====================
+const TABLE_COLUMNS = {
+    'po-table': ['PO No.', 'Date', 'Supplier', 'Items', 'Status', 'Actions']
+};
+
+let columnVisibilityCache = {};
+
+async function loadColumnVisibility(tableId) {
+    const cols = TABLE_COLUMNS[tableId] || [];
+    const cached = columnVisibilityCache[tableId];
+    if (cached && cached.length === cols.length) return cached;
+    let all = {};
+    try { all = (await dbGet('columnVisibility')) || {}; } catch (e) { all = {}; }
+    const saved = all[tableId];
+    const visibility = (Array.isArray(saved) && saved.length === cols.length) ? saved.slice() : cols.map(() => true);
+    columnVisibilityCache[tableId] = visibility;
+    return visibility;
+}
+
+async function saveColumnVisibility(tableId) {
+    let all = {};
+    try { all = (await dbGet('columnVisibility')) || {}; } catch (e) { all = {}; }
+    all[tableId] = columnVisibilityCache[tableId];
+    await dbSet('columnVisibility', all);
+}
+
+function applyColumnVisibility(tableId) {
+    const visibility = columnVisibilityCache[tableId];
+    const table = document.getElementById(tableId);
+    if (!table || !visibility) return;
+    table.querySelectorAll('thead tr th').forEach((th, i) => {
+        th.classList.toggle('col-hidden', visibility[i] === false);
+    });
+    table.querySelectorAll('tbody tr').forEach(tr => {
+        Array.from(tr.children).forEach((td, i) => {
+            if (i < visibility.length) td.classList.toggle('col-hidden', visibility[i] === false);
+        });
+    });
+}
+
+async function initColumnVisibility(tableId) {
+    await loadColumnVisibility(tableId);
+    applyColumnVisibility(tableId);
+}
+
+async function renderColumnToggles(tableId) {
+    const cols = TABLE_COLUMNS[tableId] || [];
+    const visibility = await loadColumnVisibility(tableId);
+    const dropdown = document.getElementById(tableId + '-column-dropdown');
+    if (!dropdown) return;
+    dropdown.innerHTML = cols.map((name, i) => `
+        <label class="column-toggle-item">
+            <input type="checkbox" ${visibility[i] !== false ? 'checked' : ''} onchange="toggleColumn('${tableId}', ${i})">
+            <span>${escapeHtml(name)}</span>
+        </label>
+    `).join('');
+}
+
+async function toggleColumn(tableId, columnIndex) {
+    const visibility = await loadColumnVisibility(tableId);
+    visibility[columnIndex] = visibility[columnIndex] === false ? true : false;
+    columnVisibilityCache[tableId] = visibility;
+    await saveColumnVisibility(tableId);
+    applyColumnVisibility(tableId);
+}
+
+async function toggleColumnDropdown(tableId) {
+    const dropdown = document.getElementById(tableId + '-column-dropdown');
+    if (!dropdown) return;
+    const isOpen = dropdown.classList.contains('open');
+    document.querySelectorAll('.column-toggle-dropdown.open').forEach(d => d.classList.remove('open'));
+    if (!isOpen) {
+        await renderColumnToggles(tableId);
+        dropdown.classList.add('open');
+    }
+}
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.column-toggle-wrap')) {
+        document.querySelectorAll('.column-toggle-dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+});
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => document.querySelectorAll(selector);
@@ -3017,7 +3294,12 @@ function renderRestockTable() {
         const suggested = Math.max(DEFAULT_REORDER_QTY - stock, DEFAULT_REORDER_QTY);
         return `
         <tr>
-            <td><input type="checkbox" class="restock-check" data-item-id="${it.id}"></td>
+            <td>
+                <label class="custom-checkbox">
+                    <input type="checkbox" class="restock-check" data-item-id="${it.id}">
+                    <span class="checkmark"></span>
+                </label>
+            </td>
             <td class="cell-strong">${escapeHtml(it.name)}</td>
             <td>${stock}</td>
             <td><span class="status-pill ${stock === 0 ? 'status-low' : 'status-low'}">${stock === 0 ? 'Out of Stock' : 'Low Stock'}</span></td>
@@ -3086,23 +3368,23 @@ function renderPOTable() {
         const statusClass = po.status === 'Received' ? 'status-ok' : 'status-low';
         let actionBtns = '';
         if (po.status === 'Pending') {
-            actionBtns += `<button class="icon-btn" title="Mark Ordered" onclick="markPOOrdered(${po.id})">
+            actionBtns += `<button class="icon-btn" title="Mark Ordered" onclick="event.stopPropagation(); markPOOrdered(${po.id})">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </button>`;
         } else if (po.status === 'Ordered') {
-            actionBtns += `<button class="icon-btn" title="Mark Received" onclick="markPOReceived(${po.id})">
+            actionBtns += `<button class="icon-btn" title="Mark Received" onclick="event.stopPropagation(); markPOReceived(${po.id})">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
             </button>`;
         }
-        actionBtns += `<button class="icon-btn" title="View" onclick="viewPO(${po.id})">
+        actionBtns += `<button class="icon-btn" title="View" onclick="event.stopPropagation(); viewPO(${po.id})">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>`;
-        actionBtns += `<button class="icon-btn icon-btn-danger" title="Delete" onclick="deletePO(${po.id})">
+        actionBtns += `<button class="icon-btn icon-btn-danger" title="Delete" onclick="event.stopPropagation(); deletePO(${po.id})">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
         </button>`;
 
         return `
-        <tr>
+        <tr onclick="viewPO(${po.id})" style="cursor:pointer;">
             <td class="cell-strong">${po.poNumber}</td>
             <td>${formatDate(po.date)}</td>
             <td>${escapeHtml(po.supplierName)}</td>
@@ -3111,6 +3393,7 @@ function renderPOTable() {
             <td class="cell-actions">${actionBtns}</td>
         </tr>`;
     }).join('');
+    initColumnVisibility('po-table');
 }
 
 async function markPOOrdered(id) {
@@ -3153,11 +3436,35 @@ async function deletePO(id) {
 function viewPO(id) {
     const po = PurchaseOrders.find(p => p.id === id);
     if (!po) return;
+
+    const statusSteps = ['Pending', 'Ordered', 'Received'];
+    const currentIndex = statusSteps.indexOf(po.status);
+
+    let journeyHtml = '<div class="po-journey">';
+    statusSteps.forEach((step, idx) => {
+        const isCompleted = idx < currentIndex;
+        const isActive = idx === currentIndex;
+        const stepClass = isActive ? 'po-journey-step-active' : (isCompleted ? 'po-journey-step-completed' : '');
+
+        journeyHtml += `
+            <div class="po-journey-step ${stepClass}" onclick="changePOStatus(${po.id}, '${step}')">
+                <div class="po-journey-step-circle">${isCompleted ? '✓' : (idx + 1)}</div>
+                <span class="po-journey-step-label">${step}</span>
+            </div>
+        `;
+
+        if (idx < statusSteps.length - 1) {
+            journeyHtml += `<div class="po-journey-connector ${isCompleted ? 'po-journey-connector-completed' : ''}"></div>`;
+        }
+    });
+    journeyHtml += '</div>';
+
     $('#po-modal-title').textContent = po.poNumber;
     $('#po-modal-body').innerHTML = `
+        ${journeyHtml}
         <div class="data-view-row"><span class="data-view-label">Supplier</span><span class="data-view-value">${escapeHtml(po.supplierName)}</span></div>
         <div class="data-view-row"><span class="data-view-label">Date</span><span class="data-view-value">${formatDate(po.date)}</span></div>
-        <div class="data-view-row"><span class="data-view-label">Status</span><span class="data-view-value">${po.status}</span></div>
+        <div class="data-view-row"><span class="data-view-label">Status</span><span class="data-view-value"><span class="status-pill ${po.status === 'Received' ? 'status-ok' : 'status-low'}">${po.status}</span></span></div>
         <div class="table-wrap" style="margin-top:12px;">
             <table class="data-table">
                 <thead><tr><th>Item</th><th>Qty</th></tr></thead>
@@ -3166,9 +3473,80 @@ function viewPO(id) {
                 </tbody>
             </table>
         </div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+            ${po.status !== 'Received' ? `<button class="action-btn btn-save" onclick="advancePOStatus(${po.id})">Mark as ${getNextStatus(po.status)}</button>` : ''}
+            <button class="icon-btn icon-btn-danger" onclick="deletePOFromModal(${po.id})" title="Delete">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            </button>
+        </div>
     `;
+
     $('#po-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
+}
+
+// v4.01.0 Task 9C: status-journey helper functions
+function getNextStatus(current) {
+    const map = { 'Pending': 'Ordered', 'Ordered': 'Received' };
+    return map[current] || current;
+}
+
+async function advancePOStatus(id) {
+    const po = PurchaseOrders.find(p => p.id === id);
+    if (!po) return;
+    const next = getNextStatus(po.status);
+    if (next === 'Received') {
+        await markPOReceived(id);
+    } else if (next === 'Ordered') {
+        await markPOOrdered(id);
+    }
+    // If the user cancelled a confirmation inside markPOReceived, po.status
+    // simply won't have changed — re-viewing is correct either way.
+    viewPO(id);
+}
+
+async function changePOStatus(id, newStatus) {
+    const po = PurchaseOrders.find(p => p.id === id);
+    if (!po || po.status === newStatus) return;
+
+    const statusOrder = { 'Pending': 0, 'Ordered': 1, 'Received': 2 };
+
+    // Confirm if moving backward
+    if (statusOrder[newStatus] < statusOrder[po.status]) {
+        if (!await showConfirm(`Move status back to ${newStatus}?`, 'Change Status')) return;
+    } else if (newStatus === 'Received') {
+        if (!await showConfirm(`Mark ${po.poNumber} as received? This will add the ordered quantities to stock.`, 'Mark Received')) return;
+    }
+
+    const wasReceived = po.status === 'Received';
+    po.status = newStatus;
+
+    if (newStatus === 'Received' && !wasReceived) {
+        // Add stock (only once, on the transition into Received)
+        for (const line of po.items) {
+            const item = FItems.find(i => String(i.id) === String(line.itemId));
+            if (item) {
+                item.stock = (item.stock || 0) + line.qty;
+                await saveStockLogEntry(item.id, item.name, 'Purchase Received', line.qty, po.poNumber);
+            }
+        }
+        await saveItemsStorage();
+        renderRestockTable();
+    }
+
+    await savePOStorage();
+    renderPOTable();
+    viewPO(id);
+    showToast(`${po.poNumber} status set to ${newStatus}`);
+}
+
+async function deletePOFromModal(id) {
+    if (!await showConfirm('Delete this purchase order? This does not reverse any stock already received.', 'Delete PO')) return;
+    PurchaseOrders = PurchaseOrders.filter(p => p.id !== id);
+    await savePOStorage();
+    renderPOTable();
+    closePoModal();
+    showToast('Purchase order deleted');
 }
 
 function closePoModal() {
