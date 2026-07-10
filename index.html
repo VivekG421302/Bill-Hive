@@ -998,6 +998,69 @@
         </div>
     </div>
 
+    <!-- ===================== CUSTOM CONFIRM MODAL (v4.01.0) ===================== -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-overlay" onclick="closeConfirmModal()"></div>
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header">
+                <h3 id="confirm-modal-title">Confirm</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-modal-message" style="color:var(--text-secondary);line-height:1.6;">Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn btn-danger" id="confirm-yes-btn">Confirm</button>
+                <button class="action-btn btn-clear" onclick="closeConfirmModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== EXCEL IMPORT PREVIEW MODAL (v4.01.0) ===================== -->
+    <div id="excel-preview-modal" class="modal">
+        <div class="modal-overlay" onclick="closeExcelPreviewModal()"></div>
+        <div class="modal-content" style="max-width:760px;">
+            <div class="modal-header">
+                <h3>Preview Import</h3>
+                <button class="modal-close" onclick="closeExcelPreviewModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="settings-desc" style="margin-bottom:12px;">Review the rows below before importing. Uncheck rows to skip them, or remove/edit individual rows inline.</p>
+                <div class="table-wrap" style="max-height:55vh;overflow-y:auto;">
+                    <table class="data-table" id="excel-preview-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="excel-preview-select-all" onchange="toggleExcelPreviewSelectAll(this)" title="Select / deselect all"></th>
+                                <th>Name</th>
+                                <th>SKU</th>
+                                <th>Brand</th>
+                                <th>Price</th>
+                                <th>Cost</th>
+                                <th>Stock</th>
+                                <th>Track</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="excel-preview-table-body"></tbody>
+                    </table>
+                </div>
+                <p id="excel-preview-count" style="margin-top:10px;font-size:0.8125rem;color:var(--text-muted);"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn btn-save" onclick="confirmExcelImport()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Confirm Import
+                </button>
+                <button class="action-btn btn-clear" onclick="closeExcelPreviewModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ===================== TOAST ===================== -->
     <div id="toast" class="toast">
         <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
