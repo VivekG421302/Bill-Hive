@@ -2259,3 +2259,41 @@ a {
     margin-top: 6px;
     line-height: 1.4;
 }
+
+/* ===================== v4.x ADDITIONS ===================== */
+
+/* Task 3: Header/Footer Edge Fading (Claude-style seamless scroll)
+   The ::after on the header and ::before on the footer cast a short
+   gradient shadow so content appears to slide cleanly under/over them. */
+
+.app-header {
+    overflow: visible; /* allow pseudo-element to bleed below */
+}
+
+.app-header::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 0;
+    right: 0;
+    height: 12px;
+    background: linear-gradient(to bottom, var(--bg-secondary), transparent);
+    pointer-events: none;
+    z-index: 101;
+}
+
+.app-footer {
+    overflow: visible; /* allow pseudo-element to bleed above */
+}
+
+.app-footer::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 0;
+    right: 0;
+    height: 12px;
+    background: linear-gradient(to top, var(--bg-secondary), transparent);
+    pointer-events: none;
+    z-index: 91;
+}
