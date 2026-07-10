@@ -2440,3 +2440,4 @@ async function populateBrandsDatalist() {
         dl.innerHTML = brands.map(b => `<option value="${escapeHtml(b.name)}">`).join('');
     } catch(e) {}
 }
+ 
