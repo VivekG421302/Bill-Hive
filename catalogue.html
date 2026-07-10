@@ -2312,6 +2312,192 @@ a {
     z-index: 91;
 }
 
+
+/* Task 7: Column Visibility Selector */
+
+.col-hidden {
+    display: none !important;
+}
+
+.column-toggle-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.column-toggle-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.column-toggle-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    z-index: 60;
+    min-width: 180px;
+}
+
+.column-toggle-dropdown.open {
+    display: block;
+}
+
+.column-toggle-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+}
+
+.column-toggle-item:hover {
+    background: var(--bg-secondary);
+}
+
+.column-toggle-item input {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+}
+
+/* Task 8: Custom Checkbox */
+
+.custom-checkbox {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.custom-checkbox .checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-input);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-checkbox:hover .checkmark {
+    border-color: var(--accent-primary);
+}
+
+.custom-checkbox input:checked + .checkmark {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.custom-checkbox input:checked + .checkmark::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-bottom: 2px;
+}
+
+.custom-checkbox input:focus + .checkmark {
+    box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.2);
+}
+
+/* Task 9: Purchase Order Journey Timeline */
+
+.po-journey {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 4px 4px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.po-journey-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.po-journey-step-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    transition: all var(--transition-fast);
+}
+
+.po-journey-step-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.po-journey-step-completed .po-journey-step-circle {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+}
+
+.po-journey-step-completed .po-journey-step-label {
+    color: var(--text-primary);
+}
+
+.po-journey-step-active .po-journey-step-circle {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(34, 139, 230, 0.2);
+}
+
+.po-journey-step-active .po-journey-step-label {
+    color: var(--accent-primary);
+}
+
+.po-journey-connector {
+    flex: 1 1 auto;
+    height: 2px;
+    background: var(--border-color);
+    margin-top: 15px;
+    min-width: 20px;
+}
+
+.po-journey-connector-completed {
+    background: var(--accent-primary);
+}
     </style>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -2516,6 +2702,13 @@ a {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                     Print Catalogue
                 </button>
+                <div class="column-toggle-wrap">
+                    <button class="action-btn btn-clear column-toggle-btn" onclick="toggleColumnDropdown('catalogue-table')" title="Choose visible columns">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>
+                        Columns
+                    </button>
+                    <div class="column-toggle-dropdown" id="catalogue-table-column-dropdown"></div>
+                </div>
             </div>
 
             <div id="catalogue-content"></div>
@@ -2584,11 +2777,12 @@ a {
 // Standalone pages don't load script.js, so they carry their own copy
 // of the IndexedDB wrapper.
 const DB_NAME = 'billhive-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // v4.01.0 Task 7: bumped to add the 'columnVisibility' store
 
 const STORE_NAMES = [
     'company', 'settings', 'config', 'items', 'stocklog',
-    'bills', 'returns', 'brands', 'suppliers', 'purchaseOrders', 'meta', 'theme'
+    'bills', 'returns', 'brands', 'suppliers', 'purchaseOrders', 'meta', 'theme',
+    'columnVisibility'
 ];
 
 const STORE_MAP = {
@@ -2709,6 +2903,81 @@ function dbRemove(storeName) {
 function dbClearAll() {
     return Promise.all(STORE_NAMES.map(name => dbRemove(name)));
 }
+
+// ===================== COLUMN VISIBILITY (v4.01.0 — Task 7) =====================
+// Catalogue renders a separate <table> per brand group, so instead of
+// toggling DOM cells after the fact, visibility is baked directly into
+// renderCatalogue()'s template output via colHidden().
+const TABLE_COLUMNS = {
+    'catalogue-table': ['Name', 'SKU', 'Price', 'Tax %', 'Stock']
+};
+
+let columnVisibilityCache = {};
+let catalogueColumnVisibility = TABLE_COLUMNS['catalogue-table'].map(() => true);
+
+async function loadColumnVisibility(tableId) {
+    const cols = TABLE_COLUMNS[tableId] || [];
+    const cached = columnVisibilityCache[tableId];
+    if (cached && cached.length === cols.length) return cached;
+    let all = {};
+    try { all = (await dbGet('columnVisibility')) || {}; } catch (e) { all = {}; }
+    const saved = all[tableId];
+    const visibility = (Array.isArray(saved) && saved.length === cols.length) ? saved.slice() : cols.map(() => true);
+    columnVisibilityCache[tableId] = visibility;
+    return visibility;
+}
+
+async function saveColumnVisibility(tableId) {
+    let all = {};
+    try { all = (await dbGet('columnVisibility')) || {}; } catch (e) { all = {}; }
+    all[tableId] = columnVisibilityCache[tableId];
+    await dbSet('columnVisibility', all);
+}
+
+function colHidden(idx) {
+    return catalogueColumnVisibility[idx] === false ? ' col-hidden' : '';
+}
+
+async function renderColumnToggles(tableId) {
+    const cols = TABLE_COLUMNS[tableId] || [];
+    const visibility = await loadColumnVisibility(tableId);
+    const dropdown = document.getElementById(tableId + '-column-dropdown');
+    if (!dropdown) return;
+    dropdown.innerHTML = cols.map((name, i) => `
+        <label class="column-toggle-item">
+            <input type="checkbox" ${visibility[i] !== false ? 'checked' : ''} onchange="toggleColumn('${tableId}', ${i})">
+            <span>${escapeHtml(name)}</span>
+        </label>
+    `).join('');
+}
+
+async function toggleColumn(tableId, columnIndex) {
+    const visibility = await loadColumnVisibility(tableId);
+    visibility[columnIndex] = visibility[columnIndex] === false ? true : false;
+    columnVisibilityCache[tableId] = visibility;
+    await saveColumnVisibility(tableId);
+    if (tableId === 'catalogue-table') {
+        catalogueColumnVisibility = visibility;
+        renderCatalogue();
+    }
+}
+
+async function toggleColumnDropdown(tableId) {
+    const dropdown = document.getElementById(tableId + '-column-dropdown');
+    if (!dropdown) return;
+    const isOpen = dropdown.classList.contains('open');
+    document.querySelectorAll('.column-toggle-dropdown.open').forEach(d => d.classList.remove('open'));
+    if (!isOpen) {
+        await renderColumnToggles(tableId);
+        dropdown.classList.add('open');
+    }
+}
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.column-toggle-wrap')) {
+        document.querySelectorAll('.column-toggle-dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+});
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => document.querySelectorAll(selector);
@@ -2888,6 +3157,8 @@ let CSettings = {};
 async function loadCatalogue() {
     await dbInit();
 
+    catalogueColumnVisibility = await loadColumnVisibility('catalogue-table');
+
     try {
         const items = await dbGet('items');
         CItems = items || [];
@@ -2987,16 +3258,16 @@ function renderCatalogue() {
                 <span class="cell-muted" style="margin-left:auto;font-size:0.8125rem;">${items.length} item${items.length === 1 ? '' : 's'}</span>
             </div>
             <div class="table-wrap">
-                <table class="data-table">
-                    <thead><tr><th>Name</th><th>SKU</th><th>Price</th><th>Tax %</th><th>Stock</th></tr></thead>
+                <table class="data-table catalogue-table">
+                    <thead><tr><th class="${colHidden(0)}">Name</th><th class="${colHidden(1)}">SKU</th><th class="${colHidden(2)}">Price</th><th class="${colHidden(3)}">Tax %</th><th class="${colHidden(4)}">Stock</th></tr></thead>
                     <tbody>
                         ${items.map(it => `
                             <tr>
-                                <td class="cell-strong">${escapeHtml(it.name)}</td>
-                                <td class="cell-muted">${escapeHtml(it.sku || '—')}</td>
-                                <td>${formatCurrency(it.price)}</td>
-                                <td>${it.tax || 0}%</td>
-                                <td>${it.trackStock !== false ? (it.stock || 0) : '—'}</td>
+                                <td class="cell-strong${colHidden(0)}">${escapeHtml(it.name)}</td>
+                                <td class="cell-muted${colHidden(1)}">${escapeHtml(it.sku || '—')}</td>
+                                <td class="${colHidden(2)}">${formatCurrency(it.price)}</td>
+                                <td class="${colHidden(3)}">${it.tax || 0}%</td>
+                                <td class="${colHidden(4)}">${it.trackStock !== false ? (it.stock || 0) : '—'}</td>
                             </tr>
                         `).join('')}
                     </tbody>
