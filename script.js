@@ -5,11 +5,12 @@
 // Replaces all localStorage usage. Falls back to localStorage if IndexedDB
 // is unavailable or fails to open.
 const DB_NAME = 'billhive-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // v4.01.0 Task 7: bumped to add the 'columnVisibility' store
 
 const STORE_NAMES = [
     'company', 'settings', 'config', 'items', 'stocklog',
-    'bills', 'returns', 'brands', 'suppliers', 'purchaseOrders', 'meta', 'theme'
+    'bills', 'returns', 'brands', 'suppliers', 'purchaseOrders', 'meta', 'theme',
+    'columnVisibility'
 ];
 
 const STORE_MAP = {
@@ -144,6 +145,96 @@ function dbRemove(storeName) {
 function dbClearAll() {
     return Promise.all(STORE_NAMES.map(name => dbRemove(name)));
 }
+
+// ===================== COLUMN VISIBILITY (v4.01.0 — Task 7) =====================
+// Reusable column show/hide system for data tables. Visibility is an array
+// of booleans (true = shown) positionally matched to TABLE_COLUMNS, and is
+// persisted in the 'columnVisibility' IndexedDB store as
+// { [tableId]: [bool, bool, ...] }.
+const TABLE_COLUMNS = {
+    'items-table': ['Name', 'SKU', 'Brand', 'Price', 'Cost', 'Disc %', 'Tax %', 'Stock', 'Actions'],
+    'stock-table': ['Item', 'Tracking', 'Current Stock', 'Status', 'Actions'],
+    'past-bills-table': ['Invoice', 'Date', 'Customer', 'Amount', 'Payment', 'Actions'],
+    'returns-table': ['Date', 'Invoice', 'Customer', 'Refund']
+};
+
+let columnVisibilityCache = {};
+
+async function loadColumnVisibility(tableId) {
+    const cols = TABLE_COLUMNS[tableId] || [];
+    const cached = columnVisibilityCache[tableId];
+    if (cached && cached.length === cols.length) return cached;
+    let all = {};
+    try { all = (await dbGet('columnVisibility')) || {}; } catch (e) { all = {}; }
+    const saved = all[tableId];
+    const visibility = (Array.isArray(saved) && saved.length === cols.length) ? saved.slice() : cols.map(() => true);
+    columnVisibilityCache[tableId] = visibility;
+    return visibility;
+}
+
+async function saveColumnVisibility(tableId) {
+    let all = {};
+    try { all = (await dbGet('columnVisibility')) || {}; } catch (e) { all = {}; }
+    all[tableId] = columnVisibilityCache[tableId];
+    await dbSet('columnVisibility', all);
+}
+
+function applyColumnVisibility(tableId) {
+    const visibility = columnVisibilityCache[tableId];
+    const table = document.getElementById(tableId);
+    if (!table || !visibility) return;
+    table.querySelectorAll('thead tr th').forEach((th, i) => {
+        th.classList.toggle('col-hidden', visibility[i] === false);
+    });
+    table.querySelectorAll('tbody tr').forEach(tr => {
+        Array.from(tr.children).forEach((td, i) => {
+            if (i < visibility.length) td.classList.toggle('col-hidden', visibility[i] === false);
+        });
+    });
+}
+
+async function initColumnVisibility(tableId) {
+    await loadColumnVisibility(tableId);
+    applyColumnVisibility(tableId);
+}
+
+async function renderColumnToggles(tableId) {
+    const cols = TABLE_COLUMNS[tableId] || [];
+    const visibility = await loadColumnVisibility(tableId);
+    const dropdown = document.getElementById(tableId + '-column-dropdown');
+    if (!dropdown) return;
+    dropdown.innerHTML = cols.map((name, i) => `
+        <label class="column-toggle-item">
+            <input type="checkbox" ${visibility[i] !== false ? 'checked' : ''} onchange="toggleColumn('${tableId}', ${i})">
+            <span>${escapeHtml(name)}</span>
+        </label>
+    `).join('');
+}
+
+async function toggleColumn(tableId, columnIndex) {
+    const visibility = await loadColumnVisibility(tableId);
+    visibility[columnIndex] = visibility[columnIndex] === false ? true : false;
+    columnVisibilityCache[tableId] = visibility;
+    await saveColumnVisibility(tableId);
+    applyColumnVisibility(tableId);
+}
+
+async function toggleColumnDropdown(tableId) {
+    const dropdown = document.getElementById(tableId + '-column-dropdown');
+    if (!dropdown) return;
+    const isOpen = dropdown.classList.contains('open');
+    document.querySelectorAll('.column-toggle-dropdown.open').forEach(d => d.classList.remove('open'));
+    if (!isOpen) {
+        await renderColumnToggles(tableId);
+        dropdown.classList.add('open');
+    }
+}
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.column-toggle-wrap')) {
+        document.querySelectorAll('.column-toggle-dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+});
 
 // ===================== STATE =====================
 const AppState = {
@@ -810,12 +901,21 @@ function validateBill() {
         return false;
     }
 
-    // Check all items have names
+    // Check all items have names.
+    // v4.01.0 Task 6 fix: item.name in AppState only updates on the input's
+    // onchange event, so if the user clicks Save before the field blurs, the
+    // state is stale even though the input clearly has text in it. Read the
+    // live DOM value instead (and sync it back into state) so validation
+    // reflects what's actually on screen.
     for (const item of AppState.lineItems) {
-        if (!item.name || item.name.trim() === '') {
+        const nameInput = $(`#line-item-${item.id} .line-item-name`);
+        const currentName = nameInput ? nameInput.value.trim() : (item.name || '').trim();
+        if (!currentName) {
             showToast('Please enter item names for all line items');
+            if (nameInput) nameInput.focus();
             return false;
         }
+        item.name = currentName;
     }
 
     return true;
@@ -1732,6 +1832,7 @@ function renderItemsTable() {
             </td>
         </tr>
     `).join('');
+    initColumnVisibility('items-table');
 }
 
 // ===================== STOCK =====================
@@ -1792,6 +1893,7 @@ function renderStockTable() {
             </tr>
         `).join('') || '<tr><td colspan="5" class="cell-muted">No stock movements yet</td></tr>';
     }
+    initColumnVisibility('stock-table');
 }
 
 function openStockModal(id) {
@@ -1882,6 +1984,7 @@ function renderPastBills() {
             </td>
         </tr>
     `).join('');
+    initColumnVisibility('past-bills-table');
 }
 
 function findBill(id) {
@@ -2086,6 +2189,7 @@ function renderReturnsTable() {
             <td>${formatCurrency(r.refundAmount)}</td>
         </tr>
     `).join('') || '<tr><td colspan="4" class="cell-muted">No returns yet</td></tr>';
+    initColumnVisibility('returns-table');
 }
 
 async function loadReturns() {
@@ -2440,4 +2544,3 @@ async function populateBrandsDatalist() {
         dl.innerHTML = brands.map(b => `<option value="${escapeHtml(b.name)}">`).join('');
     } catch(e) {}
 }
- 
