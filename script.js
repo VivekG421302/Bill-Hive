@@ -257,6 +257,30 @@ function showToast(message, type = 'success') {
     setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
+// ===================== CUSTOM CONFIRM MODAL (v4.01.0) =====================
+// Replaces all native confirm() dialogs with a styled, promise-based modal.
+let _confirmResolve = null;
+
+function showConfirm(message, title = 'Confirm') {
+    return new Promise((resolve) => {
+        _confirmResolve = resolve;
+        $('#confirm-modal-title').textContent = title;
+        $('#confirm-modal-message').textContent = message;
+        $('#confirm-modal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        const yesBtn = $('#confirm-yes-btn');
+        // Remove any previous listener before adding a fresh one
+        yesBtn.onclick = () => { closeConfirmModal(); resolve(true); };
+    });
+}
+
+function closeConfirmModal() {
+    $('#confirm-modal').classList.remove('active');
+    document.body.style.overflow = '';
+    if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+}
+
 // ===================== SIDEBAR =====================
 function openSidebar() {
     $('#sidebar').classList.add('open');
@@ -942,9 +966,9 @@ function printFromPreview() {
     closePreview();
 }
 
-function clearBill() {
+async function clearBill() {
     if (AppState.lineItems.length > 0) {
-        if (!confirm('Are you sure you want to clear this bill? All items will be removed.')) {
+        if (!await showConfirm('Clear this bill? All items will be removed.', 'Clear Bill')) {
             return;
         }
     }
@@ -1290,6 +1314,10 @@ function downloadItemsTemplate() {
     XLSX.writeFile(wb, 'billhive-items-template.xlsx');
 }
 
+// ===================== EXCEL IMPORT PREVIEW (v4.01.0) =====================
+// Module-level array holds rows parsed from Excel, waiting for user review.
+let excelPreviewData = []; // [{ included, name, sku, ean, itemNumber, brand, cost, price, discount, tax, stock, trackStock }]
+
 function importItemsFromExcel(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1301,7 +1329,7 @@ function importItemsFromExcel(event) {
     }
 
     const reader = new FileReader();
-    reader.onload = async (e) => {
+    reader.onload = (e) => {
         try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
@@ -1314,18 +1342,9 @@ function importItemsFromExcel(event) {
                 return;
             }
 
-            // Load existing brands so we can auto-create any that are new
-            let brands = [];
-            try {
-                const saved = await dbGet('brands');
-                brands = saved || [];
-            } catch (err) { brands = []; }
-            let brandIdCounter = brands.reduce((max, b) => Math.max(max, b.id || 0), 0);
-            const existingBrandNames = new Set(brands.map(b => b.name.toLowerCase()));
-
-            let importedCount = 0;
+            // Parse rows into preview objects — skip rows with no name
+            excelPreviewData = [];
             let skippedCount = 0;
-            let newBrandCount = 0;
 
             rows.forEach(row => {
                 const get = (...keys) => {
@@ -1338,44 +1357,36 @@ function importItemsFromExcel(event) {
                 const name = String(get('Name', 'name', 'Item Name') || '').trim();
                 if (!name) { skippedCount++; return; }
 
-                const brand = String(get('Brand', 'brand') || '').trim();
                 const trackStockRaw = String(get('Track Stock (Y/N)', 'Track Stock', 'trackStock') || 'Y').trim().toLowerCase();
                 const trackStock = !(trackStockRaw === 'n' || trackStockRaw === 'no' || trackStockRaw === 'false' || trackStockRaw === '0');
 
-                itemIdCounter++;
-                AppState.items.push({
-                    id: itemIdCounter,
+                excelPreviewData.push({
+                    included: true,
                     name,
-                    sku: String(get('SKU', 'sku') || '').trim(),
-                    ean: String(get('EAN', 'ean') || '').trim(),
+                    sku:        String(get('SKU', 'sku') || '').trim(),
+                    ean:        String(get('EAN', 'ean') || '').trim(),
                     itemNumber: String(get('Item Number', 'itemNumber') || '').trim(),
-                    brand,
-                    cost: parseFloat(get('Cost', 'cost')) || 0,
-                    price: parseFloat(get('Price', 'price')) || 0,
-                    discount: parseFloat(get('Discount %', 'Discount', 'discount')) || 0,
-                    tax: parseFloat(get('Tax %', 'Tax', 'tax')) || 0,
-                    stock: parseFloat(get('Opening Stock', 'Stock', 'stock')) || 0,
+                    brand:      String(get('Brand', 'brand') || '').trim(),
+                    cost:       parseFloat(get('Cost', 'cost')) || 0,
+                    price:      parseFloat(get('Price', 'price')) || 0,
+                    discount:   parseFloat(get('Discount %', 'Discount', 'discount')) || 0,
+                    tax:        parseFloat(get('Tax %', 'Tax', 'tax')) || 0,
+                    stock:      parseFloat(get('Opening Stock', 'Stock', 'stock')) || 0,
                     trackStock
                 });
-                importedCount++;
-
-                if (brand && !existingBrandNames.has(brand.toLowerCase())) {
-                    brandIdCounter++;
-                    brands.push({ id: brandIdCounter, name: brand, description: '', logo: '' });
-                    existingBrandNames.add(brand.toLowerCase());
-                    newBrandCount++;
-                }
             });
 
-            await saveItemsStorage();
-            renderItemsTable();
-            renderStockTable();
-            await dbSet('brands', brands);
+            if (excelPreviewData.length === 0) {
+                showToast(`No valid rows found (${skippedCount} skipped — missing name)`);
+                event.target.value = '';
+                return;
+            }
 
-            let msg = `Imported ${importedCount} item${importedCount === 1 ? '' : 's'}`;
-            if (newBrandCount > 0) msg += `, created ${newBrandCount} new brand${newBrandCount === 1 ? '' : 's'}`;
-            if (skippedCount > 0) msg += ` (${skippedCount} row${skippedCount === 1 ? '' : 's'} skipped — missing name)`;
-            showToast(msg);
+            if (skippedCount > 0) {
+                showToast(`${skippedCount} row${skippedCount === 1 ? '' : 's'} skipped (missing name) — review remaining rows below`);
+            }
+
+            openExcelPreviewModal();
         } catch (err) {
             console.error('Excel import error:', err);
             showToast('Could not read that file — check it matches the template');
@@ -1384,6 +1395,235 @@ function importItemsFromExcel(event) {
     };
     reader.readAsArrayBuffer(file);
 }
+
+function openExcelPreviewModal() {
+    renderExcelPreview();
+    $('#excel-preview-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeExcelPreviewModal() {
+    $('#excel-preview-modal').classList.remove('active');
+    document.body.style.overflow = '';
+    excelPreviewData = [];
+}
+
+function renderExcelPreview() {
+    const tbody = $('#excel-preview-table-body');
+    const countEl = $('#excel-preview-count');
+    if (!tbody) return;
+
+    const includedCount = excelPreviewData.filter(r => r.included).length;
+
+    tbody.innerHTML = excelPreviewData.map((row, idx) => `
+        <tr id="excel-preview-row-${idx}" style="opacity:${row.included ? '1' : '0.4'};">
+            <td>
+                <input type="checkbox" ${row.included ? 'checked' : ''}
+                    onchange="toggleExcelPreviewRow(${idx}, this.checked)">
+            </td>
+            <td class="cell-strong" id="epv-name-${idx}">${escapeHtml(row.name)}</td>
+            <td id="epv-sku-${idx}">${escapeHtml(row.sku || '—')}</td>
+            <td id="epv-brand-${idx}">${escapeHtml(row.brand || '—')}</td>
+            <td id="epv-price-${idx}">${row.price}</td>
+            <td id="epv-cost-${idx}">${row.cost}</td>
+            <td id="epv-stock-${idx}">${row.stock}</td>
+            <td id="epv-track-${idx}">${row.trackStock ? 'Y' : 'N'}</td>
+            <td class="cell-actions">
+                <button class="icon-btn" onclick="editExcelPreviewRow(${idx})" title="Edit row">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                    </svg>
+                </button>
+                <button class="icon-btn icon-btn-danger" onclick="removeExcelPreviewRow(${idx})" title="Remove row">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                    </svg>
+                </button>
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="9" class="cell-muted" style="text-align:center;">No rows to preview</td></tr>';
+
+    // Keep the select-all checkbox in sync
+    const selectAll = $('#excel-preview-select-all');
+    if (selectAll && excelPreviewData.length > 0) {
+        selectAll.checked = excelPreviewData.every(r => r.included);
+        selectAll.indeterminate = !selectAll.checked && excelPreviewData.some(r => r.included);
+    }
+
+    if (countEl) {
+        countEl.textContent = `${includedCount} of ${excelPreviewData.length} rows selected for import`;
+    }
+}
+
+function toggleExcelPreviewSelectAll(checkbox) {
+    excelPreviewData.forEach(row => { row.included = checkbox.checked; });
+    renderExcelPreview();
+}
+
+function toggleExcelPreviewRow(index, checked) {
+    if (excelPreviewData[index] === undefined) return;
+    excelPreviewData[index].included = checked;
+    // Update row opacity inline without full re-render
+    const row = $(`#excel-preview-row-${index}`);
+    if (row) row.style.opacity = checked ? '1' : '0.4';
+    // Re-sync select-all and count
+    const includedCount = excelPreviewData.filter(r => r.included).length;
+    const countEl = $('#excel-preview-count');
+    if (countEl) countEl.textContent = `${includedCount} of ${excelPreviewData.length} rows selected for import`;
+    const selectAll = $('#excel-preview-select-all');
+    if (selectAll) {
+        selectAll.checked = excelPreviewData.every(r => r.included);
+        selectAll.indeterminate = !selectAll.checked && excelPreviewData.some(r => r.included);
+    }
+}
+
+function removeExcelPreviewRow(index) {
+    excelPreviewData.splice(index, 1);
+    renderExcelPreview();
+}
+
+function editExcelPreviewRow(index) {
+    const row = excelPreviewData[index];
+    if (!row) return;
+
+    // Swap display cells for inputs
+    const fields = [
+        ['name',  'epv-name-'  + index, 'text'],
+        ['sku',   'epv-sku-'   + index, 'text'],
+        ['brand', 'epv-brand-' + index, 'text'],
+        ['price', 'epv-price-' + index, 'number'],
+        ['cost',  'epv-cost-'  + index, 'number'],
+        ['stock', 'epv-stock-' + index, 'number'],
+    ];
+
+    fields.forEach(([field, cellId, inputType]) => {
+        const cell = document.getElementById(cellId);
+        if (!cell) return;
+        const currentVal = field === 'name' || field === 'sku' || field === 'brand'
+            ? (row[field] || '')
+            : row[field];
+        cell.innerHTML = `<input type="${inputType}" value="${escapeHtml(String(currentVal))}"
+            style="width:100%;min-width:60px;padding:3px 6px;border:1.5px solid var(--border-focus);border-radius:var(--radius-sm);background:var(--bg-input);font-size:0.8125rem;"
+            data-field="${field}" data-index="${index}">`;
+    });
+
+    // Track cell: swap for a checkbox
+    const trackCell = document.getElementById('epv-track-' + index);
+    if (trackCell) {
+        trackCell.innerHTML = `<input type="checkbox" ${row.trackStock ? 'checked' : ''}
+            data-field="trackStock" data-index="${index}">`;
+    }
+
+    // Swap action buttons to Save / Cancel
+    const actionCell = $(`#excel-preview-row-${index} .cell-actions`);
+    if (actionCell) {
+        actionCell.innerHTML = `
+            <button class="icon-btn" onclick="saveExcelPreviewEdit(${index})" title="Save">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            </button>
+            <button class="icon-btn" onclick="renderExcelPreview()" title="Cancel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>`;
+    }
+}
+
+function saveExcelPreviewEdit(index) {
+    const row = excelPreviewData[index];
+    if (!row) return;
+
+    // Read text/number inputs
+    const textFields = ['name', 'sku', 'brand'];
+    const numFields  = ['price', 'cost', 'stock'];
+
+    textFields.forEach(field => {
+        const input = $(`#excel-preview-row-${index} input[data-field="${field}"]`);
+        if (input) row[field] = input.value.trim();
+    });
+    numFields.forEach(field => {
+        const input = $(`#excel-preview-row-${index} input[data-field="${field}"]`);
+        if (input) row[field] = parseFloat(input.value) || 0;
+    });
+
+    // trackStock checkbox
+    const trackInput = $(`#excel-preview-row-${index} input[data-field="trackStock"]`);
+    if (trackInput) row.trackStock = trackInput.checked;
+
+    // Require name
+    if (!row.name) {
+        showToast('Item name cannot be empty');
+        return;
+    }
+
+    renderExcelPreview();
+}
+
+async function confirmExcelImport() {
+    const toImport = excelPreviewData.filter(r => r.included);
+    if (toImport.length === 0) {
+        showToast('No rows selected — check at least one row to import');
+        return;
+    }
+
+    // Load existing brands so we can auto-create any new ones
+    let brands = [];
+    try {
+        const saved = await dbGet('brands');
+        brands = saved || [];
+    } catch (err) { brands = []; }
+    let brandIdCounter = brands.reduce((max, b) => Math.max(max, b.id || 0), 0);
+    const existingBrandNames = new Set(brands.map(b => b.name.toLowerCase()));
+
+    let newBrandCount = 0;
+
+    toImport.forEach(row => {
+        itemIdCounter++;
+        AppState.items.push({
+            id:         itemIdCounter,
+            name:       row.name,
+            sku:        row.sku        || '',
+            ean:        row.ean        || '',
+            itemNumber: row.itemNumber || '',
+            brand:      row.brand      || '',
+            cost:       row.cost       || 0,
+            price:      row.price      || 0,
+            discount:   row.discount   || 0,
+            tax:        row.tax        || 0,
+            stock:      row.stock      || 0,
+            trackStock: row.trackStock
+        });
+
+        if (row.brand && !existingBrandNames.has(row.brand.toLowerCase())) {
+            brandIdCounter++;
+            brands.push({ id: brandIdCounter, name: row.brand, description: '', logo: '' });
+            existingBrandNames.add(row.brand.toLowerCase());
+            newBrandCount++;
+        }
+    });
+
+    await saveItemsStorage();
+    renderItemsTable();
+    renderStockTable();
+    await dbSet('brands', brands);
+
+    let msg = `Imported ${toImport.length} item${toImport.length === 1 ? '' : 's'}`;
+    if (newBrandCount > 0) msg += `, created ${newBrandCount} new brand${newBrandCount === 1 ? '' : 's'}`;
+    showToast(msg);
+
+    closeExcelPreviewModal();
+}
+
+// Warn user if they try to navigate away while the preview modal is open
+window.addEventListener('beforeunload', (e) => {
+    if ($('#excel-preview-modal')?.classList.contains('active')) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved import data. Are you sure you want to leave?';
+    }
+});
 
 async function openItemModal(id = null) {
     editingItemId = id;
@@ -1456,7 +1696,7 @@ async function saveItemForm() {
 }
 
 async function deleteItem(id) {
-    if (!confirm('Delete this item? This will not affect past bills.')) return;
+    if (!await showConfirm('Delete this item? This will not affect past bills.', 'Delete Item')) return;
     AppState.items = AppState.items.filter(i => i.id !== id);
     await saveItemsStorage();
     renderItemsTable();
@@ -1665,7 +1905,7 @@ function reprintPastBill(id) {
 }
 
 async function deletePastBill(id) {
-    if (!confirm('Delete this bill permanently?')) return;
+    if (!await showConfirm('Delete this bill permanently? This cannot be undone.', 'Delete Bill')) return;
     AppState.savedBills = AppState.savedBills.filter(b => b.id !== id);
     await dbSet('bills', AppState.savedBills);
     renderPastBills();
@@ -2038,7 +2278,7 @@ function importAllData(event) {
         try {
             const data = JSON.parse(e.target.result);
             if (data.app !== 'bill-hive') {
-                if (!confirm('This file does not look like a Bill-Hive backup. Import anyway?')) return;
+                if (!await showConfirm('This file does not look like a Bill-Hive backup. Import anyway?', 'Unrecognised File')) return;
             }
 
             if (data.companyData) await dbSet('company', data.companyData);
@@ -2066,8 +2306,8 @@ function importAllData(event) {
 }
 
 async function resetAllData() {
-    if (!confirm('This will permanently erase ALL Bill-Hive data from this browser. Continue?')) return;
-    if (!confirm('Are you absolutely sure? This cannot be undone.')) return;
+    if (!await showConfirm('This will permanently erase ALL Bill-Hive data from this browser. This cannot be undone.', 'Reset All Data')) return;
+    if (!await showConfirm('Final confirmation — erase everything?', 'Are You Sure?')) return;
 
     await dbClearAll();
     // Also clear any legacy localStorage keys in case migration hasn't run yet
@@ -2144,6 +2384,8 @@ async function init() {
         if (e.key === 'Escape') {
             closeSidebar();
             closePreview();
+            if ($('#excel-preview-modal')?.classList.contains('active')) closeExcelPreviewModal();
+            if ($('#confirm-modal')?.classList.contains('active')) closeConfirmModal();
         }
     });
 
