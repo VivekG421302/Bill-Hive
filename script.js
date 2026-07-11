@@ -263,13 +263,25 @@ function shadeColor(hex, percent) {
 }
 
 function applyAccentColor(hex) {
+    // .dark-mode redeclares --accent-primary/-hover directly on <body>, and a
+    // class-based rule that targets an element directly always beats a value
+    // merely inherited from an ancestor (document.documentElement here). So
+    // setting the override only on <html> worked in light mode (nothing else
+    // touches the property there) but was silently out-cascaded by .dark-mode
+    // in dark mode. Setting it on document.body too — where .dark-mode itself
+    // lives — makes the inline override win in both themes.
     const root = document.documentElement;
+    const body = document.body;
     if (hex) {
         root.style.setProperty('--accent-primary', hex);
         root.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
+        body.style.setProperty('--accent-primary', hex);
+        body.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
     } else {
         root.style.removeProperty('--accent-primary');
         root.style.removeProperty('--accent-primary-hover');
+        body.style.removeProperty('--accent-primary');
+        body.style.removeProperty('--accent-primary-hover');
     }
     const swatches = $$('.accent-preset');
     swatches.forEach(sw => sw.classList.toggle('active', sw.dataset.color === (hex || '')));
@@ -279,8 +291,9 @@ function applyAccentColor(hex) {
 // After N minutes of inactivity, shows a full-screen idle overlay. Any
 // click or keypress anywhere immediately dismisses it and restarts the timer.
 let screensaverTimer = null;
-let screensaverMinutesActive = 5;
+let screensaverSecondsActive = 30;
 let screensaverEnabledActive = false;
+let screensaverListenersBound = false;
 
 function showScreensaver() {
     const overlay = $('#screensaver-overlay');
@@ -296,15 +309,21 @@ function resetScreensaverTimer() {
     if (screensaverTimer) clearTimeout(screensaverTimer);
     hideScreensaver();
     if (!screensaverEnabledActive) return;
-    screensaverTimer = setTimeout(showScreensaver, screensaverMinutesActive * 60 * 1000);
+    screensaverTimer = setTimeout(showScreensaver, screensaverSecondsActive * 1000);
 }
 
-function initScreensaver(enabled, minutes) {
+function initScreensaver(enabled, seconds) {
     screensaverEnabledActive = !!enabled;
-    screensaverMinutesActive = (minutes && minutes > 0) ? minutes : 5;
-    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
-        document.addEventListener(evt, resetScreensaverTimer, { passive: true });
-    });
+    screensaverSecondsActive = (seconds && seconds > 0) ? seconds : 30;
+    // Bind the activity listeners once — re-calling initScreensaver (e.g. on
+    // every settings save) used to re-register them each time, stacking up
+    // duplicate handlers.
+    if (!screensaverListenersBound) {
+        screensaverListenersBound = true;
+        ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+            document.addEventListener(evt, resetScreensaverTimer, { passive: true });
+        });
+    }
     resetScreensaverTimer();
 }
 
@@ -396,9 +415,9 @@ const AppState = {
         },
         sidebarSide: 'right',       // v4.02.0 Part 1 — 'left' or 'right'
         accentColor: '',            // v4.02.0 Part 1 — empty = default theme accent
-        screensaver: {              // v4.02.0 Part 1
+        screensaver: {              // v4.02.0 Part 1 — idle timeout is in seconds
             enabled: false,
-            minutes: 5
+            seconds: 30
         }
     },
     config: {
@@ -1422,9 +1441,9 @@ async function saveSettings() {
     applyAccentColor(accentColor);
 
     const screensaverEnabled = !!$('#settings-screensaver-enabled')?.checked;
-    const screensaverMinutes = parseInt($('#settings-screensaver-minutes')?.value, 10) || 5;
-    AppState.settings.screensaver = { enabled: screensaverEnabled, minutes: screensaverMinutes };
-    initScreensaver(screensaverEnabled, screensaverMinutes);
+    const screensaverSeconds = parseInt($('#settings-screensaver-seconds')?.value, 10) || 30;
+    AppState.settings.screensaver = { enabled: screensaverEnabled, seconds: screensaverSeconds };
+    initScreensaver(screensaverEnabled, screensaverSeconds);
 
     await dbSet('settings', AppState.settings);
     showToast('Settings saved!');
@@ -1468,17 +1487,21 @@ async function loadSettings() {
             if ($('#settings-accent-color')) $('#settings-accent-color').value = accentColor || '#228be6';
             applyAccentColor(accentColor);
 
-            const screensaverCfg = data.screensaver || { enabled: false, minutes: 5 };
+            const screensaverCfg = data.screensaver || { enabled: false, seconds: 30 };
+            // Back-compat: older saves stored `minutes` instead of `seconds`.
+            const screensaverSeconds = screensaverCfg.seconds != null
+                ? screensaverCfg.seconds
+                : ((screensaverCfg.minutes || 5) * 60);
             if ($('#settings-screensaver-enabled')) $('#settings-screensaver-enabled').checked = !!screensaverCfg.enabled;
-            if ($('#settings-screensaver-minutes')) $('#settings-screensaver-minutes').value = screensaverCfg.minutes || 5;
-            initScreensaver(screensaverCfg.enabled, screensaverCfg.minutes);
+            if ($('#settings-screensaver-seconds')) $('#settings-screensaver-seconds').value = screensaverSeconds;
+            initScreensaver(screensaverCfg.enabled, screensaverSeconds);
         } catch (e) {
             console.error('Error loading settings:', e);
         }
     } else {
         // No saved settings yet — still apply defaults so the screen saver
         // listeners etc. are wired up.
-        initScreensaver(false, 5);
+        initScreensaver(false, 30);
     }
 }
 
