@@ -1293,7 +1293,7 @@ function updateHeaderLogo(logoUrl) {
 
     // v4.02.0 Part 1 — App Logo Consistency: the footer logo mirrors the
     // header logo exactly (same uploaded image, or the same placeholder icon).
-    updateFooterLogo(logoUrl);
+    // updateFooterLogo(logoUrl);
 }
 
 function updateFooterLogo(logoUrl) {
