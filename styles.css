@@ -2155,12 +2155,13 @@ a {
 
 /* ===================== v2.3 ADDITIONS ===================== */
 
-/* Header brand icon (favicon) on the left of the header */
+/* Header brand icon on the left of the header — same outline mark as
+   .sidebar-logo / .footer-logo (currentColor strokes, no filled box) so the
+   header, footer and sidebar all show the identical Bill-Hive icon. */
 .header-brand-icon {
     width: 34px;
     height: 34px;
-    border-radius: var(--radius-md);
-    display: block;
+    color: var(--accent-primary);
     flex-shrink: 0;
 }
 
@@ -2485,9 +2486,22 @@ a {
 }
 
 /* ===================== v4.02.0 PART 1 — SHARED CHROME ADDITIONS ===================== */
-/* Sidebar side / menu position (left or right). Default is right (unchanged). */
-body.side-left .app-header {
-    flex-direction: row-reverse;
+/* Sidebar side / menu position (left or right). Default is right (unchanged).
+   .app-header is a CSS Grid (not flex), so reordering it needs `order` on the
+   grid items rather than flex-direction: row-reverse (which has no effect on
+   a grid container). */
+body.side-left .header-left {
+    order: 3;
+    justify-self: end;
+}
+
+body.side-left .header-center {
+    order: 2;
+}
+
+body.side-left .header-right {
+    order: 1;
+    justify-self: start;
 }
 
 body.side-left .sidebar {
