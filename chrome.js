@@ -258,20 +258,48 @@ function applySidebarSide(side) {
 }
 
 // ===================== ACCENT COLOR (v4.02.0 Part 1) =====================
+function shadeColor(hex, percent) {
+    hex = (hex || '').replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    if (!/^[0-9a-fA-F]{6}$/.test(hex)) return hex ? ('#' + hex) : '#1c7ed6';
+    const num = parseInt(hex, 16);
+    let r = (num >> 16) + Math.round(255 * percent / 100);
+    let g = ((num >> 8) & 0x00FF) + Math.round(255 * percent / 100);
+    let b = (num & 0x0000FF) + Math.round(255 * percent / 100);
+    r = Math.min(255, Math.max(0, r));
+    g = Math.min(255, Math.max(0, g));
+    b = Math.min(255, Math.max(0, b));
+    return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+}
+
 function applyAccentColor(hex) {
+    // .dark-mode redeclares --accent-primary/-hover directly on <body>, and a
+    // class-based rule that targets an element directly always beats a value
+    // merely inherited from an ancestor (document.documentElement here). So
+    // setting the override only on <html> worked in light mode (nothing else
+    // touches the property there) but was silently out-cascaded by .dark-mode
+    // in dark mode. Setting it on document.body too — where .dark-mode itself
+    // lives — makes the inline override win in both themes.
     const root = document.documentElement;
+    const body = document.body;
     if (hex) {
         root.style.setProperty('--accent-primary', hex);
+        root.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
+        body.style.setProperty('--accent-primary', hex);
+        body.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
     } else {
         root.style.removeProperty('--accent-primary');
         root.style.removeProperty('--accent-primary-hover');
+        body.style.removeProperty('--accent-primary');
+        body.style.removeProperty('--accent-primary-hover');
     }
 }
 
 // ===================== SCREEN SAVER (v4.02.0 Part 1) =====================
 let screensaverTimer = null;
-let screensaverMinutesActive = 5;
+let screensaverSecondsActive = 30;
 let screensaverEnabledActive = false;
+let screensaverListenersBound = false;
 
 function showScreensaver() {
     const overlay = $('#screensaver-overlay');
@@ -287,15 +315,20 @@ function resetScreensaverTimer() {
     if (screensaverTimer) clearTimeout(screensaverTimer);
     hideScreensaver();
     if (!screensaverEnabledActive) return;
-    screensaverTimer = setTimeout(showScreensaver, screensaverMinutesActive * 60 * 1000);
+    screensaverTimer = setTimeout(showScreensaver, screensaverSecondsActive * 1000);
 }
 
-function initScreensaver(enabled, minutes) {
+function initScreensaver(enabled, seconds) {
     screensaverEnabledActive = !!enabled;
-    screensaverMinutesActive = (minutes && minutes > 0) ? minutes : 5;
-    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
-        document.addEventListener(evt, resetScreensaverTimer, { passive: true });
-    });
+    screensaverSecondsActive = (seconds && seconds > 0) ? seconds : 30;
+    // Bind the activity listeners once — re-calling initScreensaver used to
+    // re-register them every time, stacking up duplicate handlers.
+    if (!screensaverListenersBound) {
+        screensaverListenersBound = true;
+        ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+            document.addEventListener(evt, resetScreensaverTimer, { passive: true });
+        });
+    }
     resetScreensaverTimer();
 }
 
@@ -304,8 +337,10 @@ async function applySavedUiPrefs() {
         const settings = await dbGet('settings');
         applySidebarSide((settings && settings.sidebarSide) || 'right');
         applyAccentColor((settings && settings.accentColor) || '');
-        const ss = (settings && settings.screensaver) || { enabled: false, minutes: 5 };
-        initScreensaver(ss.enabled, ss.minutes);
+        const ss = (settings && settings.screensaver) || { enabled: false, seconds: 30 };
+        // Back-compat: older saves stored `minutes` instead of `seconds`.
+        const ssSeconds = ss.seconds != null ? ss.seconds : ((ss.minutes || 5) * 60);
+        initScreensaver(ss.enabled, ssSeconds);
     } catch (e) { console.error('Error applying UI preferences:', e); }
 }
 
