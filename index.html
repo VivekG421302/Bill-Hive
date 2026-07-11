@@ -788,6 +788,50 @@
                     </div>
                 </div>
 
+                <!-- v4.02.0 Part 1 — Sidebar side / Accent color / Screen saver -->
+                <div class="settings-group">
+                    <h3>Menu Position</h3>
+                    <p class="settings-desc">Choose which side of the screen the hamburger menu and sidebar open from.</p>
+                    <div class="form-group" style="max-width:220px;">
+                        <label>Sidebar Side</label>
+                        <select id="settings-sidebar-side">
+                            <option value="right">Right (default)</option>
+                            <option value="left">Left</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Accent Color</h3>
+                    <p class="settings-desc">Choose the app's accent color — updates buttons, links and the Bill-Hive logo mark everywhere, and travels with Export/Import.</p>
+                    <div class="accent-swatch-row">
+                        <input type="color" id="settings-accent-color" class="accent-color-input" value="#228be6" oninput="applyAccentColor(this.value)" title="Pick a custom color">
+                        <button type="button" class="accent-preset" style="background:#228be6;" data-color="#228be6" onclick="document.getElementById('settings-accent-color').value=this.dataset.color;applyAccentColor(this.dataset.color);" title="Blue (default)"></button>
+                        <button type="button" class="accent-preset" style="background:#40c057;" data-color="#40c057" onclick="document.getElementById('settings-accent-color').value=this.dataset.color;applyAccentColor(this.dataset.color);" title="Green"></button>
+                        <button type="button" class="accent-preset" style="background:#f76707;" data-color="#f76707" onclick="document.getElementById('settings-accent-color').value=this.dataset.color;applyAccentColor(this.dataset.color);" title="Orange"></button>
+                        <button type="button" class="accent-preset" style="background:#e64980;" data-color="#e64980" onclick="document.getElementById('settings-accent-color').value=this.dataset.color;applyAccentColor(this.dataset.color);" title="Pink"></button>
+                        <button type="button" class="accent-preset" style="background:#7950f2;" data-color="#7950f2" onclick="document.getElementById('settings-accent-color').value=this.dataset.color;applyAccentColor(this.dataset.color);" title="Purple"></button>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Screen Saver</h3>
+                    <p class="settings-desc">Show an idle screen after a period of inactivity. Any click or key press exits it immediately.</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="settings-screensaver-enabled">
+                                <span class="toggle-slider"></span>
+                                <span style="margin-left:8px;font-size:0.8125rem;">Enable screen saver</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>Idle Timeout (minutes)</label>
+                            <input type="number" id="settings-screensaver-minutes" min="1" max="120" step="1" value="5">
+                        </div>
+                    </div>
+                </div>
+
                 <button class="action-btn btn-save" onclick="saveSettings()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
@@ -851,7 +895,7 @@
                 <div class="settings-group">
                     <h3 style="color:var(--accent-danger);">Danger Zone</h3>
                     <p class="settings-desc">Permanently erase all bills, items, stock, returns and settings from this browser. This cannot be undone.</p>
-                    <button class="action-btn btn-clear" style="border-color:var(--accent-danger);color:var(--accent-danger);" onclick="resetAllData()">
+                    <button class="action-btn btn-clear btn-settings-danger" onclick="resetAllData()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                         Erase All Data
                     </button>
@@ -864,20 +908,34 @@
     <footer class="app-footer">
         <div class="footer-content">
             <div class="footer-brand">
-                <svg class="footer-logo" viewBox="0 0 48 48" fill="none">
-                    <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
-                    <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
-                    <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
-                    <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
-                    <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                    <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
-                </svg>
+                <!-- v4.02.0 Part 1 — App Logo Consistency: mirrors #header-logo /
+                     #header-logo-placeholder exactly via updateHeaderLogo()/updateFooterLogo() -->
+                <span class="footer-logo-wrap" id="footer-logo-container">
+                    <img id="footer-logo" src="" alt="Company Logo" class="footer-logo" style="display:none;">
+                    <svg id="footer-logo-placeholder" class="footer-logo" viewBox="0 0 48 48" fill="none">
+                        <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                        <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
+                        <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+                    </svg>
+                </span>
                 <span>Bill-Hive</span>
             </div>
-            <p class="footer-tagline">Simple billing, done right. v2.2</p>
+            <p class="footer-tagline">Simple billing, done right. v4.02.0</p>
         </div>
     </footer>
+
+    <!-- ===================== SCREEN SAVER OVERLAY (v4.02.0 Part 1) ===================== -->
+    <div class="screensaver-overlay" id="screensaver-overlay">
+        <svg viewBox="0 0 48 48" fill="none">
+            <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+            <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+        <p>Click or press any key to continue</p>
+    </div>
 
     <datalist id="items-datalist"></datalist>
 
@@ -1041,6 +1099,28 @@
             <div class="modal-footer">
                 <button class="action-btn btn-danger" id="confirm-yes-btn">Confirm</button>
                 <button class="action-btn btn-clear" onclick="closeConfirmModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== ERASE-ALL-DATA TYPE-TO-CONFIRM MODAL (v4.02.0 Part 1) ===================== -->
+    <div id="erase-confirm-modal" class="modal">
+        <div class="modal-overlay" onclick="closeEraseConfirmModal()"></div>
+        <div class="modal-content" style="max-width:420px;">
+            <div class="modal-header">
+                <h3 style="color:var(--accent-danger);">Erase All Data</h3>
+                <button class="modal-close" onclick="closeEraseConfirmModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text-secondary);line-height:1.6;">This will permanently erase ALL Bill-Hive data — bills, items, stock, returns and settings — from this browser. This cannot be undone.</p>
+                <p style="margin-top:12px;font-size:0.8125rem;color:var(--text-muted);">Type <strong>delete</strong> below to confirm.</p>
+                <input type="text" id="erase-confirm-input" class="type-confirm-input" placeholder="Type delete to confirm" autocomplete="off" oninput="validateEraseConfirmInput()">
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn btn-danger" id="erase-confirm-yes-btn" disabled onclick="confirmEraseAllData()">Erase Everything</button>
+                <button class="action-btn btn-clear" onclick="closeEraseConfirmModal()">Cancel</button>
             </div>
         </div>
     </div>
