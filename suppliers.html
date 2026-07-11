@@ -2312,7 +2312,6 @@ a {
     z-index: 91;
 }
 
-
 /* Task 7: Column Visibility Selector */
 
 .col-hidden {
@@ -2498,7 +2497,287 @@ a {
 .po-journey-connector-completed {
     background: var(--accent-primary);
 }
-    </style>
+
+/* ===================== v4.02.0 PART 1 — SHARED CHROME ADDITIONS ===================== */
+/* Sidebar side / menu position (left or right). Default is right (unchanged). */
+body.side-left .app-header {
+    flex-direction: row-reverse;
+}
+
+body.side-left .sidebar {
+    left: 0;
+    right: auto;
+    border-left: none;
+    border-right: 1px solid var(--border-color);
+    transform: translateX(-100%);
+}
+
+body.side-left .sidebar.open {
+    transform: translateX(0);
+}
+
+body.side-left .sidebar-header {
+    flex-direction: row-reverse;
+}
+
+/* Footer logo — mirrors the header logo element so both always show the
+   identical company logo (or identical placeholder icon) at once. */
+.footer-logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.footer-logo-wrap img.footer-logo {
+    object-fit: contain;
+}
+
+/* Row-click-to-open pattern (used across Brands, Suppliers, and — per the
+   pattern documented in CONTEXT.md — Items/Catalogue/Past Bills/Purchase
+   Orders in later work). Clicking anywhere on a `.row-clickable` element
+   opens its detail view; inner buttons/links/inputs are excluded via the
+   makeRowClickable() JS helper so Edit/Delete icons keep working normally. */
+.row-clickable {
+    cursor: pointer;
+}
+
+.row-clickable:hover {
+    background: var(--bg-hover);
+}
+
+.row-clickable:active {
+    background: var(--bg-tertiary);
+}
+
+.brand-card.row-clickable:hover,
+.brand-card.row-clickable:active {
+    box-shadow: var(--shadow-md);
+}
+
+/* Top-level action bar shown at the top of a detail/view (Edit / Delete /
+   Print / Preview). Reusable across every "view" modal or page. */
+.view-action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.view-action-bar .action-btn {
+    flex: 0 0 auto;
+    padding: 10px 14px;
+}
+
+.view-action-bar .action-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.view-detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.view-detail-row:last-child {
+    border-bottom: none;
+}
+
+.view-detail-label {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}
+
+.view-detail-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+}
+
+/* Scroll & drag optimization — smooth horizontal drag-scrolling on wide
+   tables without triggering accidental text selection mid-drag. */
+.table-wrap {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+}
+
+.table-wrap.dragging,
+.no-select-drag {
+    cursor: grabbing !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+.table-wrap.dragging * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+/* Responsive fixes — keep action buttons reachable instead of clipped or
+   hidden on narrow viewports. */
+@media (max-width: 480px) {
+    .data-actions,
+    .edit-actions,
+    .view-action-bar {
+        flex-wrap: wrap;
+    }
+
+    .data-actions .action-btn,
+    .edit-actions .action-btn,
+    .view-action-bar .action-btn {
+        flex: 1 1 45%;
+        min-width: 130px;
+    }
+
+    .page-header-with-action {
+        flex-wrap: wrap;
+        row-gap: 10px;
+    }
+
+    .header-right,
+    .header-left {
+        flex-shrink: 0;
+    }
+}
+
+/* Settings page — border-filled buttons whose fill + text colors swap on
+   hover, instead of the app-wide solid button style. */
+#page-settings .action-btn,
+#page-settings .import-btn {
+    background: transparent;
+    box-shadow: none;
+    border: 1.5px solid var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+#page-settings .action-btn:hover,
+#page-settings .import-btn:hover {
+    background: var(--accent-primary);
+    color: var(--text-inverse);
+}
+
+#page-settings .action-btn.btn-save,
+#page-settings .import-btn.btn-save {
+    border-color: var(--accent-secondary);
+    color: var(--accent-secondary);
+}
+
+#page-settings .action-btn.btn-save:hover,
+#page-settings .import-btn.btn-save:hover {
+    background: var(--accent-secondary);
+    color: var(--text-inverse);
+}
+
+#page-settings .action-btn.btn-clear,
+#page-settings .import-btn.btn-clear {
+    border-color: var(--text-muted);
+    color: var(--text-secondary);
+}
+
+#page-settings .action-btn.btn-clear:hover,
+#page-settings .import-btn.btn-clear:hover {
+    background: var(--text-secondary);
+    color: var(--bg-secondary);
+}
+
+#page-settings .btn-settings-danger {
+    border-color: var(--accent-danger) !important;
+    color: var(--accent-danger) !important;
+}
+
+#page-settings .btn-settings-danger:hover {
+    background: var(--accent-danger) !important;
+    color: var(--text-inverse) !important;
+}
+
+/* Accent color customization */
+.accent-swatch-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.accent-color-input {
+    width: 52px;
+    height: 36px;
+    padding: 0;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    background: none;
+}
+
+.accent-preset {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.accent-preset.active {
+    border-color: var(--text-primary);
+    box-shadow: 0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--text-primary);
+}
+
+/* Screen saver */
+.screensaver-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: var(--bg-primary);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    cursor: pointer;
+}
+
+.screensaver-overlay.active {
+    display: flex;
+}
+
+.screensaver-overlay svg {
+    width: 64px;
+    height: 64px;
+    color: var(--accent-primary);
+    animation: ss-pulse 2.4s ease-in-out infinite;
+}
+
+.screensaver-overlay p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+@keyframes ss-pulse {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.08); }
+}
+
+/* Erase-data type-to-confirm input */
+.type-confirm-input {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--accent-danger);
+    border-radius: var(--radius-sm);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+}
+
+</style>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="light-mode">
@@ -2730,15 +3009,18 @@ a {
     <footer class="app-footer">
         <div class="footer-content">
             <div class="footer-brand">
-                <svg class="footer-logo" viewBox="0 0 48 48" fill="none">
-                    <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
-                    <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
-                    <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
-                    <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
-                    <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                    <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
-                </svg>
+                <span class="footer-logo-wrap" id="footer-logo-container">
+                    <img id="footer-logo" src="" alt="Company Logo" class="footer-logo" style="display:none;">
+                    <svg id="footer-logo-placeholder" class="footer-logo" viewBox="0 0 48 48" fill="none">
+                        <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                        <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
+                        <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+                    </svg>
+                </span>
                 <span>Bill-Hive</span>
             </div>
             <p class="footer-tagline">Simple billing, done right. v4.01.0</p>
@@ -2790,6 +3072,36 @@ a {
             <div class="modal-footer">
                 <button class="action-btn btn-save" onclick="saveSupplierForm()">Save Supplier</button>
                 <button class="action-btn btn-clear" onclick="closeSupplierModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== SUPPLIER VIEW MODAL (v4.02.0 Part 1 — reference pattern) ===================== -->
+    <div id="supplier-view-modal" class="modal">
+        <div class="modal-overlay" onclick="closeSupplierViewModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="supplier-view-title">Supplier</h3>
+                <button class="modal-close" onclick="closeSupplierViewModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="view-action-bar">
+                    <button class="action-btn btn-save" onclick="editSupplierFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                        Edit
+                    </button>
+                    <button class="action-btn btn-clear" onclick="printSupplierFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Print
+                    </button>
+                    <button class="action-btn icon-btn-danger" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteSupplierFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                        Delete
+                    </button>
+                </div>
+                <div id="supplier-view-body"></div>
             </div>
         </div>
     </div>
@@ -2958,6 +3270,521 @@ function dbClearAll() {
     return Promise.all(STORE_NAMES.map(name => dbRemove(name)));
 }
 
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => document.querySelectorAll(selector);
+
+function escapeHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Currency symbol is cached after load so formatCurrency() can stay
+// synchronous for use inside template-literal render functions.
+let cachedCurrencySymbol = '₹';
+
+async function loadCurrencySymbol() {
+    try {
+        const s = await dbGet('settings');
+        if (s && s.currencySymbol) cachedCurrencySymbol = s.currencySymbol;
+    } catch (e) {}
+}
+
+function getCurrencySymbol() {
+    return cachedCurrencySymbol;
+}
+
+function formatCurrency(amount) {
+    return getCurrencySymbol() + ' ' + parseFloat(amount || 0).toFixed(2);
+}
+
+function formatDate(date) {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function showToast(message) {
+    const toast = $('#toast');
+    const toastMessage = $('#toast-message');
+    if (!toast || !toastMessage) return;
+    toastMessage.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ===================== SIDEBAR =====================
+function openSidebar() {
+    $('#sidebar').classList.add('open');
+    $('#sidebar-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSidebar() {
+    $('#sidebar').classList.remove('open');
+    $('#sidebar-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// ===================== THEME =====================
+async function toggleTheme() {
+    const body = document.body;
+    const isDark = body.classList.contains('dark-mode');
+    if (isDark) {
+        body.classList.remove('dark-mode');
+        body.classList.add('light-mode');
+        await dbSet('theme', 'light');
+    } else {
+        body.classList.remove('light-mode');
+        body.classList.add('dark-mode');
+        await dbSet('theme', 'dark');
+    }
+}
+
+async function initTheme() {
+    const savedTheme = await dbGet('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.remove('light-mode');
+        document.body.classList.add('dark-mode');
+    }
+}
+
+// ===================== HEADER LOGO =====================
+function updateHeaderLogo(logoUrl) {
+    const headerImg = $('#header-logo');
+    const headerPlaceholder = $('#header-logo-placeholder');
+    if (headerImg && headerPlaceholder) {
+        if (logoUrl) {
+            headerImg.src = logoUrl;
+            headerImg.style.display = 'block';
+            headerPlaceholder.style.display = 'none';
+        } else {
+            headerImg.style.display = 'none';
+            headerPlaceholder.style.display = 'flex';
+        }
+    }
+    // v4.02.0 Part 1 — App Logo Consistency: footer mirrors header exactly.
+    updateFooterLogo(logoUrl);
+}
+
+function updateFooterLogo(logoUrl) {
+    const footerImg = $('#footer-logo');
+    const footerPlaceholder = $('#footer-logo-placeholder');
+    if (!footerImg || !footerPlaceholder) return;
+    if (logoUrl) {
+        footerImg.src = logoUrl;
+        footerImg.style.display = 'block';
+        footerPlaceholder.style.display = 'none';
+    } else {
+        footerImg.style.display = 'none';
+        footerPlaceholder.style.display = 'flex';
+    }
+}
+
+async function loadHeaderCompanyLogo() {
+    try {
+        const data = await dbGet('company');
+        if (data && data.logo) updateHeaderLogo(data.logo);
+    } catch (e) { console.error('Error loading company logo:', e); }
+}
+
+// ===================== SIDEBAR SIDE (v4.02.0 Part 1) =====================
+// Standalone pages have no Settings UI of their own — they just read and
+// apply whatever was chosen on index.html's Settings page.
+function applySidebarSide(side) {
+    document.body.classList.toggle('side-left', side === 'left');
+}
+
+// ===================== ACCENT COLOR (v4.02.0 Part 1) =====================
+function applyAccentColor(hex) {
+    const root = document.documentElement;
+    if (hex) {
+        root.style.setProperty('--accent-primary', hex);
+    } else {
+        root.style.removeProperty('--accent-primary');
+        root.style.removeProperty('--accent-primary-hover');
+    }
+}
+
+// ===================== SCREEN SAVER (v4.02.0 Part 1) =====================
+let screensaverTimer = null;
+let screensaverMinutesActive = 5;
+let screensaverEnabledActive = false;
+
+function showScreensaver() {
+    const overlay = $('#screensaver-overlay');
+    if (overlay) overlay.classList.add('active');
+}
+
+function hideScreensaver() {
+    const overlay = $('#screensaver-overlay');
+    if (overlay) overlay.classList.remove('active');
+}
+
+function resetScreensaverTimer() {
+    if (screensaverTimer) clearTimeout(screensaverTimer);
+    hideScreensaver();
+    if (!screensaverEnabledActive) return;
+    screensaverTimer = setTimeout(showScreensaver, screensaverMinutesActive * 60 * 1000);
+}
+
+function initScreensaver(enabled, minutes) {
+    screensaverEnabledActive = !!enabled;
+    screensaverMinutesActive = (minutes && minutes > 0) ? minutes : 5;
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+        document.addEventListener(evt, resetScreensaverTimer, { passive: true });
+    });
+    resetScreensaverTimer();
+}
+
+async function applySavedUiPrefs() {
+    try {
+        const settings = await dbGet('settings');
+        applySidebarSide((settings && settings.sidebarSide) || 'right');
+        applyAccentColor((settings && settings.accentColor) || '');
+        const ss = (settings && settings.screensaver) || { enabled: false, minutes: 5 };
+        initScreensaver(ss.enabled, ss.minutes);
+    } catch (e) { console.error('Error applying UI preferences:', e); }
+}
+
+// ===================== SCROLL & DRAG OPTIMIZATION (v4.02.0 Part 1) =====================
+function enableDragScroll(el) {
+    if (!el || el._dragScrollBound) return;
+    el._dragScrollBound = true;
+    let isDown = false, startX = 0, scrollLeft = 0, moved = false;
+
+    el.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button, a, input, select, textarea')) return;
+        isDown = true;
+        moved = false;
+        startX = e.pageX - el.offsetLeft;
+        scrollLeft = el.scrollLeft;
+    });
+
+    ['mouseleave', 'mouseup'].forEach(evt => el.addEventListener(evt, () => {
+        isDown = false;
+        el.classList.remove('dragging');
+    }));
+
+    el.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        const x = e.pageX - el.offsetLeft;
+        const walk = x - startX;
+        if (Math.abs(walk) > 5) {
+            moved = true;
+            el.classList.add('dragging');
+        }
+        if (moved) {
+            e.preventDefault();
+            el.scrollLeft = scrollLeft - walk;
+        }
+    });
+
+    el.addEventListener('click', (e) => {
+        if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+    }, true);
+}
+
+function initDragScrollAll() {
+    $$('.table-wrap').forEach(enableDragScroll);
+}
+
+// ===================== ROW-CLICK-TO-OPEN PATTERN (v4.02.0 Part 1) =====================
+// Reusable helper: makes a table row / card clickable to open its detail
+// view, while inner buttons/links/inputs still work normally.  Usage:
+//   makeRowClickable(rowEl, () => viewSupplier(s.id));
+function makeRowClickable(el, onOpen) {
+    if (!el) return;
+    el.classList.add('row-clickable');
+    el.addEventListener('click', (e) => {
+        if (e.target.closest('button, a, input, select, textarea, label')) return;
+        onOpen();
+    });
+}
+
+// ===================== COLUMN VISIBILITY (v4.01.0 Task 7) =====================
+// NOTE: this system already lives per-page (see suppliers.html's and
+// fulfillment.html's page-specific <script> blocks, each with their own
+// TABLE_COLUMNS map) rather than here in the shared chrome layer, so that
+// pages which don't need it don't declare an unused `const TABLE_COLUMNS`
+// that could collide with a page-specific one of the same name. When adding
+// the picker to a new table, copy that pattern into the page's own script:
+// a `TABLE_COLUMNS` map of `tableId -> [column names]`, plus
+// loadColumnVisibility/saveColumnVisibility/applyColumnVisibility/
+// initColumnVisibility/renderColumnToggles/toggleColumn/toggleColumnDropdown,
+// all backed by the shared `columnVisibility` IndexedDB store (already
+// created by dbInit() above via STORE_NAMES).
+
+// ===================== CUSTOM CONFIRM MODAL (v4.01.0) =====================
+let _confirmResolve = null;
+
+function showConfirm(message, title = 'Confirm') {
+    return new Promise((resolve) => {
+        _confirmResolve = resolve;
+        const titleEl  = document.getElementById('confirm-modal-title');
+        const msgEl    = document.getElementById('confirm-modal-message');
+        const modal    = document.getElementById('confirm-modal');
+        const yesBtn   = document.getElementById('confirm-yes-btn');
+        if (!modal) { resolve(window.confirm(message)); return; } // graceful fallback
+        if (titleEl) titleEl.textContent = title;
+        if (msgEl)   msgEl.textContent   = message;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        yesBtn.onclick = () => { closeConfirmModal(); resolve(true); };
+    });
+}
+
+function closeConfirmModal() {
+    const modal = document.getElementById('confirm-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+    if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+}
+
+// ===================== SHARED CHROME INIT =====================
+async function initChrome() {
+    await dbInit();
+    await initTheme();
+    await loadCurrencySymbol();
+    await loadHeaderCompanyLogo();
+    await applySavedUiPrefs(); // v4.02.0 Part 1 — sidebar side, accent color, screen saver
+    initDragScrollAll();       // v4.02.0 Part 1 — drag-to-scroll on wide tables
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeSidebar();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initChrome);
+
+// ===================== PWA INSTALL (chrome pages) =====================
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById('pwa-install-btn');
+    const div = document.getElementById('pwa-install-divider');
+    if (btn) { btn.style.display = 'flex'; }
+    if (div) { div.style.display = 'block'; }
+});
+
+function installPWA() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        const btn = document.getElementById('pwa-install-btn');
+        const div = document.getElementById('pwa-install-divider');
+        if (btn) btn.style.display = 'none';
+        if (div) div.style.display = 'none';
+    });
+}
+
+window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    const btn = document.getElementById('pwa-install-btn');
+    if (btn) btn.style.display = 'none';
+});
+
+</script>
+    <script>
+// ===================== SUPPLIERS PAGE =====================
+let Suppliers = [];
+let supplierIdCounter = 0;
+let editingSupplierId = null;
+
+async function loadSuppliers() {
+    await dbInit();
+    const data = await dbGet('suppliers');
+    if (data) {
+        try {
+            Suppliers = data;
+            supplierIdCounter = Suppliers.reduce((max, s) => Math.max(max, s.id || 0), 0);
+        } catch (e) { console.error('Error loading suppliers:', e); }
+    }
+    renderSuppliers();
+}
+
+async function saveSuppliersStorage() {
+    await dbSet('suppliers', Suppliers);
+}
+
+function renderSuppliers() {
+    const tbody = $('#suppliers-table-body');
+    const empty = $('#suppliers-empty');
+    if (!tbody) return;
+
+    const query = ($('#suppliers-search')?.value || '').toLowerCase().trim();
+    const filtered = Suppliers.filter(s =>
+        !query ||
+        s.name.toLowerCase().includes(query) ||
+        (s.contactPerson || '').toLowerCase().includes(query) ||
+        (s.itemsSupplied || '').toLowerCase().includes(query)
+    );
+
+    empty.style.display = Suppliers.length === 0 ? 'flex' : 'none';
+
+    tbody.innerHTML = filtered.map(s => `
+        <tr>
+            <td class="cell-strong">${escapeHtml(s.name)}</td>
+            <td>${escapeHtml(s.contactPerson) || '—'}</td>
+            <td>${escapeHtml(s.phone) || '—'}</td>
+            <td>${escapeHtml(s.itemsSupplied) || '—'}</td>
+            <td class="cell-actions">
+                <button class="icon-btn" onclick="event.stopPropagation();openSupplierModal(${s.id})" title="Edit">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                </button>
+                <button class="icon-btn icon-btn-danger" onclick="event.stopPropagation();deleteSupplier(${s.id})" title="Delete">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                </button>
+            </td>
+        </tr>
+    `).join('') || (Suppliers.length > 0 ? '<tr><td colspan="5" class="cell-muted">No suppliers match your search.</td></tr>' : '');
+
+    // v4.02.0 Part 1 — clicking anywhere on the row (outside the icon
+    // buttons) opens the read-only Supplier View with its own top-level
+    // Edit/Delete/Print actions, per the row-click pattern documented in
+    // CONTEXT.md.
+    tbody.querySelectorAll('tr').forEach((tr, i) => {
+        const s = filtered[i];
+        if (s) makeRowClickable(tr, () => viewSupplier(s.id));
+    });
+
+    initColumnVisibility('suppliers-table');
+}
+
+// ===================== SUPPLIER VIEW (v4.02.0 Part 1 — reference pattern) =====================
+function viewSupplier(id) {
+    const s = Suppliers.find(x => x.id === id);
+    if (!s) return;
+    $('#supplier-view-title').textContent = s.name;
+    $('#supplier-view-body').innerHTML = `
+        <div class="view-detail-row"><span class="view-detail-label">Contact Person</span><span class="view-detail-value">${escapeHtml(s.contactPerson) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Phone</span><span class="view-detail-value">${escapeHtml(s.phone) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Email</span><span class="view-detail-value">${escapeHtml(s.email) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Address</span><span class="view-detail-value">${escapeHtml(s.address) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Items Supplied</span><span class="view-detail-value">${escapeHtml(s.itemsSupplied) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Notes</span><span class="view-detail-value">${escapeHtml(s.notes) || '—'}</span></div>
+    `;
+    $('#supplier-view-modal').dataset.supplierId = id;
+    $('#supplier-view-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSupplierViewModal() {
+    $('#supplier-view-modal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function editSupplierFromView() {
+    const id = parseInt($('#supplier-view-modal').dataset.supplierId, 10);
+    closeSupplierViewModal();
+    openSupplierModal(id);
+}
+
+async function deleteSupplierFromView() {
+    const id = parseInt($('#supplier-view-modal').dataset.supplierId, 10);
+    closeSupplierViewModal();
+    await deleteSupplier(id);
+}
+
+function printSupplierFromView() {
+    const id = parseInt($('#supplier-view-modal').dataset.supplierId, 10);
+    const s = Suppliers.find(x => x.id === id);
+    if (!s) return;
+    const win = window.open('', '_blank');
+    win.document.write(`
+        <!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(s.name)} — Supplier</title>
+        <style>body{font-family:'Courier New',monospace;font-weight:700;padding:24px;color:#000;}
+        h2{border-bottom:2px solid #000;padding-bottom:8px;}
+        .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #999;font-size:13px;}</style></head>
+        <body>
+            <h2>${escapeHtml(s.name)}</h2>
+            <div class="row"><span>Contact Person</span><span>${escapeHtml(s.contactPerson) || '—'}</span></div>
+            <div class="row"><span>Phone</span><span>${escapeHtml(s.phone) || '—'}</span></div>
+            <div class="row"><span>Email</span><span>${escapeHtml(s.email) || '—'}</span></div>
+            <div class="row"><span>Address</span><span>${escapeHtml(s.address) || '—'}</span></div>
+            <div class="row"><span>Items Supplied</span><span>${escapeHtml(s.itemsSupplied) || '—'}</span></div>
+        
+    <!-- ===================== SCREEN SAVER OVERLAY (v4.02.0 Part 1) ===================== -->
+    <div class="screensaver-overlay" id="screensaver-overlay">
+        <svg viewBox="0 0 48 48" fill="none">
+            <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+            <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+        <p>Click or press any key to continue</p>
+    </div>
+</body></html>
+    `);
+    win.document.close();
+    win.onload = () => { win.focus(); win.print(); };
+}
+
+function openSupplierModal(id = null) {
+    editingSupplierId = id;
+    const title = $('#supplier-modal-title');
+
+    if (id) {
+        const s = Suppliers.find(x => x.id === id);
+        if (!s) return;
+        title.textContent = 'Edit Supplier';
+        $('#supplier-form-name').value = s.name || '';
+        $('#supplier-form-contact').value = s.contactPerson || '';
+        $('#supplier-form-phone').value = s.phone || '';
+        $('#supplier-form-email').value = s.email || '';
+        $('#supplier-form-address').value = s.address || '';
+        $('#supplier-form-items').value = s.itemsSupplied || '';
+        $('#supplier-form-notes').value = s.notes || '';
+    } else {
+        title.textContent = 'Add Supplier';
+        ['#supplier-form-name', '#supplier-form-contact', '#supplier-form-phone', '#supplier-form-email',
+         '#supplier-form-address', '#supplier-form-items', '#supplier-form-notes'].forEach(id => { $(id).value = ''; });
+    }
+    $('#supplier-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSupplierModal() {
+    $('#supplier-modal').classList.remove('active');
+    document.body.style.overflow = '';
+    editingSupplierId = null;
+}
+
+async function saveSupplierForm() {
+    const name = $('#supplier-form-name').value.trim();
+    if (!name) {
+        showToast('Supplier name is required');
+        return;
+    }
+    const data = {
+        name,
+        contactPerson: $('#supplier-form-contact').value.trim(),
+        phone: $('#supplier-form-phone').value.trim(),
+        email: $('#supplier-form-email').value.trim(),
+        address: $('#supplier-form-address').value.trim(),
+        itemsSupplied: $('#supplier-form-items').value.trim(),
+        notes: $('#supplier-form-notes').value.trim()
+    };
+
+    if (editingSupplierId) {
+        const s = Suppliers.find(x => x.id === editingSupplierId);
+        if (s) Object.assign(s, data);
+    } else {
+        supplierIdCounter++;
+        Suppliers.push({ id: supplierIdCounter, ...data });
+    }
+
+    await saveSuppliersStorage();
+    renderSuppliers();
+    closeSupplierModal();
+    showToast('Supplier saved');
+}
+
+async function deleteSupplier(id) {
+    if (!await showConfirm('Delete this supplier? Existing purchase orders will keep their saved supplier name.', 'Delete Supplier')) return;
+    Suppliers = Suppliers.filter(s => s.id !== id);
+    await saveSuppliersStorage();
+    renderSuppliers();
+    showToast('Supplier deleted');
+}
+
 // ===================== COLUMN VISIBILITY (v4.01.0 — Task 7) =====================
 const TABLE_COLUMNS = {
     'suppliers-table': ['Name', 'Contact Person', 'Phone', 'Items Supplied', 'Actions']
@@ -3040,298 +3867,6 @@ document.addEventListener('click', (e) => {
         document.querySelectorAll('.column-toggle-dropdown.open').forEach(d => d.classList.remove('open'));
     }
 });
-
-const $ = (selector) => document.querySelector(selector);
-const $$ = (selector) => document.querySelectorAll(selector);
-
-function escapeHtml(str) {
-    return String(str || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-
-// Currency symbol is cached after load so formatCurrency() can stay
-// synchronous for use inside template-literal render functions.
-let cachedCurrencySymbol = '₹';
-
-async function loadCurrencySymbol() {
-    try {
-        const s = await dbGet('settings');
-        if (s && s.currencySymbol) cachedCurrencySymbol = s.currencySymbol;
-    } catch (e) {}
-}
-
-function getCurrencySymbol() {
-    return cachedCurrencySymbol;
-}
-
-function formatCurrency(amount) {
-    return getCurrencySymbol() + ' ' + parseFloat(amount || 0).toFixed(2);
-}
-
-function formatDate(date) {
-    const d = new Date(date);
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function showToast(message) {
-    const toast = $('#toast');
-    const toastMessage = $('#toast-message');
-    if (!toast || !toastMessage) return;
-    toastMessage.textContent = message;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
-}
-
-// ===================== SIDEBAR =====================
-function openSidebar() {
-    $('#sidebar').classList.add('open');
-    $('#sidebar-overlay').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeSidebar() {
-    $('#sidebar').classList.remove('open');
-    $('#sidebar-overlay').classList.remove('active');
-    document.body.style.overflow = '';
-}
-
-// ===================== THEME =====================
-async function toggleTheme() {
-    const body = document.body;
-    const isDark = body.classList.contains('dark-mode');
-    if (isDark) {
-        body.classList.remove('dark-mode');
-        body.classList.add('light-mode');
-        await dbSet('theme', 'light');
-    } else {
-        body.classList.remove('light-mode');
-        body.classList.add('dark-mode');
-        await dbSet('theme', 'dark');
-    }
-}
-
-async function initTheme() {
-    const savedTheme = await dbGet('theme');
-    if (savedTheme === 'dark') {
-        document.body.classList.remove('light-mode');
-        document.body.classList.add('dark-mode');
-    }
-}
-
-// ===================== HEADER LOGO =====================
-function updateHeaderLogo(logoUrl) {
-    const headerImg = $('#header-logo');
-    const headerPlaceholder = $('#header-logo-placeholder');
-    if (!headerImg || !headerPlaceholder) return;
-    if (logoUrl) {
-        headerImg.src = logoUrl;
-        headerImg.style.display = 'block';
-        headerPlaceholder.style.display = 'none';
-    } else {
-        headerImg.style.display = 'none';
-        headerPlaceholder.style.display = 'flex';
-    }
-}
-
-async function loadHeaderCompanyLogo() {
-    try {
-        const data = await dbGet('company');
-        if (data && data.logo) updateHeaderLogo(data.logo);
-    } catch (e) { console.error('Error loading company logo:', e); }
-}
-
-// ===================== CUSTOM CONFIRM MODAL (v4.01.0) =====================
-let _confirmResolve = null;
-
-function showConfirm(message, title = 'Confirm') {
-    return new Promise((resolve) => {
-        _confirmResolve = resolve;
-        const titleEl  = document.getElementById('confirm-modal-title');
-        const msgEl    = document.getElementById('confirm-modal-message');
-        const modal    = document.getElementById('confirm-modal');
-        const yesBtn   = document.getElementById('confirm-yes-btn');
-        if (!modal) { resolve(window.confirm(message)); return; } // graceful fallback
-        if (titleEl) titleEl.textContent = title;
-        if (msgEl)   msgEl.textContent   = message;
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        yesBtn.onclick = () => { closeConfirmModal(); resolve(true); };
-    });
-}
-
-function closeConfirmModal() {
-    const modal = document.getElementById('confirm-modal');
-    if (modal) modal.classList.remove('active');
-    document.body.style.overflow = '';
-    if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
-}
-
-// ===================== SHARED CHROME INIT =====================
-async function initChrome() {
-    await dbInit();
-    await initTheme();
-    await loadCurrencySymbol();
-    await loadHeaderCompanyLogo();
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeSidebar();
-    });
-}
-
-document.addEventListener('DOMContentLoaded', initChrome);
-
-// ===================== PWA INSTALL (chrome pages) =====================
-let deferredPrompt = null;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    const btn = document.getElementById('pwa-install-btn');
-    const div = document.getElementById('pwa-install-divider');
-    if (btn) { btn.style.display = 'flex'; }
-    if (div) { div.style.display = 'block'; }
-});
-
-function installPWA() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-        deferredPrompt = null;
-        const btn = document.getElementById('pwa-install-btn');
-        const div = document.getElementById('pwa-install-divider');
-        if (btn) btn.style.display = 'none';
-        if (div) div.style.display = 'none';
-    });
-}
-
-window.addEventListener('appinstalled', () => {
-    deferredPrompt = null;
-    const btn = document.getElementById('pwa-install-btn');
-    if (btn) btn.style.display = 'none';
-});
-
-    </script>
-    <script>
-// ===================== SUPPLIERS PAGE =====================
-let Suppliers = [];
-let supplierIdCounter = 0;
-let editingSupplierId = null;
-
-async function loadSuppliers() {
-    await dbInit();
-    const data = await dbGet('suppliers');
-    if (data) {
-        try {
-            Suppliers = data;
-            supplierIdCounter = Suppliers.reduce((max, s) => Math.max(max, s.id || 0), 0);
-        } catch (e) { console.error('Error loading suppliers:', e); }
-    }
-    renderSuppliers();
-}
-
-async function saveSuppliersStorage() {
-    await dbSet('suppliers', Suppliers);
-}
-
-function renderSuppliers() {
-    const tbody = $('#suppliers-table-body');
-    const empty = $('#suppliers-empty');
-    if (!tbody) return;
-
-    const query = ($('#suppliers-search')?.value || '').toLowerCase().trim();
-    const filtered = Suppliers.filter(s =>
-        !query ||
-        s.name.toLowerCase().includes(query) ||
-        (s.contactPerson || '').toLowerCase().includes(query) ||
-        (s.itemsSupplied || '').toLowerCase().includes(query)
-    );
-
-    empty.style.display = Suppliers.length === 0 ? 'flex' : 'none';
-
-    tbody.innerHTML = filtered.map(s => `
-        <tr>
-            <td class="cell-strong">${escapeHtml(s.name)}</td>
-            <td>${escapeHtml(s.contactPerson) || '—'}</td>
-            <td>${escapeHtml(s.phone) || '—'}</td>
-            <td>${escapeHtml(s.itemsSupplied) || '—'}</td>
-            <td class="cell-actions">
-                <button class="icon-btn" onclick="openSupplierModal(${s.id})" title="Edit">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-                </button>
-                <button class="icon-btn icon-btn-danger" onclick="deleteSupplier(${s.id})" title="Delete">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-                </button>
-            </td>
-        </tr>
-    `).join('') || (Suppliers.length > 0 ? '<tr><td colspan="5" class="cell-muted">No suppliers match your search.</td></tr>' : '');
-    initColumnVisibility('suppliers-table');
-}
-
-function openSupplierModal(id = null) {
-    editingSupplierId = id;
-    const title = $('#supplier-modal-title');
-
-    if (id) {
-        const s = Suppliers.find(x => x.id === id);
-        if (!s) return;
-        title.textContent = 'Edit Supplier';
-        $('#supplier-form-name').value = s.name || '';
-        $('#supplier-form-contact').value = s.contactPerson || '';
-        $('#supplier-form-phone').value = s.phone || '';
-        $('#supplier-form-email').value = s.email || '';
-        $('#supplier-form-address').value = s.address || '';
-        $('#supplier-form-items').value = s.itemsSupplied || '';
-        $('#supplier-form-notes').value = s.notes || '';
-    } else {
-        title.textContent = 'Add Supplier';
-        ['#supplier-form-name', '#supplier-form-contact', '#supplier-form-phone', '#supplier-form-email',
-         '#supplier-form-address', '#supplier-form-items', '#supplier-form-notes'].forEach(id => { $(id).value = ''; });
-    }
-    $('#supplier-modal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeSupplierModal() {
-    $('#supplier-modal').classList.remove('active');
-    document.body.style.overflow = '';
-    editingSupplierId = null;
-}
-
-async function saveSupplierForm() {
-    const name = $('#supplier-form-name').value.trim();
-    if (!name) {
-        showToast('Supplier name is required');
-        return;
-    }
-    const data = {
-        name,
-        contactPerson: $('#supplier-form-contact').value.trim(),
-        phone: $('#supplier-form-phone').value.trim(),
-        email: $('#supplier-form-email').value.trim(),
-        address: $('#supplier-form-address').value.trim(),
-        itemsSupplied: $('#supplier-form-items').value.trim(),
-        notes: $('#supplier-form-notes').value.trim()
-    };
-
-    if (editingSupplierId) {
-        const s = Suppliers.find(x => x.id === editingSupplierId);
-        if (s) Object.assign(s, data);
-    } else {
-        supplierIdCounter++;
-        Suppliers.push({ id: supplierIdCounter, ...data });
-    }
-
-    await saveSuppliersStorage();
-    renderSuppliers();
-    closeSupplierModal();
-    showToast('Supplier saved');
-}
-
-async function deleteSupplier(id) {
-    if (!await showConfirm('Delete this supplier? Existing purchase orders will keep their saved supplier name.', 'Delete Supplier')) return;
-    Suppliers = Suppliers.filter(s => s.id !== id);
-    await saveSuppliersStorage();
-    renderSuppliers();
-    showToast('Supplier deleted');
-}
 
 document.addEventListener('DOMContentLoaded', loadSuppliers);
 
