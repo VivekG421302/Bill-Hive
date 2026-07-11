@@ -2169,12 +2169,13 @@ a {
 
 /* ===================== v2.3 ADDITIONS ===================== */
 
-/* Header brand icon (favicon) on the left of the header */
+/* Header brand icon on the left of the header — same outline mark as
+   .sidebar-logo / .footer-logo (currentColor strokes, no filled box) so the
+   header, footer and sidebar all show the identical Bill-Hive icon. */
 .header-brand-icon {
     width: 34px;
     height: 34px;
-    border-radius: var(--radius-md);
-    display: block;
+    color: var(--accent-primary);
     flex-shrink: 0;
 }
 
@@ -2499,9 +2500,22 @@ a {
 }
 
 /* ===================== v4.02.0 PART 1 — SHARED CHROME ADDITIONS ===================== */
-/* Sidebar side / menu position (left or right). Default is right (unchanged). */
-body.side-left .app-header {
-    flex-direction: row-reverse;
+/* Sidebar side / menu position (left or right). Default is right (unchanged).
+   .app-header is a CSS Grid (not flex), so reordering it needs `order` on the
+   grid items rather than flex-direction: row-reverse (which has no effect on
+   a grid container). */
+body.side-left .header-left {
+    order: 3;
+    justify-self: end;
+}
+
+body.side-left .header-center {
+    order: 2;
+}
+
+body.side-left .header-right {
+    order: 1;
+    justify-self: start;
 }
 
 body.side-left .sidebar {
@@ -2932,7 +2946,15 @@ body.side-left .sidebar-header {
     <!-- ===================== HEADER ===================== -->
     <header class="app-header">
         <div class="header-left">
-            <img src="favicon.svg" class="header-brand-icon" alt="Bill-Hive">
+            <svg class="header-brand-icon" viewBox="0 0 48 48" fill="none" aria-label="Bill-Hive">
+                <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+                <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
+                <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+            </svg>
         </div>
         <div class="header-center">
             <div class="logo-container" id="header-logo-container">
@@ -3372,20 +3394,48 @@ function applySidebarSide(side) {
 }
 
 // ===================== ACCENT COLOR (v4.02.0 Part 1) =====================
+function shadeColor(hex, percent) {
+    hex = (hex || '').replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    if (!/^[0-9a-fA-F]{6}$/.test(hex)) return hex ? ('#' + hex) : '#1c7ed6';
+    const num = parseInt(hex, 16);
+    let r = (num >> 16) + Math.round(255 * percent / 100);
+    let g = ((num >> 8) & 0x00FF) + Math.round(255 * percent / 100);
+    let b = (num & 0x0000FF) + Math.round(255 * percent / 100);
+    r = Math.min(255, Math.max(0, r));
+    g = Math.min(255, Math.max(0, g));
+    b = Math.min(255, Math.max(0, b));
+    return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+}
+
 function applyAccentColor(hex) {
+    // .dark-mode redeclares --accent-primary/-hover directly on <body>, and a
+    // class-based rule that targets an element directly always beats a value
+    // merely inherited from an ancestor (document.documentElement here). So
+    // setting the override only on <html> worked in light mode (nothing else
+    // touches the property there) but was silently out-cascaded by .dark-mode
+    // in dark mode. Setting it on document.body too — where .dark-mode itself
+    // lives — makes the inline override win in both themes.
     const root = document.documentElement;
+    const body = document.body;
     if (hex) {
         root.style.setProperty('--accent-primary', hex);
+        root.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
+        body.style.setProperty('--accent-primary', hex);
+        body.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
     } else {
         root.style.removeProperty('--accent-primary');
         root.style.removeProperty('--accent-primary-hover');
+        body.style.removeProperty('--accent-primary');
+        body.style.removeProperty('--accent-primary-hover');
     }
 }
 
 // ===================== SCREEN SAVER (v4.02.0 Part 1) =====================
 let screensaverTimer = null;
-let screensaverMinutesActive = 5;
+let screensaverSecondsActive = 30;
 let screensaverEnabledActive = false;
+let screensaverListenersBound = false;
 
 function showScreensaver() {
     const overlay = $('#screensaver-overlay');
@@ -3401,15 +3451,20 @@ function resetScreensaverTimer() {
     if (screensaverTimer) clearTimeout(screensaverTimer);
     hideScreensaver();
     if (!screensaverEnabledActive) return;
-    screensaverTimer = setTimeout(showScreensaver, screensaverMinutesActive * 60 * 1000);
+    screensaverTimer = setTimeout(showScreensaver, screensaverSecondsActive * 1000);
 }
 
-function initScreensaver(enabled, minutes) {
+function initScreensaver(enabled, seconds) {
     screensaverEnabledActive = !!enabled;
-    screensaverMinutesActive = (minutes && minutes > 0) ? minutes : 5;
-    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
-        document.addEventListener(evt, resetScreensaverTimer, { passive: true });
-    });
+    screensaverSecondsActive = (seconds && seconds > 0) ? seconds : 30;
+    // Bind the activity listeners once — re-calling initScreensaver used to
+    // re-register them every time, stacking up duplicate handlers.
+    if (!screensaverListenersBound) {
+        screensaverListenersBound = true;
+        ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+            document.addEventListener(evt, resetScreensaverTimer, { passive: true });
+        });
+    }
     resetScreensaverTimer();
 }
 
@@ -3418,8 +3473,10 @@ async function applySavedUiPrefs() {
         const settings = await dbGet('settings');
         applySidebarSide((settings && settings.sidebarSide) || 'right');
         applyAccentColor((settings && settings.accentColor) || '');
-        const ss = (settings && settings.screensaver) || { enabled: false, minutes: 5 };
-        initScreensaver(ss.enabled, ss.minutes);
+        const ss = (settings && settings.screensaver) || { enabled: false, seconds: 30 };
+        // Back-compat: older saves stored `minutes` instead of `seconds`.
+        const ssSeconds = ss.seconds != null ? ss.seconds : ((ss.minutes || 5) * 60);
+        initScreensaver(ss.enabled, ssSeconds);
     } catch (e) { console.error('Error applying UI preferences:', e); }
 }
 
