@@ -1,5 +1,5 @@
 // ===================== BILL-HIVE SERVICE WORKER v2.2 =====================
-const CACHE_NAME = 'billhive-v4.01';
+const CACHE_NAME = 'billhive-v4.02';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
