@@ -1295,7 +1295,7 @@ function updateHeaderLogo(logoUrl) {
     // header logo exactly (same uploaded image, or the same placeholder icon).
     // updateFooterLogo(logoUrl);
 }
-
+/*
 function updateFooterLogo(logoUrl) {
     const footerImg = $('#footer-logo');
     const footerPlaceholder = $('#footer-logo-placeholder');
@@ -1310,6 +1310,7 @@ function updateFooterLogo(logoUrl) {
         footerPlaceholder.style.display = 'flex';
     }
 }
+*/
 
 async function saveCompanyData() {
     AppState.companyData.name = $('#company-name').value;
