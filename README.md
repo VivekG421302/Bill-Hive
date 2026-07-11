@@ -111,5 +111,3 @@ Use **Preview** to see this exact layout on screen before printing, or **Save & 
 Vanilla HTML/CSS/JS, no build step, no framework. Fonts: Inter (UI) and JetBrains Mono (numbers).
 
 See [`CONTEXT.md`](CONTEXT.md) for a full technical map of the codebase — file roles, AppState shape, localStorage schema, item object schema, PWA details, CSS conventions, and a feature-addition checklist. Read it before making any code changes.
-
-https://claude.ai/share/340d1f0d-7851-43c1-9831-3d7df945f436
