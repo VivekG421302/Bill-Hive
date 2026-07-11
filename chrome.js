@@ -215,31 +215,14 @@ async function initTheme() {
 function updateHeaderLogo(logoUrl) {
     const headerImg = $('#header-logo');
     const headerPlaceholder = $('#header-logo-placeholder');
-    if (headerImg && headerPlaceholder) {
-        if (logoUrl) {
-            headerImg.src = logoUrl;
-            headerImg.style.display = 'block';
-            headerPlaceholder.style.display = 'none';
-        } else {
-            headerImg.style.display = 'none';
-            headerPlaceholder.style.display = 'flex';
-        }
-    }
-    // v4.02.0 Part 1 — App Logo Consistency: footer mirrors header exactly.
-    updateFooterLogo(logoUrl);
-}
-
-function updateFooterLogo(logoUrl) {
-    const footerImg = $('#footer-logo');
-    const footerPlaceholder = $('#footer-logo-placeholder');
-    if (!footerImg || !footerPlaceholder) return;
+    if (!headerImg || !headerPlaceholder) return;
     if (logoUrl) {
-        footerImg.src = logoUrl;
-        footerImg.style.display = 'block';
-        footerPlaceholder.style.display = 'none';
+        headerImg.src = logoUrl;
+        headerImg.style.display = 'block';
+        headerPlaceholder.style.display = 'none';
     } else {
-        footerImg.style.display = 'none';
-        footerPlaceholder.style.display = 'flex';
+        headerImg.style.display = 'none';
+        headerPlaceholder.style.display = 'flex';
     }
 }
 
@@ -258,6 +241,18 @@ function applySidebarSide(side) {
 }
 
 // ===================== ACCENT COLOR (v4.02.0 Part 1) =====================
+function applyAccentColor(hex) {
+    // See script.js's applyAccentColor for why this targets body, not html.
+    const target = document.body;
+    if (hex) {
+        target.style.setProperty('--accent-primary', hex);
+        target.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
+    } else {
+        target.style.removeProperty('--accent-primary');
+        target.style.removeProperty('--accent-primary-hover');
+    }
+}
+
 function shadeColor(hex, percent) {
     hex = (hex || '').replace('#', '');
     if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
@@ -270,29 +265,6 @@ function shadeColor(hex, percent) {
     g = Math.min(255, Math.max(0, g));
     b = Math.min(255, Math.max(0, b));
     return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
-}
-
-function applyAccentColor(hex) {
-    // .dark-mode redeclares --accent-primary/-hover directly on <body>, and a
-    // class-based rule that targets an element directly always beats a value
-    // merely inherited from an ancestor (document.documentElement here). So
-    // setting the override only on <html> worked in light mode (nothing else
-    // touches the property there) but was silently out-cascaded by .dark-mode
-    // in dark mode. Setting it on document.body too — where .dark-mode itself
-    // lives — makes the inline override win in both themes.
-    const root = document.documentElement;
-    const body = document.body;
-    if (hex) {
-        root.style.setProperty('--accent-primary', hex);
-        root.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
-        body.style.setProperty('--accent-primary', hex);
-        body.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
-    } else {
-        root.style.removeProperty('--accent-primary');
-        root.style.removeProperty('--accent-primary-hover');
-        body.style.removeProperty('--accent-primary');
-        body.style.removeProperty('--accent-primary-hover');
-    }
 }
 
 // ===================== SCREEN SAVER (v4.02.0 Part 1) =====================
@@ -321,8 +293,6 @@ function resetScreensaverTimer() {
 function initScreensaver(enabled, seconds) {
     screensaverEnabledActive = !!enabled;
     screensaverSecondsActive = (seconds && seconds > 0) ? seconds : 30;
-    // Bind the activity listeners once — re-calling initScreensaver used to
-    // re-register them every time, stacking up duplicate handlers.
     if (!screensaverListenersBound) {
         screensaverListenersBound = true;
         ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
@@ -338,9 +308,7 @@ async function applySavedUiPrefs() {
         applySidebarSide((settings && settings.sidebarSide) || 'right');
         applyAccentColor((settings && settings.accentColor) || '');
         const ss = (settings && settings.screensaver) || { enabled: false, seconds: 30 };
-        // Back-compat: older saves stored `minutes` instead of `seconds`.
-        const ssSeconds = ss.seconds != null ? ss.seconds : ((ss.minutes || 5) * 60);
-        initScreensaver(ss.enabled, ssSeconds);
+        initScreensaver(ss.enabled, ss.seconds);
     } catch (e) { console.error('Error applying UI preferences:', e); }
 }
 
