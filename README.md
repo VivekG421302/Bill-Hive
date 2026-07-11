@@ -17,10 +17,11 @@ A fast, offline-first, mobile-first POS billing app that runs entirely in the br
 - **Excel Import for Items** — on the Items page, **Download Template** gives you a ready-to-fill `.xlsx` with the exact columns Bill-Hive expects (Name, SKU, EAN, Item Number, Brand, Cost, Price, Discount %, Tax %, Opening Stock, Track Stock). **Import Excel** reads a filled-in copy back in; any brand name in the sheet that doesn't already exist in Your Brands is created automatically.
 - **Print Setup** — in Settings, choose the font weight (Normal/Bold/Extra Bold) and paper width (58mm/80mm) used for every printed and previewed bill, with **Preview Dummy Bill** / **Print Dummy Bill** buttons to test your settings before saving. The company logo always prints/previews in black & white.
 - **Your Data** — company name, GST number, address, contact info and a 4:1 logo, shown centered in the app header and at the top of every printed bill. The page is view-only by default; tap the pencil icon to edit.
-- **Settings** — thank-you message pool (randomly picked per bill if notes are left blank), terms & conditions footer, currency symbol, full JSON export/import, a "Danger Zone" full data reset, and a **Database Configuration** panel reserved for a future cloud/DB sync feature (currently local-storage only, clearly labelled "Coming soon").
+- **Settings** — thank-you message pool (randomly picked per bill if notes are left blank), terms & conditions footer, currency symbol, **Menu Position** (move the sidebar/hamburger menu to the left or right of the screen), **Accent Color** picker (re-tints buttons, links and the app's logo marks, and travels with Export/Import), **Screen Saver** (idle overlay after a configurable number of minutes — any click or key press exits it), full JSON export/import, a "Danger Zone" full data reset that now requires typing **delete** to confirm, and a **Database Configuration** panel reserved for a future cloud/DB sync feature (currently local-only, clearly labelled "Coming soon"). Every button on the Settings page uses a border-filled style whose fill and text colors swap on hover.
 - **PWA** — installable as a standalone app on desktop (Chrome/Edge) and Android. Offline-capable via service worker. Install button appears in the sidebar automatically when the browser supports it.
 - **Dark / Light mode**, toggled from the sidebar and remembered across visits.
-- **Right-side sidebar navigation** (hamburger menu on the right of the header); the header itself shows only your centered company logo (4:1 banner) — no navbar clutter.
+- **Configurable sidebar navigation** (hamburger menu + sidebar panel; left or right of the header, your choice in Settings); the header itself shows only your centered company logo (4:1 banner) — no navbar clutter. The footer logo always mirrors the header logo exactly.
+- **Row-click-to-view** — on the Your Brands and Suppliers pages, clicking anywhere on a card/row opens a read-only detail view with its own top-level Edit / Delete / Print buttons (more pages will adopt this pattern going forward).
 
 ## Getting started
 
@@ -41,24 +42,25 @@ There is **no seeded/demo data** — the app starts completely empty. Go to **Yo
 
 ## Data & storage
 
-Everything is stored in the browser's `localStorage` under these keys:
+Everything is stored in the browser's IndexedDB (database `billhive-db`) under these object stores. (Older installs that still have data in `localStorage` are migrated across automatically the first time the app loads — you won't notice anything.)
 
-| Key | Contents |
+| Store | Contents |
 |---|---|
-| `billhive-company` | Company profile + logo (base64, 4:1 recommended) |
-| `billhive-settings` | Thank-you messages, terms & conditions, currency symbol |
-| `billhive-config` | Reserved database/sync configuration (inactive) |
-| `billhive-items` | Product/service catalog (name, SKU, EAN, item number, brand, cost, price, discount, tax, stock) |
-| `billhive-stocklog` | Stock movement history |
-| `billhive-bills` | All saved invoices |
-| `billhive-returns` | All processed sales returns |
-| `billhive-brands` | Brands you sell under (name, description, logo) |
-| `billhive-suppliers` | Suppliers/vendors you purchase stock from |
-| `billhive-purchase-orders` | Purchase orders created from the Fulfillment page |
-| `billhive-meta` | Invoice numbering counters (per year-month) |
-| `billhive-theme` | `light` or `dark` |
+| `company` | Company profile + logo (base64, 4:1 recommended) |
+| `settings` | Thank-you messages, terms & conditions, currency symbol, print setup, menu position, accent color, screen saver |
+| `config` | Reserved database/sync configuration (inactive) |
+| `items` | Product/service catalog (name, SKU, EAN, item number, brand, cost, price, discount, tax, stock) |
+| `stocklog` | Stock movement history |
+| `bills` | All saved invoices |
+| `returns` | All processed sales returns |
+| `brands` | Brands you sell under (name, description, logo) |
+| `suppliers` | Suppliers/vendors you purchase stock from |
+| `purchaseOrders` | Purchase orders created from the Fulfillment page |
+| `meta` | Invoice numbering counters (per year-month) |
+| `theme` | `light` or `dark` |
+| `columnVisibility` | Which optional columns you've hidden on each table with a column picker |
 
-Note: `billhive-brands`, `billhive-suppliers` and `billhive-purchase-orders` are managed on their own pages (`brands.html`, `suppliers.html`, `fulfillment.html`) rather than inside `index.html`, but they are still included in the Settings → Export/Import bundle and the Danger Zone reset on the main app.
+Note: `brands`, `suppliers`, `purchaseOrders` and `columnVisibility` are managed on their own pages (`brands.html`, `suppliers.html`, `fulfillment.html`, `catalogue.html`) rather than inside `index.html`, but they are still included in the Settings → Export/Import bundle and the Danger Zone reset on the main app.
 
 ### Export / Import
 
@@ -69,7 +71,7 @@ Go to **Settings → Data Management**:
 
 ### Erase everything
 
-**Settings → Danger Zone → Erase All Data** wipes every `billhive-*` key from local storage after two confirmations. This cannot be undone — export a backup first if you need one.
+**Settings → Danger Zone → Erase All Data** opens a confirmation dialog where you must type **delete** before "Erase Everything" becomes clickable. This cannot be undone — export a backup first if you need one.
 
 ## Invoice numbering rule
 
@@ -109,5 +111,3 @@ Use **Preview** to see this exact layout on screen before printing, or **Save & 
 Vanilla HTML/CSS/JS, no build step, no framework. Fonts: Inter (UI) and JetBrains Mono (numbers).
 
 See [`CONTEXT.md`](CONTEXT.md) for a full technical map of the codebase — file roles, AppState shape, localStorage schema, item object schema, PWA details, CSS conventions, and a feature-addition checklist. Read it before making any code changes.
-
-https://claude.ai/share/340d1f0d-7851-43c1-9831-3d7df945f436
