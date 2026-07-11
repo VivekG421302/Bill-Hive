@@ -8,11 +8,12 @@
 // Standalone pages don't load script.js, so they carry their own copy
 // of the IndexedDB wrapper.
 const DB_NAME = 'billhive-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // v4.01.0 Task 7: bumped to add the 'columnVisibility' store
 
 const STORE_NAMES = [
     'company', 'settings', 'config', 'items', 'stocklog',
-    'bills', 'returns', 'brands', 'suppliers', 'purchaseOrders', 'meta', 'theme'
+    'bills', 'returns', 'brands', 'suppliers', 'purchaseOrders', 'meta', 'theme',
+    'columnVisibility'
 ];
 
 const STORE_MAP = {
@@ -214,14 +215,31 @@ async function initTheme() {
 function updateHeaderLogo(logoUrl) {
     const headerImg = $('#header-logo');
     const headerPlaceholder = $('#header-logo-placeholder');
-    if (!headerImg || !headerPlaceholder) return;
+    if (headerImg && headerPlaceholder) {
+        if (logoUrl) {
+            headerImg.src = logoUrl;
+            headerImg.style.display = 'block';
+            headerPlaceholder.style.display = 'none';
+        } else {
+            headerImg.style.display = 'none';
+            headerPlaceholder.style.display = 'flex';
+        }
+    }
+    // v4.02.0 Part 1 — App Logo Consistency: footer mirrors header exactly.
+    updateFooterLogo(logoUrl);
+}
+
+function updateFooterLogo(logoUrl) {
+    const footerImg = $('#footer-logo');
+    const footerPlaceholder = $('#footer-logo-placeholder');
+    if (!footerImg || !footerPlaceholder) return;
     if (logoUrl) {
-        headerImg.src = logoUrl;
-        headerImg.style.display = 'block';
-        headerPlaceholder.style.display = 'none';
+        footerImg.src = logoUrl;
+        footerImg.style.display = 'block';
+        footerPlaceholder.style.display = 'none';
     } else {
-        headerImg.style.display = 'none';
-        headerPlaceholder.style.display = 'flex';
+        footerImg.style.display = 'none';
+        footerPlaceholder.style.display = 'flex';
     }
 }
 
@@ -232,12 +250,167 @@ async function loadHeaderCompanyLogo() {
     } catch (e) { console.error('Error loading company logo:', e); }
 }
 
+// ===================== SIDEBAR SIDE (v4.02.0 Part 1) =====================
+// Standalone pages have no Settings UI of their own — they just read and
+// apply whatever was chosen on index.html's Settings page.
+function applySidebarSide(side) {
+    document.body.classList.toggle('side-left', side === 'left');
+}
+
+// ===================== ACCENT COLOR (v4.02.0 Part 1) =====================
+function applyAccentColor(hex) {
+    const root = document.documentElement;
+    if (hex) {
+        root.style.setProperty('--accent-primary', hex);
+    } else {
+        root.style.removeProperty('--accent-primary');
+        root.style.removeProperty('--accent-primary-hover');
+    }
+}
+
+// ===================== SCREEN SAVER (v4.02.0 Part 1) =====================
+let screensaverTimer = null;
+let screensaverMinutesActive = 5;
+let screensaverEnabledActive = false;
+
+function showScreensaver() {
+    const overlay = $('#screensaver-overlay');
+    if (overlay) overlay.classList.add('active');
+}
+
+function hideScreensaver() {
+    const overlay = $('#screensaver-overlay');
+    if (overlay) overlay.classList.remove('active');
+}
+
+function resetScreensaverTimer() {
+    if (screensaverTimer) clearTimeout(screensaverTimer);
+    hideScreensaver();
+    if (!screensaverEnabledActive) return;
+    screensaverTimer = setTimeout(showScreensaver, screensaverMinutesActive * 60 * 1000);
+}
+
+function initScreensaver(enabled, minutes) {
+    screensaverEnabledActive = !!enabled;
+    screensaverMinutesActive = (minutes && minutes > 0) ? minutes : 5;
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+        document.addEventListener(evt, resetScreensaverTimer, { passive: true });
+    });
+    resetScreensaverTimer();
+}
+
+async function applySavedUiPrefs() {
+    try {
+        const settings = await dbGet('settings');
+        applySidebarSide((settings && settings.sidebarSide) || 'right');
+        applyAccentColor((settings && settings.accentColor) || '');
+        const ss = (settings && settings.screensaver) || { enabled: false, minutes: 5 };
+        initScreensaver(ss.enabled, ss.minutes);
+    } catch (e) { console.error('Error applying UI preferences:', e); }
+}
+
+// ===================== SCROLL & DRAG OPTIMIZATION (v4.02.0 Part 1) =====================
+function enableDragScroll(el) {
+    if (!el || el._dragScrollBound) return;
+    el._dragScrollBound = true;
+    let isDown = false, startX = 0, scrollLeft = 0, moved = false;
+
+    el.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button, a, input, select, textarea')) return;
+        isDown = true;
+        moved = false;
+        startX = e.pageX - el.offsetLeft;
+        scrollLeft = el.scrollLeft;
+    });
+
+    ['mouseleave', 'mouseup'].forEach(evt => el.addEventListener(evt, () => {
+        isDown = false;
+        el.classList.remove('dragging');
+    }));
+
+    el.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        const x = e.pageX - el.offsetLeft;
+        const walk = x - startX;
+        if (Math.abs(walk) > 5) {
+            moved = true;
+            el.classList.add('dragging');
+        }
+        if (moved) {
+            e.preventDefault();
+            el.scrollLeft = scrollLeft - walk;
+        }
+    });
+
+    el.addEventListener('click', (e) => {
+        if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+    }, true);
+}
+
+function initDragScrollAll() {
+    $$('.table-wrap').forEach(enableDragScroll);
+}
+
+// ===================== ROW-CLICK-TO-OPEN PATTERN (v4.02.0 Part 1) =====================
+// Reusable helper: makes a table row / card clickable to open its detail
+// view, while inner buttons/links/inputs still work normally.  Usage:
+//   makeRowClickable(rowEl, () => viewSupplier(s.id));
+function makeRowClickable(el, onOpen) {
+    if (!el) return;
+    el.classList.add('row-clickable');
+    el.addEventListener('click', (e) => {
+        if (e.target.closest('button, a, input, select, textarea, label')) return;
+        onOpen();
+    });
+}
+
+// ===================== COLUMN VISIBILITY (v4.01.0 Task 7) =====================
+// NOTE: this system already lives per-page (see suppliers.html's and
+// fulfillment.html's page-specific <script> blocks, each with their own
+// TABLE_COLUMNS map) rather than here in the shared chrome layer, so that
+// pages which don't need it don't declare an unused `const TABLE_COLUMNS`
+// that could collide with a page-specific one of the same name. When adding
+// the picker to a new table, copy that pattern into the page's own script:
+// a `TABLE_COLUMNS` map of `tableId -> [column names]`, plus
+// loadColumnVisibility/saveColumnVisibility/applyColumnVisibility/
+// initColumnVisibility/renderColumnToggles/toggleColumn/toggleColumnDropdown,
+// all backed by the shared `columnVisibility` IndexedDB store (already
+// created by dbInit() above via STORE_NAMES).
+
+// ===================== CUSTOM CONFIRM MODAL (v4.01.0) =====================
+let _confirmResolve = null;
+
+function showConfirm(message, title = 'Confirm') {
+    return new Promise((resolve) => {
+        _confirmResolve = resolve;
+        const titleEl  = document.getElementById('confirm-modal-title');
+        const msgEl    = document.getElementById('confirm-modal-message');
+        const modal    = document.getElementById('confirm-modal');
+        const yesBtn   = document.getElementById('confirm-yes-btn');
+        if (!modal) { resolve(window.confirm(message)); return; } // graceful fallback
+        if (titleEl) titleEl.textContent = title;
+        if (msgEl)   msgEl.textContent   = message;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        yesBtn.onclick = () => { closeConfirmModal(); resolve(true); };
+    });
+}
+
+function closeConfirmModal() {
+    const modal = document.getElementById('confirm-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+    if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+}
+
 // ===================== SHARED CHROME INIT =====================
 async function initChrome() {
     await dbInit();
     await initTheme();
     await loadCurrencySymbol();
     await loadHeaderCompanyLogo();
+    await applySavedUiPrefs(); // v4.02.0 Part 1 — sidebar side, accent color, screen saver
+    initDragScrollAll();       // v4.02.0 Part 1 — drag-to-scroll on wide tables
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeSidebar();
     });
