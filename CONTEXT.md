@@ -7,11 +7,18 @@
 
 ## Project at a glance
 
-Bill-Hive is a **vanilla HTML/CSS/JS POS billing app** — no build step, no framework, no server. Everything runs in the browser. Data is stored in `localStorage`. It is also a **PWA** (Progressive Web App) installable on desktop and mobile via Chrome/Edge.
+Bill-Hive is a **vanilla HTML/CSS/JS POS billing app** — no build step, no framework, no server. Everything runs in the browser. Data is stored in **IndexedDB** (with a one-time automatic migration from an older `localStorage`-based version — see § IndexedDB stores). It is also a **PWA** (Progressive Web App) installable on desktop and mobile via Chrome/Edge.
 
 - **Entry point:** `index.html` — the main SPA shell. All core billing pages are sections inside this single file, toggled by `navigateTo(page)`.
-- **Standalone pages:** `brands.html`, `suppliers.html`, `fulfillment.html`, `catalogue.html` — separate HTML documents that share `styles.css` and `chrome.js`.
+- **Standalone pages:** `brands.html`, `suppliers.html`, `fulfillment.html`, `catalogue.html` — separate, **self-contained** HTML documents (see architecture note in § File map) that duplicate `styles.css` and `chrome.js` inline rather than linking them.
 - **No `<form>` tags are used** (they would trigger browser validation and page reloads). All inputs use event handlers (`onclick`, `onchange`, `oninput`).
+
+> **Current work status:** see `prompt.md` in the project root for the full 3-part feature
+> work plan. **Part 1 (shared chrome/theming/settings infrastructure) is complete**,
+> including a v4.02.1 bug-fix pass. **Part 2 (Items & Catalogue domain) and Part 3
+> (Billing/Suppliers/Fulfillment domain) have not been started yet.** If you are an AI
+> agent picking up Part 2 or Part 3, read `prompt.md`'s section for your part plus the
+> § Shared conventions for Part 2 / Part 3 section below before writing any code.
 
 ---
 
@@ -73,7 +80,7 @@ const AppState = {
         print: { fontWeight, paperSize },
         sidebarSide: 'right',           // v4.02.0 Part 1 — 'left' | 'right'
         accentColor: '',                // v4.02.0 Part 1 — hex string, '' = theme default
-        screensaver: { enabled: false, minutes: 5 }  // v4.02.0 Part 1
+        screensaver: { enabled: false, seconds: 30 }  // v4.02.1 Part 1 fix
     },
     config: { dbProvider, apiUrl, apiKey, syncEnabled },
     items: [],              // Product/service catalog
@@ -322,34 +329,61 @@ On `index.html`, the equivalent system already existed pre-v4.02.0 in
 `script.js` (same function names, same `TABLE_COLUMNS` shape).
 
 **Sidebar side.** `AppState.settings.sidebarSide` (`'left'` | `'right'`,
-default `'right'`) is applied via `applySidebarSide(side)`, which toggles a
-`body.side-left` class read by `styles.css`. Changed only from
-`index.html`'s Settings page; standalone pages just apply whatever was
-saved (`applySavedUiPrefs()` in `chrome.js`, called from `initChrome()`).
+default `'right'`) is applied via `applySidebarSide(side)`, which sets
+`order` on `.header-left`/`.header-center`/`.header-right` (3/2/1 when
+`side-left`, vs. their natural DOM order 1/2/3 otherwise) via a
+`body.side-left` selector in `styles.css`. **Important:** `.app-header` is
+a **CSS Grid** container (`display:grid; grid-template-columns: 40px 1fr
+40px;`), not flex — `flex-direction` has no effect on it. Use `order` (grid
+items honor `order` the same way flex items do) for any future header
+reordering. Changed only from `index.html`'s Settings page; standalone
+pages just apply whatever was saved (`applySavedUiPrefs()` in `chrome.js`,
+called from `initChrome()`).
 
 **Accent color.** `AppState.settings.accentColor` (hex string, empty =
 theme default) is applied via `applyAccentColor(hex)`, which overrides the
-`--accent-primary` (and `--accent-primary-hover`, on `index.html`) CSS
-custom property on `document.documentElement`. Every logo mark that should
-re-tint with it must use `color: var(--accent-primary)` on a container plus
-`stroke="currentColor"`/`fill="currentColor"` on its SVG paths (see
-`.sidebar-logo`, `.footer-logo`, `.logo-placeholder` in `styles.css`) — this
-already covers the app's own hexagon "document" logo marks. The
-`favicon.svg`/`.header-brand-icon` (loaded as an `<img>`) is the fixed
-Bill-Hive brand mark and intentionally does **not** re-tint with the
-accent color.
+`--accent-primary`/`--accent-primary-hover` CSS custom properties as an
+**inline style on `document.body`** — not `document.documentElement`.
+This matters: `.dark-mode` (also applied to `body` — see
+`toggleTheme()`/`initTheme()`) declares its own `--accent-primary` value,
+and a class-based rule on an element always beats an inline-style override
+set on an *ancestor* of that element. Setting the override on `html`
+instead of `body` was the v4.02.0 bug that made the accent picker silently
+no-op in dark mode — it worked in light mode only because `:root`'s
+default value has no competing `.dark-mode`-scoped override sitting closer
+to the affected elements. Every logo mark that should re-tint with the
+accent color must use `color: var(--accent-primary)` on a container plus
+`stroke="currentColor"`/`fill="currentColor"` on its SVG paths — this is
+now true of `.sidebar-logo`, `.footer-logo`, `.header-brand-icon` (as of
+v4.02.1, an inline `<svg>` — see below) and `.logo-placeholder`.
 
-**Screen saver.** `AppState.settings.screensaver = { enabled, minutes }`.
-`initScreensaver(enabled, minutes)` wires up idle listeners
-(`mousemove`/`mousedown`/`keydown`/`touchstart`/`scroll`) that show/hide
-`#screensaver-overlay` (present on all 5 HTML files). Any of those events
-resets the timer and dismisses the overlay if it's showing.
+**Screen saver.** `AppState.settings.screensaver = { enabled, seconds }`
+(renamed from `minutes` in v4.02.1 — a per-second idle timeout is far more
+testable and, per user feedback, was the expected unit). Default 30
+seconds, range 5–3600 in the Settings UI. `initScreensaver(enabled,
+seconds)` wires up idle listeners (`mousemove`/`mousedown`/`keydown`/
+`touchstart`/`scroll`) that show/hide `#screensaver-overlay` (present on
+all 5 HTML files) and resets/dismisses on any of those events. The
+listeners are bound exactly once (`screensaverListenersBound` guard) —
+v4.02.0 called `initScreensaver()` from both `loadSettings()` and every
+`saveSettings()`, silently stacking duplicate `document.addEventListener`
+calls on every settings save (harmless but wasteful; fixed in v4.02.1).
 
-**Footer logo consistency.** `updateHeaderLogo(logoUrl)` now also calls
-`updateFooterLogo(logoUrl)` so `#footer-logo`/`#footer-logo-placeholder`
-always mirror `#header-logo`/`#header-logo-placeholder` exactly. Don't call
-`updateFooterLogo()` directly from new code — go through
-`updateHeaderLogo()` so the two never drift apart again.
+**Header / footer brand icon consistency (v4.02.1).** The small
+"Bill-Hive" brand mark that appears in the sidebar header
+(`.sidebar-logo`), the main header (`.header-brand-icon`, top-left/right
+depending on menu position), and the footer (`.footer-logo`) is the same
+inline hexagon "document" SVG in all three places, each wrapped so
+`color: var(--accent-primary)` re-tints it via `currentColor`. This is
+**separate from the company logo** (`#header-logo`/`#header-logo-placeholder`
+in `.header-center`, set on the Your Data page) — the brand mark does not
+change when a company logo is uploaded. v4.02.0 had two bugs here: the
+header brand icon was `<img src="favicon.svg">` (a flat raster/vector
+image, not accent-tintable), and the footer was wired to mirror the
+uploaded *company* logo instead of staying the fixed Bill-Hive brand mark —
+both are fixed as of v4.02.1. `favicon.svg` itself is unchanged and still
+used only for the actual browser tab icon / PWA icon, not inline in the
+page.
 
 **Scroll & drag.** `.table-wrap` elements automatically get drag-to-scroll
 via `enableDragScroll()`/`initDragScrollAll()` (called once at
@@ -411,7 +445,8 @@ All CSS is in `styles.css`. CSS custom properties are defined on `:root` (light 
 | v2.4 | **PWA install fix**: `icon-192.png`/`icon-512.png` were referenced in `manifest.json` but never actually existed, so Chrome silently refused to fire `beforeinstallprompt`. Real icons generated from `favicon.svg` and added. **Print Setup** (Settings page): font weight (Normal/Bold/Extra Bold) and paper size (58mm/80mm) are now configurable via CSS custom properties (`--pw-base`, `--pw-strong`, `--pw-size`) set on the `.pos-bill` wrapper in `generatePOSBillHTML()`, read by both the on-screen preview (`styles.css`) and the print popup (`printBill()`'s inline `<style>`). Added "Preview Dummy Bill" / "Print Dummy Bill" using `getDummyBillData()`. **Logo now always prints/previews in black & white** via a `grayscale(100%) contrast(1.15)` filter on `.pos-logo`. |
 | v2.5 | **Catalogue page** (`catalogue.html`/`catalogue.js`) — new standalone page following the brands/suppliers/fulfillment pattern. Read-only browse view of `billhive-items` grouped by `billhive-brands`, with search + brand filter, and a "Print Catalogue" button that opens a separate full-page (not thermal-receipt) print layout with the company logo in black & white. Sidebar link added to all 5 HTML pages. **Excel import for Items**: `script.js` now loads SheetJS (`xlsx.full.min.js` via CDN) on `index.html`. Items page has "Download Template" (generates a sample `.xlsx` with the exact expected columns) and "Import Excel" buttons. Import matches columns by header name (`Name`, `SKU`, `EAN`, `Item Number`, `Brand`, `Cost`, `Price`, `Discount %`, `Tax %`, `Opening Stock`, `Track Stock (Y/N)`), and any `Brand` value not already in `billhive-brands` is auto-created there. |
 | v4.01.0 | *(Reconstructed from code archaeology — no changelog entry existed for this version before now.)* Storage backend switched from raw `localStorage` to an **IndexedDB** wrapper (`dbInit`/`dbGet`/`dbSet`/`dbRemove`/`dbClearAll`) with one-time auto-migration of existing `billhive-*` `localStorage` keys, added to both `script.js` and `chrome.js`. The 4 standalone pages became **self-contained single-file bundles** (styles.css + chrome.js + page script all inlined) rather than linking external files. Custom `showConfirm()`/`closeConfirmModal()` modal added, replacing native `confirm()` calls app-wide. Column-visibility picker ("Task 7") added for `suppliers-table`, `po-table`, and (differently) `catalogue-table`. PO journey/status timeline UI added to Fulfillment. Header/footer edge-fade and misc CSS polish. |
-| v4.02.0 | **(This work — "Part 1: Shared Chrome, Theming & Settings Infrastructure".)** **Menu Position**: Settings → choose left/right sidebar + header layout (`applySidebarSide()`, `body.side-left`). **App Logo Consistency**: footer logo now mirrors the header logo exactly (`updateFooterLogo()`, always called from `updateHeaderLogo()`) on all 5 pages. **Row-click-to-open pattern** (`makeRowClickable()`) + top-level view action bars (`.view-action-bar`) established and applied as a reference implementation to the Brands and Suppliers pages (`#brand-view-modal`, `#supplier-view-modal`). **Scroll & drag optimization**: `.table-wrap` elements gained mouse drag-to-scroll (`enableDragScroll()`) without triggering text selection. **Responsive fixes**: action-bar buttons now wrap instead of disappearing under 480px. **Settings buttons restyled** to a border-filled, hover-swaps-fill style (`#page-settings .action-btn`/`.import-btn`). **Accent color picker** added to Settings (`applyAccentColor()`, re-tints buttons/links/logo marks via `--accent-primary`, included in Export/Import automatically since it lives on `AppState.settings`). **Screen saver** setting added (`initScreensaver()`, idle overlay dismissed by any click/key). **Erase All Data** now requires typing "delete" into `#erase-confirm-modal` instead of a double `confirm()`. Service worker cache bumped to `billhive-v4.02`. |
+| v4.02.0 | **(Part 1 — "Shared Chrome, Theming & Settings Infrastructure".)** Menu Position, App Logo Consistency, row-click-to-open pattern + view action bars (reference: Brands, Suppliers), scroll/drag optimization, responsive fixes, border-filled Settings buttons, accent color picker, screen saver, type-to-confirm Erase All Data. Cache bumped to `billhive-v4.02`. |
+| v4.02.1 | **(Bug-fix pass on v4.02.0, driven by user testing feedback.)** **Accent color in dark mode**: fixed — `applyAccentColor()` now overrides `--accent-primary` as an inline style on `document.body` instead of `document.documentElement`, so it actually wins over `.dark-mode`'s own value (see § Shared conventions for the full explanation). **Menu Position**: fixed — `.app-header` is a CSS Grid, not flexbox, so the old `flex-direction: row-reverse` approach silently did nothing; now uses `order` on `.header-left`/`.header-center`/`.header-right`. **Screen saver**: switched from minutes to **seconds** (default 30, range 5–3600) for realistic testability, and fixed a duplicate-event-listener bug where every "Save Settings" click re-registered a fresh set of idle listeners. **Header/footer brand icon**: both now render the same inline hexagon SVG as the sidebar logo (accent-color tintable via `currentColor`), instead of the header using a static `favicon.svg` `<img>` and the footer mirroring the *uploaded company logo* (which was the wrong element to mirror — the small brand mark is intentionally independent of the company logo, which still only appears in the header center). Cache bumped to `billhive-v4.02.1`. |
 
 ---
 
