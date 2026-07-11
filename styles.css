@@ -2483,3 +2483,282 @@ a {
 .po-journey-connector-completed {
     background: var(--accent-primary);
 }
+
+/* ===================== v4.02.0 PART 1 — SHARED CHROME ADDITIONS ===================== */
+/* Sidebar side / menu position (left or right). Default is right (unchanged). */
+body.side-left .app-header {
+    flex-direction: row-reverse;
+}
+
+body.side-left .sidebar {
+    left: 0;
+    right: auto;
+    border-left: none;
+    border-right: 1px solid var(--border-color);
+    transform: translateX(-100%);
+}
+
+body.side-left .sidebar.open {
+    transform: translateX(0);
+}
+
+body.side-left .sidebar-header {
+    flex-direction: row-reverse;
+}
+
+/* Footer logo — mirrors the header logo element so both always show the
+   identical company logo (or identical placeholder icon) at once. */
+.footer-logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.footer-logo-wrap img.footer-logo {
+    object-fit: contain;
+}
+
+/* Row-click-to-open pattern (used across Brands, Suppliers, and — per the
+   pattern documented in CONTEXT.md — Items/Catalogue/Past Bills/Purchase
+   Orders in later work). Clicking anywhere on a `.row-clickable` element
+   opens its detail view; inner buttons/links/inputs are excluded via the
+   makeRowClickable() JS helper so Edit/Delete icons keep working normally. */
+.row-clickable {
+    cursor: pointer;
+}
+
+.row-clickable:hover {
+    background: var(--bg-hover);
+}
+
+.row-clickable:active {
+    background: var(--bg-tertiary);
+}
+
+.brand-card.row-clickable:hover,
+.brand-card.row-clickable:active {
+    box-shadow: var(--shadow-md);
+}
+
+/* Top-level action bar shown at the top of a detail/view (Edit / Delete /
+   Print / Preview). Reusable across every "view" modal or page. */
+.view-action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.view-action-bar .action-btn {
+    flex: 0 0 auto;
+    padding: 10px 14px;
+}
+
+.view-action-bar .action-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.view-detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.view-detail-row:last-child {
+    border-bottom: none;
+}
+
+.view-detail-label {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}
+
+.view-detail-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+}
+
+/* Scroll & drag optimization — smooth horizontal drag-scrolling on wide
+   tables without triggering accidental text selection mid-drag. */
+.table-wrap {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+}
+
+.table-wrap.dragging,
+.no-select-drag {
+    cursor: grabbing !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+.table-wrap.dragging * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+/* Responsive fixes — keep action buttons reachable instead of clipped or
+   hidden on narrow viewports. */
+@media (max-width: 480px) {
+    .data-actions,
+    .edit-actions,
+    .view-action-bar {
+        flex-wrap: wrap;
+    }
+
+    .data-actions .action-btn,
+    .edit-actions .action-btn,
+    .view-action-bar .action-btn {
+        flex: 1 1 45%;
+        min-width: 130px;
+    }
+
+    .page-header-with-action {
+        flex-wrap: wrap;
+        row-gap: 10px;
+    }
+
+    .header-right,
+    .header-left {
+        flex-shrink: 0;
+    }
+}
+
+/* Settings page — border-filled buttons whose fill + text colors swap on
+   hover, instead of the app-wide solid button style. */
+#page-settings .action-btn,
+#page-settings .import-btn {
+    background: transparent;
+    box-shadow: none;
+    border: 1.5px solid var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+#page-settings .action-btn:hover,
+#page-settings .import-btn:hover {
+    background: var(--accent-primary);
+    color: var(--text-inverse);
+}
+
+#page-settings .action-btn.btn-save,
+#page-settings .import-btn.btn-save {
+    border-color: var(--accent-secondary);
+    color: var(--accent-secondary);
+}
+
+#page-settings .action-btn.btn-save:hover,
+#page-settings .import-btn.btn-save:hover {
+    background: var(--accent-secondary);
+    color: var(--text-inverse);
+}
+
+#page-settings .action-btn.btn-clear,
+#page-settings .import-btn.btn-clear {
+    border-color: var(--text-muted);
+    color: var(--text-secondary);
+}
+
+#page-settings .action-btn.btn-clear:hover,
+#page-settings .import-btn.btn-clear:hover {
+    background: var(--text-secondary);
+    color: var(--bg-secondary);
+}
+
+#page-settings .btn-settings-danger {
+    border-color: var(--accent-danger) !important;
+    color: var(--accent-danger) !important;
+}
+
+#page-settings .btn-settings-danger:hover {
+    background: var(--accent-danger) !important;
+    color: var(--text-inverse) !important;
+}
+
+/* Accent color customization */
+.accent-swatch-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.accent-color-input {
+    width: 52px;
+    height: 36px;
+    padding: 0;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    background: none;
+}
+
+.accent-preset {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.accent-preset.active {
+    border-color: var(--text-primary);
+    box-shadow: 0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--text-primary);
+}
+
+/* Screen saver */
+.screensaver-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: var(--bg-primary);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    cursor: pointer;
+}
+
+.screensaver-overlay.active {
+    display: flex;
+}
+
+.screensaver-overlay svg {
+    width: 64px;
+    height: 64px;
+    color: var(--accent-primary);
+    animation: ss-pulse 2.4s ease-in-out infinite;
+}
+
+.screensaver-overlay p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+@keyframes ss-pulse {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.08); }
+}
+
+/* Erase-data type-to-confirm input */
+.type-confirm-input {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--accent-danger);
+    border-radius: var(--radius-sm);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+}
