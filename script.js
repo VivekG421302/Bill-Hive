@@ -263,37 +263,31 @@ function shadeColor(hex, percent) {
 }
 
 function applyAccentColor(hex) {
-    // .dark-mode redeclares --accent-primary/-hover directly on <body>, and a
-    // class-based rule that targets an element directly always beats a value
-    // merely inherited from an ancestor (document.documentElement here). So
-    // setting the override only on <html> worked in light mode (nothing else
-    // touches the property there) but was silently out-cascaded by .dark-mode
-    // in dark mode. Setting it on document.body too — where .dark-mode itself
-    // lives — makes the inline override win in both themes.
-    const root = document.documentElement;
-    const body = document.body;
+    // .dark-mode sets its own --accent-primary on document.body (see
+    // toggleTheme()/initTheme()), and a class-based rule on an element
+    // always beats an inline-style override set on an ANCESTOR of that
+    // element. So to reliably win in both light and dark mode, the
+    // override must be set as an inline style on body itself (inline
+    // style beats a class selector on the very same element).
+    const target = document.body;
     if (hex) {
-        root.style.setProperty('--accent-primary', hex);
-        root.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
-        body.style.setProperty('--accent-primary', hex);
-        body.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
+        target.style.setProperty('--accent-primary', hex);
+        target.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
     } else {
-        root.style.removeProperty('--accent-primary');
-        root.style.removeProperty('--accent-primary-hover');
-        body.style.removeProperty('--accent-primary');
-        body.style.removeProperty('--accent-primary-hover');
+        target.style.removeProperty('--accent-primary');
+        target.style.removeProperty('--accent-primary-hover');
     }
     const swatches = $$('.accent-preset');
     swatches.forEach(sw => sw.classList.toggle('active', sw.dataset.color === (hex || '')));
 }
 
 // ===================== SCREEN SAVER (v4.02.0 Part 1) =====================
-// After N minutes of inactivity, shows a full-screen idle overlay. Any
+// After N *seconds* of inactivity, shows a full-screen idle overlay. Any
 // click or keypress anywhere immediately dismisses it and restarts the timer.
 let screensaverTimer = null;
 let screensaverSecondsActive = 30;
 let screensaverEnabledActive = false;
-let screensaverListenersBound = false;
+let screensaverListenersBound = false; // guards against re-adding listeners on every Save Settings
 
 function showScreensaver() {
     const overlay = $('#screensaver-overlay');
@@ -315,9 +309,6 @@ function resetScreensaverTimer() {
 function initScreensaver(enabled, seconds) {
     screensaverEnabledActive = !!enabled;
     screensaverSecondsActive = (seconds && seconds > 0) ? seconds : 30;
-    // Bind the activity listeners once — re-calling initScreensaver (e.g. on
-    // every settings save) used to re-register them each time, stacking up
-    // duplicate handlers.
     if (!screensaverListenersBound) {
         screensaverListenersBound = true;
         ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
@@ -415,7 +406,7 @@ const AppState = {
         },
         sidebarSide: 'right',       // v4.02.0 Part 1 — 'left' or 'right'
         accentColor: '',            // v4.02.0 Part 1 — empty = default theme accent
-        screensaver: {              // v4.02.0 Part 1 — idle timeout is in seconds
+        screensaver: {              // v4.02.0 Part 1
             enabled: false,
             seconds: 30
         }
@@ -1290,27 +1281,7 @@ function updateHeaderLogo(logoUrl) {
             headerPlaceholder.style.display = 'flex';
         }
     }
-
-    // v4.02.0 Part 1 — App Logo Consistency: the footer logo mirrors the
-    // header logo exactly (same uploaded image, or the same placeholder icon).
-    // updateFooterLogo(logoUrl);
 }
-/*
-function updateFooterLogo(logoUrl) {
-    const footerImg = $('#footer-logo');
-    const footerPlaceholder = $('#footer-logo-placeholder');
-    if (!footerImg || !footerPlaceholder) return;
-
-    if (logoUrl) {
-        footerImg.src = logoUrl;
-        footerImg.style.display = 'block';
-        footerPlaceholder.style.display = 'none';
-    } else {
-        footerImg.style.display = 'none';
-        footerPlaceholder.style.display = 'flex';
-    }
-}
-*/
 
 async function saveCompanyData() {
     AppState.companyData.name = $('#company-name').value;
@@ -1489,13 +1460,9 @@ async function loadSettings() {
             applyAccentColor(accentColor);
 
             const screensaverCfg = data.screensaver || { enabled: false, seconds: 30 };
-            // Back-compat: older saves stored `minutes` instead of `seconds`.
-            const screensaverSeconds = screensaverCfg.seconds != null
-                ? screensaverCfg.seconds
-                : ((screensaverCfg.minutes || 5) * 60);
             if ($('#settings-screensaver-enabled')) $('#settings-screensaver-enabled').checked = !!screensaverCfg.enabled;
-            if ($('#settings-screensaver-seconds')) $('#settings-screensaver-seconds').value = screensaverSeconds;
-            initScreensaver(screensaverCfg.enabled, screensaverSeconds);
+            if ($('#settings-screensaver-seconds')) $('#settings-screensaver-seconds').value = screensaverCfg.seconds || 30;
+            initScreensaver(screensaverCfg.enabled, screensaverCfg.seconds);
         } catch (e) {
             console.error('Error loading settings:', e);
         }
