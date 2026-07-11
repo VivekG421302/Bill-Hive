@@ -2312,7 +2312,6 @@ a {
     z-index: 91;
 }
 
-
 /* Task 7: Column Visibility Selector */
 
 .col-hidden {
@@ -2498,7 +2497,287 @@ a {
 .po-journey-connector-completed {
     background: var(--accent-primary);
 }
-    </style>
+
+/* ===================== v4.02.0 PART 1 — SHARED CHROME ADDITIONS ===================== */
+/* Sidebar side / menu position (left or right). Default is right (unchanged). */
+body.side-left .app-header {
+    flex-direction: row-reverse;
+}
+
+body.side-left .sidebar {
+    left: 0;
+    right: auto;
+    border-left: none;
+    border-right: 1px solid var(--border-color);
+    transform: translateX(-100%);
+}
+
+body.side-left .sidebar.open {
+    transform: translateX(0);
+}
+
+body.side-left .sidebar-header {
+    flex-direction: row-reverse;
+}
+
+/* Footer logo — mirrors the header logo element so both always show the
+   identical company logo (or identical placeholder icon) at once. */
+.footer-logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.footer-logo-wrap img.footer-logo {
+    object-fit: contain;
+}
+
+/* Row-click-to-open pattern (used across Brands, Suppliers, and — per the
+   pattern documented in CONTEXT.md — Items/Catalogue/Past Bills/Purchase
+   Orders in later work). Clicking anywhere on a `.row-clickable` element
+   opens its detail view; inner buttons/links/inputs are excluded via the
+   makeRowClickable() JS helper so Edit/Delete icons keep working normally. */
+.row-clickable {
+    cursor: pointer;
+}
+
+.row-clickable:hover {
+    background: var(--bg-hover);
+}
+
+.row-clickable:active {
+    background: var(--bg-tertiary);
+}
+
+.brand-card.row-clickable:hover,
+.brand-card.row-clickable:active {
+    box-shadow: var(--shadow-md);
+}
+
+/* Top-level action bar shown at the top of a detail/view (Edit / Delete /
+   Print / Preview). Reusable across every "view" modal or page. */
+.view-action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.view-action-bar .action-btn {
+    flex: 0 0 auto;
+    padding: 10px 14px;
+}
+
+.view-action-bar .action-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.view-detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.view-detail-row:last-child {
+    border-bottom: none;
+}
+
+.view-detail-label {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+}
+
+.view-detail-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+}
+
+/* Scroll & drag optimization — smooth horizontal drag-scrolling on wide
+   tables without triggering accidental text selection mid-drag. */
+.table-wrap {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+}
+
+.table-wrap.dragging,
+.no-select-drag {
+    cursor: grabbing !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+.table-wrap.dragging * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+/* Responsive fixes — keep action buttons reachable instead of clipped or
+   hidden on narrow viewports. */
+@media (max-width: 480px) {
+    .data-actions,
+    .edit-actions,
+    .view-action-bar {
+        flex-wrap: wrap;
+    }
+
+    .data-actions .action-btn,
+    .edit-actions .action-btn,
+    .view-action-bar .action-btn {
+        flex: 1 1 45%;
+        min-width: 130px;
+    }
+
+    .page-header-with-action {
+        flex-wrap: wrap;
+        row-gap: 10px;
+    }
+
+    .header-right,
+    .header-left {
+        flex-shrink: 0;
+    }
+}
+
+/* Settings page — border-filled buttons whose fill + text colors swap on
+   hover, instead of the app-wide solid button style. */
+#page-settings .action-btn,
+#page-settings .import-btn {
+    background: transparent;
+    box-shadow: none;
+    border: 1.5px solid var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+#page-settings .action-btn:hover,
+#page-settings .import-btn:hover {
+    background: var(--accent-primary);
+    color: var(--text-inverse);
+}
+
+#page-settings .action-btn.btn-save,
+#page-settings .import-btn.btn-save {
+    border-color: var(--accent-secondary);
+    color: var(--accent-secondary);
+}
+
+#page-settings .action-btn.btn-save:hover,
+#page-settings .import-btn.btn-save:hover {
+    background: var(--accent-secondary);
+    color: var(--text-inverse);
+}
+
+#page-settings .action-btn.btn-clear,
+#page-settings .import-btn.btn-clear {
+    border-color: var(--text-muted);
+    color: var(--text-secondary);
+}
+
+#page-settings .action-btn.btn-clear:hover,
+#page-settings .import-btn.btn-clear:hover {
+    background: var(--text-secondary);
+    color: var(--bg-secondary);
+}
+
+#page-settings .btn-settings-danger {
+    border-color: var(--accent-danger) !important;
+    color: var(--accent-danger) !important;
+}
+
+#page-settings .btn-settings-danger:hover {
+    background: var(--accent-danger) !important;
+    color: var(--text-inverse) !important;
+}
+
+/* Accent color customization */
+.accent-swatch-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.accent-color-input {
+    width: 52px;
+    height: 36px;
+    padding: 0;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    background: none;
+}
+
+.accent-preset {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.accent-preset.active {
+    border-color: var(--text-primary);
+    box-shadow: 0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--text-primary);
+}
+
+/* Screen saver */
+.screensaver-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: var(--bg-primary);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    cursor: pointer;
+}
+
+.screensaver-overlay.active {
+    display: flex;
+}
+
+.screensaver-overlay svg {
+    width: 64px;
+    height: 64px;
+    color: var(--accent-primary);
+    animation: ss-pulse 2.4s ease-in-out infinite;
+}
+
+.screensaver-overlay p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+@keyframes ss-pulse {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.08); }
+}
+
+/* Erase-data type-to-confirm input */
+.type-confirm-input {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--accent-danger);
+    border-radius: var(--radius-sm);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+}
+
+</style>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="light-mode">
@@ -2716,15 +2995,18 @@ a {
     <footer class="app-footer">
         <div class="footer-content">
             <div class="footer-brand">
-                <svg class="footer-logo" viewBox="0 0 48 48" fill="none">
-                    <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
-                    <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
-                    <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
-                    <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
-                    <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                    <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
-                </svg>
+                <span class="footer-logo-wrap" id="footer-logo-container">
+                    <img id="footer-logo" src="" alt="Company Logo" class="footer-logo" style="display:none;">
+                    <svg id="footer-logo-placeholder" class="footer-logo" viewBox="0 0 48 48" fill="none">
+                        <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                        <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
+                        <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+                    </svg>
+                </span>
                 <span>Bill-Hive</span>
             </div>
             <p class="footer-tagline">Simple billing, done right. v4.01.0</p>
@@ -2772,6 +3054,33 @@ a {
             <div class="modal-footer">
                 <button class="action-btn btn-save" onclick="saveBrandForm()">Save Brand</button>
                 <button class="action-btn btn-clear" onclick="closeBrandModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== BRAND VIEW MODAL (v4.02.0 Part 1 — reference pattern) ===================== -->
+    <div id="brand-view-modal" class="modal">
+        <div class="modal-overlay" onclick="closeBrandViewModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="brand-view-title">Brand</h3>
+                <button class="modal-close" onclick="closeBrandViewModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="view-action-bar">
+                    <button class="action-btn btn-save" onclick="editBrandFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                        Edit
+                    </button>
+                    <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteBrandFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                        Delete
+                    </button>
+                </div>
+                <div class="brand-card-logo" id="brand-view-logo" style="margin-bottom:16px;"></div>
+                <div id="brand-view-body"></div>
             </div>
         </div>
     </div>
@@ -3020,14 +3329,31 @@ async function initTheme() {
 function updateHeaderLogo(logoUrl) {
     const headerImg = $('#header-logo');
     const headerPlaceholder = $('#header-logo-placeholder');
-    if (!headerImg || !headerPlaceholder) return;
+    if (headerImg && headerPlaceholder) {
+        if (logoUrl) {
+            headerImg.src = logoUrl;
+            headerImg.style.display = 'block';
+            headerPlaceholder.style.display = 'none';
+        } else {
+            headerImg.style.display = 'none';
+            headerPlaceholder.style.display = 'flex';
+        }
+    }
+    // v4.02.0 Part 1 — App Logo Consistency: footer mirrors header exactly.
+    updateFooterLogo(logoUrl);
+}
+
+function updateFooterLogo(logoUrl) {
+    const footerImg = $('#footer-logo');
+    const footerPlaceholder = $('#footer-logo-placeholder');
+    if (!footerImg || !footerPlaceholder) return;
     if (logoUrl) {
-        headerImg.src = logoUrl;
-        headerImg.style.display = 'block';
-        headerPlaceholder.style.display = 'none';
+        footerImg.src = logoUrl;
+        footerImg.style.display = 'block';
+        footerPlaceholder.style.display = 'none';
     } else {
-        headerImg.style.display = 'none';
-        headerPlaceholder.style.display = 'flex';
+        footerImg.style.display = 'none';
+        footerPlaceholder.style.display = 'flex';
     }
 }
 
@@ -3037,6 +3363,133 @@ async function loadHeaderCompanyLogo() {
         if (data && data.logo) updateHeaderLogo(data.logo);
     } catch (e) { console.error('Error loading company logo:', e); }
 }
+
+// ===================== SIDEBAR SIDE (v4.02.0 Part 1) =====================
+// Standalone pages have no Settings UI of their own — they just read and
+// apply whatever was chosen on index.html's Settings page.
+function applySidebarSide(side) {
+    document.body.classList.toggle('side-left', side === 'left');
+}
+
+// ===================== ACCENT COLOR (v4.02.0 Part 1) =====================
+function applyAccentColor(hex) {
+    const root = document.documentElement;
+    if (hex) {
+        root.style.setProperty('--accent-primary', hex);
+    } else {
+        root.style.removeProperty('--accent-primary');
+        root.style.removeProperty('--accent-primary-hover');
+    }
+}
+
+// ===================== SCREEN SAVER (v4.02.0 Part 1) =====================
+let screensaverTimer = null;
+let screensaverMinutesActive = 5;
+let screensaverEnabledActive = false;
+
+function showScreensaver() {
+    const overlay = $('#screensaver-overlay');
+    if (overlay) overlay.classList.add('active');
+}
+
+function hideScreensaver() {
+    const overlay = $('#screensaver-overlay');
+    if (overlay) overlay.classList.remove('active');
+}
+
+function resetScreensaverTimer() {
+    if (screensaverTimer) clearTimeout(screensaverTimer);
+    hideScreensaver();
+    if (!screensaverEnabledActive) return;
+    screensaverTimer = setTimeout(showScreensaver, screensaverMinutesActive * 60 * 1000);
+}
+
+function initScreensaver(enabled, minutes) {
+    screensaverEnabledActive = !!enabled;
+    screensaverMinutesActive = (minutes && minutes > 0) ? minutes : 5;
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+        document.addEventListener(evt, resetScreensaverTimer, { passive: true });
+    });
+    resetScreensaverTimer();
+}
+
+async function applySavedUiPrefs() {
+    try {
+        const settings = await dbGet('settings');
+        applySidebarSide((settings && settings.sidebarSide) || 'right');
+        applyAccentColor((settings && settings.accentColor) || '');
+        const ss = (settings && settings.screensaver) || { enabled: false, minutes: 5 };
+        initScreensaver(ss.enabled, ss.minutes);
+    } catch (e) { console.error('Error applying UI preferences:', e); }
+}
+
+// ===================== SCROLL & DRAG OPTIMIZATION (v4.02.0 Part 1) =====================
+function enableDragScroll(el) {
+    if (!el || el._dragScrollBound) return;
+    el._dragScrollBound = true;
+    let isDown = false, startX = 0, scrollLeft = 0, moved = false;
+
+    el.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button, a, input, select, textarea')) return;
+        isDown = true;
+        moved = false;
+        startX = e.pageX - el.offsetLeft;
+        scrollLeft = el.scrollLeft;
+    });
+
+    ['mouseleave', 'mouseup'].forEach(evt => el.addEventListener(evt, () => {
+        isDown = false;
+        el.classList.remove('dragging');
+    }));
+
+    el.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        const x = e.pageX - el.offsetLeft;
+        const walk = x - startX;
+        if (Math.abs(walk) > 5) {
+            moved = true;
+            el.classList.add('dragging');
+        }
+        if (moved) {
+            e.preventDefault();
+            el.scrollLeft = scrollLeft - walk;
+        }
+    });
+
+    el.addEventListener('click', (e) => {
+        if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+    }, true);
+}
+
+function initDragScrollAll() {
+    $$('.table-wrap').forEach(enableDragScroll);
+}
+
+// ===================== ROW-CLICK-TO-OPEN PATTERN (v4.02.0 Part 1) =====================
+// Reusable helper: makes a table row / card clickable to open its detail
+// view, while inner buttons/links/inputs still work normally.  Usage:
+//   makeRowClickable(rowEl, () => viewSupplier(s.id));
+function makeRowClickable(el, onOpen) {
+    if (!el) return;
+    el.classList.add('row-clickable');
+    el.addEventListener('click', (e) => {
+        if (e.target.closest('button, a, input, select, textarea, label')) return;
+        onOpen();
+    });
+}
+
+// ===================== COLUMN VISIBILITY (v4.01.0 Task 7) =====================
+// NOTE: this system already lives per-page (see suppliers.html's and
+// fulfillment.html's page-specific <script> blocks, each with their own
+// TABLE_COLUMNS map) rather than here in the shared chrome layer, so that
+// pages which don't need it don't declare an unused `const TABLE_COLUMNS`
+// that could collide with a page-specific one of the same name. When adding
+// the picker to a new table, copy that pattern into the page's own script:
+// a `TABLE_COLUMNS` map of `tableId -> [column names]`, plus
+// loadColumnVisibility/saveColumnVisibility/applyColumnVisibility/
+// initColumnVisibility/renderColumnToggles/toggleColumn/toggleColumnDropdown,
+// all backed by the shared `columnVisibility` IndexedDB store (already
+// created by dbInit() above via STORE_NAMES).
 
 // ===================== CUSTOM CONFIRM MODAL (v4.01.0) =====================
 let _confirmResolve = null;
@@ -3070,6 +3523,8 @@ async function initChrome() {
     await initTheme();
     await loadCurrencySymbol();
     await loadHeaderCompanyLogo();
+    await applySavedUiPrefs(); // v4.02.0 Part 1 — sidebar side, accent color, screen saver
+    initDragScrollAll();       // v4.02.0 Part 1 — drag-to-scroll on wide tables
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeSidebar();
     });
@@ -3107,7 +3562,7 @@ window.addEventListener('appinstalled', () => {
     if (btn) btn.style.display = 'none';
 });
 
-    </script>
+</script>
     <script>
 // ===================== YOUR BRANDS PAGE =====================
 let Brands = [];
@@ -3143,7 +3598,7 @@ function renderBrands() {
     grid.style.display = Brands.length === 0 ? 'none' : 'grid';
 
     grid.innerHTML = filtered.map(b => `
-        <div class="brand-card">
+        <div class="brand-card" data-brand-id="${b.id}">
             <div class="brand-card-logo">
                 ${b.logo
                     ? `<img src="${b.logo}" alt="${escapeHtml(b.name)}">`
@@ -3160,10 +3615,10 @@ function renderBrands() {
                 ${b.description ? `<div class="brand-card-desc">${escapeHtml(b.description)}</div>` : ''}
             </div>
             <div class="brand-card-actions">
-                <button class="icon-btn" onclick="openBrandModal(${b.id})" title="Edit">
+                <button class="icon-btn" onclick="event.stopPropagation();openBrandModal(${b.id})" title="Edit">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
                 </button>
-                <button class="icon-btn icon-btn-danger" onclick="deleteBrand(${b.id})" title="Delete">
+                <button class="icon-btn icon-btn-danger" onclick="event.stopPropagation();deleteBrand(${b.id})" title="Delete">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                 </button>
             </div>
@@ -3173,6 +3628,53 @@ function renderBrands() {
     if (Brands.length > 0 && filtered.length === 0) {
         grid.innerHTML = `<div class="placeholder-content" style="grid-column:1/-1;"><p>No brands match your search.</p></div>`;
     }
+
+    // v4.02.0 Part 1 — clicking anywhere on a brand card (outside its
+    // action icons) opens the read-only Brand View, per the row-click
+    // pattern documented in CONTEXT.md.
+    grid.querySelectorAll('.brand-card').forEach(card => {
+        const id = parseInt(card.dataset.brandId, 10);
+        makeRowClickable(card, () => viewBrand(id));
+    });
+}
+
+// ===================== BRAND VIEW (v4.02.0 Part 1 — reference pattern) =====================
+function viewBrand(id) {
+    const b = Brands.find(x => x.id === id);
+    if (!b) return;
+    $('#brand-view-title').textContent = b.name;
+    $('#brand-view-logo').innerHTML = b.logo
+        ? `<img src="${b.logo}" alt="${escapeHtml(b.name)}">`
+        : `<div class="brand-card-logo-placeholder">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2 12.01V2h10.01l8.58 8.58a2 2 0 010 2.83z"/>
+                <line x1="7" y1="7" x2="7.01" y2="7"/>
+             </svg>
+           </div>`;
+    $('#brand-view-body').innerHTML = `
+        <div class="view-detail-row"><span class="view-detail-label">Name</span><span class="view-detail-value">${escapeHtml(b.name)}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Description</span><span class="view-detail-value">${escapeHtml(b.description) || '—'}</span></div>
+    `;
+    $('#brand-view-modal').dataset.brandId = id;
+    $('#brand-view-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeBrandViewModal() {
+    $('#brand-view-modal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function editBrandFromView() {
+    const id = parseInt($('#brand-view-modal').dataset.brandId, 10);
+    closeBrandViewModal();
+    openBrandModal(id);
+}
+
+async function deleteBrandFromView() {
+    const id = parseInt($('#brand-view-modal').dataset.brandId, 10);
+    closeBrandViewModal();
+    await deleteBrand(id);
 }
 
 function openBrandModal(id = null) {
@@ -3265,5 +3767,14 @@ document.addEventListener('DOMContentLoaded', loadBrands);
     </script>
 
     <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
+
+    <!-- ===================== SCREEN SAVER OVERLAY (v4.02.0 Part 1) ===================== -->
+    <div class="screensaver-overlay" id="screensaver-overlay">
+        <svg viewBox="0 0 48 48" fill="none">
+            <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+            <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+        <p>Click or press any key to continue</p>
+    </div>
 </body>
 </html>
