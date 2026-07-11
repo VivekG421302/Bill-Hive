@@ -236,6 +236,138 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// ===================== SIDEBAR SIDE (v4.02.0 Part 1) =====================
+// Lets the user move the hamburger menu / sidebar panel to the left or
+// right of the screen. Applied via a body class read by styles.css.
+function applySidebarSide(side) {
+    document.body.classList.toggle('side-left', side === 'left');
+}
+
+// ===================== ACCENT COLOR (v4.02.0 Part 1) =====================
+// Re-tints every element that reads --accent-primary (buttons, links, and
+// the app's SVG logo marks, which already use `color: var(--accent-primary)`
+// + `stroke="currentColor"`) by overriding the CSS custom property at the
+// document root. An empty/falsy hex resets to the theme's built-in default.
+function shadeColor(hex, percent) {
+    hex = (hex || '').replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    if (!/^[0-9a-fA-F]{6}$/.test(hex)) return hex ? ('#' + hex) : '#1c7ed6';
+    const num = parseInt(hex, 16);
+    let r = (num >> 16) + Math.round(255 * percent / 100);
+    let g = ((num >> 8) & 0x00FF) + Math.round(255 * percent / 100);
+    let b = (num & 0x0000FF) + Math.round(255 * percent / 100);
+    r = Math.min(255, Math.max(0, r));
+    g = Math.min(255, Math.max(0, g));
+    b = Math.min(255, Math.max(0, b));
+    return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+}
+
+function applyAccentColor(hex) {
+    const root = document.documentElement;
+    if (hex) {
+        root.style.setProperty('--accent-primary', hex);
+        root.style.setProperty('--accent-primary-hover', shadeColor(hex, -12));
+    } else {
+        root.style.removeProperty('--accent-primary');
+        root.style.removeProperty('--accent-primary-hover');
+    }
+    const swatches = $$('.accent-preset');
+    swatches.forEach(sw => sw.classList.toggle('active', sw.dataset.color === (hex || '')));
+}
+
+// ===================== SCREEN SAVER (v4.02.0 Part 1) =====================
+// After N minutes of inactivity, shows a full-screen idle overlay. Any
+// click or keypress anywhere immediately dismisses it and restarts the timer.
+let screensaverTimer = null;
+let screensaverMinutesActive = 5;
+let screensaverEnabledActive = false;
+
+function showScreensaver() {
+    const overlay = $('#screensaver-overlay');
+    if (overlay) overlay.classList.add('active');
+}
+
+function hideScreensaver() {
+    const overlay = $('#screensaver-overlay');
+    if (overlay) overlay.classList.remove('active');
+}
+
+function resetScreensaverTimer() {
+    if (screensaverTimer) clearTimeout(screensaverTimer);
+    hideScreensaver();
+    if (!screensaverEnabledActive) return;
+    screensaverTimer = setTimeout(showScreensaver, screensaverMinutesActive * 60 * 1000);
+}
+
+function initScreensaver(enabled, minutes) {
+    screensaverEnabledActive = !!enabled;
+    screensaverMinutesActive = (minutes && minutes > 0) ? minutes : 5;
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+        document.addEventListener(evt, resetScreensaverTimer, { passive: true });
+    });
+    resetScreensaverTimer();
+}
+
+// ===================== SCROLL & DRAG OPTIMIZATION (v4.02.0 Part 1) =====================
+// Lets the user drag horizontally-scrollable tables with the mouse without
+// the browser also starting a text selection mid-drag.
+function enableDragScroll(el) {
+    if (!el || el._dragScrollBound) return;
+    el._dragScrollBound = true;
+    let isDown = false, startX = 0, scrollLeft = 0, moved = false;
+
+    el.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button, a, input, select, textarea')) return;
+        isDown = true;
+        moved = false;
+        startX = e.pageX - el.offsetLeft;
+        scrollLeft = el.scrollLeft;
+    });
+
+    ['mouseleave', 'mouseup'].forEach(evt => el.addEventListener(evt, () => {
+        isDown = false;
+        el.classList.remove('dragging');
+    }));
+
+    el.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        const x = e.pageX - el.offsetLeft;
+        const walk = x - startX;
+        if (Math.abs(walk) > 5) {
+            moved = true;
+            el.classList.add('dragging');
+        }
+        if (moved) {
+            e.preventDefault();
+            el.scrollLeft = scrollLeft - walk;
+        }
+    });
+
+    // Swallow the click that follows a drag so it doesn't also trigger a
+    // row-clickable row's onOpen handler.
+    el.addEventListener('click', (e) => {
+        if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; }
+    }, true);
+}
+
+function initDragScrollAll() {
+    $$('.table-wrap').forEach(enableDragScroll);
+}
+
+// ===================== ROW-CLICK-TO-OPEN PATTERN (v4.02.0 Part 1) =====================
+// Reusable helper: makes a table row / card clickable to open its detail
+// view, while inner buttons/links/inputs still work normally (their clicks
+// are not treated as "open the row").  Usage:
+//   makeRowClickable(rowEl, () => viewSupplier(s.id));
+function makeRowClickable(el, onOpen) {
+    if (!el) return;
+    el.classList.add('row-clickable');
+    el.addEventListener('click', (e) => {
+        if (e.target.closest('button, a, input, select, textarea, label')) return;
+        onOpen();
+    });
+}
+
 // ===================== STATE =====================
 const AppState = {
     lineItems: [],
@@ -261,6 +393,12 @@ const AppState = {
         print: {
             fontWeight: 'bold',
             paperSize: '80mm'
+        },
+        sidebarSide: 'right',       // v4.02.0 Part 1 — 'left' or 'right'
+        accentColor: '',            // v4.02.0 Part 1 — empty = default theme accent
+        screensaver: {              // v4.02.0 Part 1
+            enabled: false,
+            minutes: 5
         }
     },
     config: {
@@ -1123,13 +1261,34 @@ function updateHeaderLogo(logoUrl) {
     const headerImg = $('#header-logo');
     const headerPlaceholder = $('#header-logo-placeholder');
 
+    if (headerImg && headerPlaceholder) {
+        if (logoUrl) {
+            headerImg.src = logoUrl;
+            headerImg.style.display = 'block';
+            headerPlaceholder.style.display = 'none';
+        } else {
+            headerImg.style.display = 'none';
+            headerPlaceholder.style.display = 'flex';
+        }
+    }
+
+    // v4.02.0 Part 1 — App Logo Consistency: the footer logo mirrors the
+    // header logo exactly (same uploaded image, or the same placeholder icon).
+    updateFooterLogo(logoUrl);
+}
+
+function updateFooterLogo(logoUrl) {
+    const footerImg = $('#footer-logo');
+    const footerPlaceholder = $('#footer-logo-placeholder');
+    if (!footerImg || !footerPlaceholder) return;
+
     if (logoUrl) {
-        headerImg.src = logoUrl;
-        headerImg.style.display = 'block';
-        headerPlaceholder.style.display = 'none';
+        footerImg.src = logoUrl;
+        footerImg.style.display = 'block';
+        footerPlaceholder.style.display = 'none';
     } else {
-        headerImg.style.display = 'none';
-        headerPlaceholder.style.display = 'flex';
+        footerImg.style.display = 'none';
+        footerPlaceholder.style.display = 'flex';
     }
 }
 
@@ -1253,6 +1412,20 @@ async function saveSettings() {
         paperSize: $('#print-paper-size')?.value || '80mm'
     };
 
+    // v4.02.0 Part 1 — Menu position, accent color, screen saver
+    const sidebarSide = $('#settings-sidebar-side')?.value || 'right';
+    AppState.settings.sidebarSide = sidebarSide;
+    applySidebarSide(sidebarSide);
+
+    const accentColor = $('#settings-accent-color')?.value || '';
+    AppState.settings.accentColor = accentColor;
+    applyAccentColor(accentColor);
+
+    const screensaverEnabled = !!$('#settings-screensaver-enabled')?.checked;
+    const screensaverMinutes = parseInt($('#settings-screensaver-minutes')?.value, 10) || 5;
+    AppState.settings.screensaver = { enabled: screensaverEnabled, minutes: screensaverMinutes };
+    initScreensaver(screensaverEnabled, screensaverMinutes);
+
     await dbSet('settings', AppState.settings);
     showToast('Settings saved!');
 }
@@ -1285,9 +1458,27 @@ async function loadSettings() {
             const printCfg = data.print || {};
             if ($('#print-font-weight')) $('#print-font-weight').value = printCfg.fontWeight || 'bold';
             if ($('#print-paper-size')) $('#print-paper-size').value = printCfg.paperSize || '80mm';
+
+            // v4.02.0 Part 1 — Menu position, accent color, screen saver
+            const sidebarSide = data.sidebarSide || 'right';
+            if ($('#settings-sidebar-side')) $('#settings-sidebar-side').value = sidebarSide;
+            applySidebarSide(sidebarSide);
+
+            const accentColor = data.accentColor || '';
+            if ($('#settings-accent-color')) $('#settings-accent-color').value = accentColor || '#228be6';
+            applyAccentColor(accentColor);
+
+            const screensaverCfg = data.screensaver || { enabled: false, minutes: 5 };
+            if ($('#settings-screensaver-enabled')) $('#settings-screensaver-enabled').checked = !!screensaverCfg.enabled;
+            if ($('#settings-screensaver-minutes')) $('#settings-screensaver-minutes').value = screensaverCfg.minutes || 5;
+            initScreensaver(screensaverCfg.enabled, screensaverCfg.minutes);
         } catch (e) {
             console.error('Error loading settings:', e);
         }
+    } else {
+        // No saved settings yet — still apply defaults so the screen saver
+        // listeners etc. are wired up.
+        initScreensaver(false, 5);
     }
 }
 
@@ -2409,9 +2600,36 @@ function importAllData(event) {
     event.target.value = '';
 }
 
-async function resetAllData() {
-    if (!await showConfirm('This will permanently erase ALL Bill-Hive data from this browser. This cannot be undone.', 'Reset All Data')) return;
-    if (!await showConfirm('Final confirmation — erase everything?', 'Are You Sure?')) return;
+// v4.02.0 Part 1 — Erase Data now requires typing "delete" into a text
+// input rather than just clicking through confirm() dialogs.
+function resetAllData() {
+    openEraseConfirmModal();
+}
+
+function openEraseConfirmModal() {
+    const input = $('#erase-confirm-input');
+    if (input) input.value = '';
+    const btn = $('#erase-confirm-yes-btn');
+    if (btn) btn.disabled = true;
+    $('#erase-confirm-modal')?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEraseConfirmModal() {
+    $('#erase-confirm-modal')?.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function validateEraseConfirmInput() {
+    const input = $('#erase-confirm-input');
+    const btn = $('#erase-confirm-yes-btn');
+    if (!input || !btn) return;
+    btn.disabled = input.value.trim().toLowerCase() !== 'delete';
+}
+
+async function confirmEraseAllData() {
+    if (($('#erase-confirm-input')?.value || '').trim().toLowerCase() !== 'delete') return;
+    closeEraseConfirmModal();
 
     await dbClearAll();
     // Also clear any legacy localStorage keys in case migration hasn't run yet
@@ -2476,6 +2694,9 @@ async function init() {
     renderStockTable();
     renderPastBills();
 
+    // v4.02.0 Part 1 — drag-to-scroll on wide tables
+    initDragScrollAll();
+
     // Honor a deep-link hash (e.g. arriving from index.html#stock)
     const hashPage = (location.hash || '').replace('#', '');
     if (hashPage && $(`#page-${hashPage}`)) {
@@ -2490,6 +2711,7 @@ async function init() {
             closePreview();
             if ($('#excel-preview-modal')?.classList.contains('active')) closeExcelPreviewModal();
             if ($('#confirm-modal')?.classList.contains('active')) closeConfirmModal();
+            if ($('#erase-confirm-modal')?.classList.contains('active')) closeEraseConfirmModal();
         }
     });
 
