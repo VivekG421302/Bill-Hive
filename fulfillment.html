@@ -2781,6 +2781,321 @@ body.side-left .sidebar-header {
     font-family: var(--font-mono);
 }
 
+/* ===================== v4.03.0 PART 2 ADDITIONS ===================== */
+/* Item Add/Edit modal — up to 4 product image slots, click-to-upload when
+   empty, click-to-replace when filled. Same 2MB size-limit convention as
+   .logo-upload-area / handleBrandLogoUpload. */
+.item-image-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+@media (max-width: 480px) {
+    .item-image-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.item-image-slot {
+    position: relative;
+    aspect-ratio: 1;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-input);
+    transition: all var(--transition-fast);
+}
+
+.item-image-slot:hover {
+    border-color: var(--accent-primary);
+    background: rgba(34, 139, 230, 0.03);
+}
+
+.item-image-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.item-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+}
+
+.item-image-placeholder svg {
+    width: 20px;
+    height: 20px;
+}
+
+.item-image-placeholder span {
+    font-size: 0.6875rem;
+    font-weight: 500;
+}
+
+.item-image-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+/* Item view modal — small thumbnail strip of the item's images, shown
+   above the read-only detail rows. */
+.item-view-images {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.item-view-images:not(:empty) {
+    margin-bottom: 16px;
+}
+
+.item-view-images img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+/* Catalogue product page — e-commerce-style detail view with an image
+   gallery supporting swipe (touch), click arrows, and dot navigation. */
+.product-view-header {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.product-view-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.product-view-brand {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.product-view-price {
+    font-size: 1.375rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+    font-family: var(--font-mono);
+    margin-top: 6px;
+}
+
+.product-gallery {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto 12px;
+}
+
+.product-gallery-main {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg-input);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: pan-y;
+}
+
+.product-gallery-main img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.product-gallery-placeholder {
+    color: var(--text-muted);
+}
+
+.product-gallery-placeholder svg {
+    width: 48px;
+    height: 48px;
+}
+
+.gallery-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.gallery-arrow:hover {
+    background: rgba(0, 0, 0, 0.65);
+}
+
+.gallery-arrow.prev { left: 8px; }
+.gallery-arrow.next { right: 8px; }
+
+.gallery-arrow svg {
+    width: 18px;
+    height: 18px;
+}
+
+.gallery-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.gallery-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border-color);
+    cursor: pointer;
+    border: none;
+    padding: 0;
+}
+
+.gallery-dot.active {
+    background: var(--accent-primary);
+}
+
+.product-view-fields .view-detail-row:first-child {
+    border-top: 1px solid var(--border-light);
+}
+
+
+/* ===================== v4.04.0 PART 3 ADDITIONS ===================== */
+
+/* Task 2: Sale Summary layout — gap between the two bill-section cards */
+#page-sale-summary .bill-section + .bill-section {
+    margin-top: 16px;
+}
+
+/* Task 3: Past Bills date filter toolbar row */
+.bills-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    align-items: center;
+}
+
+.bills-filter-bar .filter-btn {
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    white-space: nowrap;
+}
+
+.bills-filter-bar .filter-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.bills-filter-bar .filter-btn.active {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+}
+
+.bills-filter-bar .filter-date-range {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.bills-filter-bar .filter-date-range input[type="date"] {
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 0.8125rem;
+    cursor: pointer;
+}
+
+.bills-date-separator {
+    padding: 8px 0 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-top: 1px solid var(--border-light);
+}
+
+.bills-date-separator:first-child {
+    border-top: none;
+}
+
+/* Task 4: Past Bill view modal */
+#bill-view-modal .modal-content {
+    max-width: 520px;
+}
+
+/* Task 1: Damaged stock checkbox in sales return */
+.return-damaged-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-input);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.return-damaged-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--accent-danger);
+    flex-shrink: 0;
+}
 </style>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -2994,6 +3309,13 @@ body.side-left .sidebar-header {
                         <label>Supplier <span class="required">*</span></label>
                         <select id="po-supplier-select">
                             <option value="">-- Select a supplier --</option>
+                        </select>
+                    </div>
+                    <!-- Task 6 Part 3: Filter low-stock items by supplier's linked catalogue items -->
+                    <div class="form-group">
+                        <label>Filter by Supplier</label>
+                        <select id="restock-supplier-filter" onchange="renderRestockTable()">
+                            <option value="">All items</option>
                         </select>
                     </div>
                 </div>
@@ -3632,6 +3954,16 @@ function populateSupplierSelect() {
     if (FSuppliers.length === 0) {
         select.innerHTML = '<option value="">No suppliers added yet</option>';
     }
+
+    // Task 6: also populate the restock supplier filter
+    const filter = $('#restock-supplier-filter');
+    if (filter) {
+        const fCurrent = filter.value;
+        filter.innerHTML = '<option value="">All items</option>' +
+            FSuppliers.filter(s => s.itemIds && s.itemIds.length > 0)
+                .map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+        if (FSuppliers.some(s => String(s.id) === fCurrent)) filter.value = fCurrent;
+    }
 }
 
 function getLowStockItems() {
@@ -3643,7 +3975,24 @@ function renderRestockTable() {
     const empty = $('#restock-empty');
     if (!tbody) return;
 
-    const lowStock = getLowStockItems();
+    let lowStock = getLowStockItems();
+
+    // Task 6: filter by supplier's linked itemIds
+    const filterSupplierId = $('#restock-supplier-filter')?.value;
+    if (filterSupplierId) {
+        const filterSupplier = FSuppliers.find(s => String(s.id) === filterSupplierId);
+        if (filterSupplier && filterSupplier.itemIds && filterSupplier.itemIds.length > 0) {
+            const linkedIds = filterSupplier.itemIds.map(String);
+            lowStock = lowStock.filter(it => linkedIds.includes(String(it.id)));
+
+            // Task 6: auto-select this supplier in the PO supplier dropdown if not already set
+            const poSelect = $('#po-supplier-select');
+            if (poSelect && !poSelect.value) {
+                poSelect.value = filterSupplierId;
+            }
+        }
+    }
+
     empty.style.display = lowStock.length === 0 ? 'flex' : 'none';
 
     tbody.innerHTML = lowStock.map(it => {
@@ -3741,7 +4090,7 @@ function renderPOTable() {
         </button>`;
 
         return `
-        <tr onclick="viewPO(${po.id})" style="cursor:pointer;">
+        <tr data-po-id="${po.id}">
             <td class="cell-strong">${po.poNumber}</td>
             <td>${formatDate(po.date)}</td>
             <td>${escapeHtml(po.supplierName)}</td>
@@ -3750,6 +4099,10 @@ function renderPOTable() {
             <td class="cell-actions">${actionBtns}</td>
         </tr>`;
     }).join('');
+    tbody.querySelectorAll('tr[data-po-id]').forEach(tr => {
+        const id = parseInt(tr.dataset.poId, 10);
+        if (id) makeRowClickable(tr, () => viewPO(id));
+    });
     initColumnVisibility('po-table');
 }
 
@@ -3818,6 +4171,20 @@ function viewPO(id) {
 
     $('#po-modal-title').textContent = po.poNumber;
     $('#po-modal-body').innerHTML = `
+        <div class="view-action-bar">
+            ${po.status !== 'Received' ? `<button class="action-btn btn-save" onclick="advancePOStatus(${po.id})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                Mark ${getNextStatus(po.status)}
+            </button>` : ''}
+            <button class="action-btn btn-clear" onclick="printPOFromModal(${po.id})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Print
+            </button>
+            <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deletePOFromModal(${po.id})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                Delete
+            </button>
+        </div>
         ${journeyHtml}
         <div class="data-view-row"><span class="data-view-label">Supplier</span><span class="data-view-value">${escapeHtml(po.supplierName)}</span></div>
         <div class="data-view-row"><span class="data-view-label">Date</span><span class="data-view-value">${formatDate(po.date)}</span></div>
@@ -3829,12 +4196,6 @@ function viewPO(id) {
                     ${po.items.map(i => `<tr><td>${escapeHtml(i.name)}</td><td>${i.qty}</td></tr>`).join('')}
                 </tbody>
             </table>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:16px;">
-            ${po.status !== 'Received' ? `<button class="action-btn btn-save" onclick="advancePOStatus(${po.id})">Mark as ${getNextStatus(po.status)}</button>` : ''}
-            <button class="icon-btn icon-btn-danger" onclick="deletePOFromModal(${po.id})" title="Delete">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-            </button>
         </div>
     `;
 
@@ -3904,6 +4265,28 @@ async function deletePOFromModal(id) {
     renderPOTable();
     closePoModal();
     showToast('Purchase order deleted');
+}
+
+function printPOFromModal(id) {
+    const po = PurchaseOrders.find(p => p.id === id);
+    if (!po) return;
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(po.poNumber)} — Purchase Order</title>
+    <style>body{font-family:'Courier New',monospace;font-weight:700;padding:24px;color:#000;}
+    h2{border-bottom:2px solid #000;padding-bottom:8px;}
+    .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #999;font-size:13px;}
+    table{width:100%;border-collapse:collapse;margin-top:12px;}th,td{border:1px solid #999;padding:6px 10px;text-align:left;font-size:13px;}</style></head>
+    <body>
+        <h2>Purchase Order: ${escapeHtml(po.poNumber)}</h2>
+        <div class="row"><span>Supplier</span><span>${escapeHtml(po.supplierName)}</span></div>
+        <div class="row"><span>Date</span><span>${formatDate(po.date)}</span></div>
+        <div class="row"><span>Status</span><span>${po.status}</span></div>
+        <table><thead><tr><th>Item</th><th>Qty</th></tr></thead><tbody>
+        ${po.items.map(i => `<tr><td>${escapeHtml(i.name)}</td><td>${i.qty}</td></tr>`).join('')}
+        </tbody></table>
+    </body></html>`);
+    win.document.close();
+    win.print();
 }
 
 function closePoModal() {

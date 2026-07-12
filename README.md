@@ -5,15 +5,15 @@ A fast, offline-first, mobile-first POS billing app that runs entirely in the br
 ## Features
 
 - **Create Bill** — customer details, auto-generated invoice numbers (`yymmnn`, resets every month), searchable line items with auto-fill from your item catalog, auto-calculated discount/tax/totals, payment mode selector, and a POS-style thermal-receipt preview & print.
-- **Past Bills** — search, preview, reprint or delete any saved invoice.
-- **Items** — manage your product/service catalog with SKU code, EAN/barcode, item number, brand, cost price, selling price, discount %, tax %, and opening stock.
+- **Past Bills** — search, preview, reprint or delete any saved invoice. Filter by date (Today / This Week / This Month / This Year / Custom range). Bills are grouped by date with Today/Yesterday/date separators. Clicking a row opens a detail view modal with Preview / Print / Delete actions.
+- **Items** — manage your product/service catalog with SKU code, EAN/barcode, item number, brand, cost price, selling price, discount %, tax %, opening stock, and up to 4 product images. Click a row to open a read-only detail view with Edit/Delete actions. Items can't be deleted while tracked stock is above 0 — reduce stock to 0 via Stock Adjustment first (untracked items delete freely).
 - **Stock** — live stock levels per item, manual add/remove/set adjustments, and a movement log (sales, returns, manual edits, purchase receipts).
-- **Sales Return** — pick a past invoice, choose which items/quantities to return, auto-calculates the refund and restocks tracked items.
+- **Sales Return** — pick a past invoice, choose which items/quantities to return, auto-calculates the refund and restocks tracked items. A "Don't add to inventory (log as damaged stock)" checkbox prevents restocking while logging the movement for audit purposes.
 - **Sale Summary** — Today's Sales, **Net Sales Today**, This Week, This Month, **Net Sales Monthly**, All-Time totals, bill count, total refunded, **Sales by Brand** percentage breakdown, and a top-selling-items chart.
 - **Your Brands** — a lightweight catalog of the brands you sell under (name, description, 4:1 logo), on its own page (`brands.html`).
-- **Suppliers** — manage the vendors you purchase stock from (contact person, phone, email, address, items supplied, notes), on its own page (`suppliers.html`).
-- **Fulfillment** — a purchasing workspace (`fulfillment.html`) that flags catalog items at or below 5 units in stock, lets you build a Purchase Order against a supplier for the flagged items, and tracks each PO through Pending → Ordered → Received. Marking a PO as Received adds the ordered quantities back into stock and logs a "Purchase Received" stock movement.
-- **Catalogue** — a read-only, browsable view (`catalogue.html`) of your full item catalog grouped by brand, with search and a brand filter. **Print Catalogue** generates a clean, full-page black & white document (company logo, name, and address up top) you can hand to customers or keep as a price list.
+- **Suppliers** — manage the vendors you purchase stock from (contact person, phone, email, address, items supplied, notes), on its own page (`suppliers.html`). Suppliers can be linked to specific catalogue items via a tag-chip picker; linked items appear in the supplier detail view.
+- **Fulfillment** — a purchasing workspace (`fulfillment.html`) that flags catalog items at or below 5 units in stock, lets you build a Purchase Order against a supplier for the flagged items, and tracks each PO through Pending → Ordered → Received. Marking a PO as Received adds the ordered quantities back into stock and logs a "Purchase Received" stock movement. A supplier filter on the restock table narrows low-stock items to those linked to a chosen supplier and auto-fills the PO supplier field.
+- **Catalogue** — a read-only, browsable view (`catalogue.html`) of your full item catalog grouped by brand, with search and a brand filter. Click any item to open an e-commerce-style product page with name, brand, SKU, price, tax %, available stock, and an image gallery (swipe on touch, arrows/dots on desktop). **Print Catalogue** generates a clean, full-page black & white document (company logo, name, and address up top) you can hand to customers or keep as a price list.
 - **Excel Import for Items** — on the Items page, **Download Template** gives you a ready-to-fill `.xlsx` with the exact columns Bill-Hive expects (Name, SKU, EAN, Item Number, Brand, Cost, Price, Discount %, Tax %, Opening Stock, Track Stock). **Import Excel** reads a filled-in copy back in; any brand name in the sheet that doesn't already exist in Your Brands is created automatically.
 - **Print Setup** — in Settings, choose the font weight (Normal/Bold/Extra Bold) and paper width (58mm/80mm) used for every printed and previewed bill, with **Preview Dummy Bill** / **Print Dummy Bill** buttons to test your settings before saving. The company logo always prints/previews in black & white.
 - **Your Data** — company name, GST number, address, contact info and a 4:1 logo, shown centered in the app header and at the top of every printed bill. The page is view-only by default; tap the pencil icon to edit.
@@ -21,7 +21,7 @@ A fast, offline-first, mobile-first POS billing app that runs entirely in the br
 - **PWA** — installable as a standalone app on desktop (Chrome/Edge) and Android. Offline-capable via service worker. Install button appears in the sidebar automatically when the browser supports it.
 - **Dark / Light mode**, toggled from the sidebar and remembered across visits.
 - **Configurable sidebar navigation** (hamburger menu + sidebar panel; left or right of the header, your choice in Settings); the header itself shows only your centered company logo (4:1 banner) — no navbar clutter. The small Bill-Hive brand icon in the header and footer always matches the one in the sidebar, independent of your uploaded company logo.
-- **Row-click-to-view** — on the Your Brands and Suppliers pages, clicking anywhere on a card/row opens a read-only detail view with its own top-level Edit / Delete / Print buttons (more pages will adopt this pattern going forward).
+- **Row-click-to-view** — on Your Brands, Suppliers, Items, Catalogue product page, and Past Bills, clicking anywhere on a card/row opens a read-only detail view with context-appropriate actions (Edit/Delete on Brands/Suppliers/Items; Preview/Print/Delete on Past Bills; a full product page with image gallery on Catalogue).
 
 ## Getting started
 
@@ -49,7 +49,7 @@ Everything is stored in the browser's IndexedDB (database `billhive-db`) under t
 | `company` | Company profile + logo (base64, 4:1 recommended) |
 | `settings` | Thank-you messages, terms & conditions, currency symbol, print setup, menu position, accent color, screen saver |
 | `config` | Reserved database/sync configuration (inactive) |
-| `items` | Product/service catalog (name, SKU, EAN, item number, brand, cost, price, discount, tax, stock) |
+| `items` | Product/service catalog (name, SKU, EAN, item number, brand, cost, price, discount, tax, stock, up to 4 images) |
 | `stocklog` | Stock movement history |
 | `bills` | All saved invoices |
 | `returns` | All processed sales returns |

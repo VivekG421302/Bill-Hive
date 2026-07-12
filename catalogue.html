@@ -2781,6 +2781,321 @@ body.side-left .sidebar-header {
     font-family: var(--font-mono);
 }
 
+/* ===================== v4.03.0 PART 2 ADDITIONS ===================== */
+/* Item Add/Edit modal — up to 4 product image slots, click-to-upload when
+   empty, click-to-replace when filled. Same 2MB size-limit convention as
+   .logo-upload-area / handleBrandLogoUpload. */
+.item-image-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+@media (max-width: 480px) {
+    .item-image-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.item-image-slot {
+    position: relative;
+    aspect-ratio: 1;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-input);
+    transition: all var(--transition-fast);
+}
+
+.item-image-slot:hover {
+    border-color: var(--accent-primary);
+    background: rgba(34, 139, 230, 0.03);
+}
+
+.item-image-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.item-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+}
+
+.item-image-placeholder svg {
+    width: 20px;
+    height: 20px;
+}
+
+.item-image-placeholder span {
+    font-size: 0.6875rem;
+    font-weight: 500;
+}
+
+.item-image-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+/* Item view modal — small thumbnail strip of the item's images, shown
+   above the read-only detail rows. */
+.item-view-images {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.item-view-images:not(:empty) {
+    margin-bottom: 16px;
+}
+
+.item-view-images img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+/* Catalogue product page — e-commerce-style detail view with an image
+   gallery supporting swipe (touch), click arrows, and dot navigation. */
+.product-view-header {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.product-view-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.product-view-brand {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.product-view-price {
+    font-size: 1.375rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+    font-family: var(--font-mono);
+    margin-top: 6px;
+}
+
+.product-gallery {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto 12px;
+}
+
+.product-gallery-main {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg-input);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: pan-y;
+}
+
+.product-gallery-main img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.product-gallery-placeholder {
+    color: var(--text-muted);
+}
+
+.product-gallery-placeholder svg {
+    width: 48px;
+    height: 48px;
+}
+
+.gallery-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.gallery-arrow:hover {
+    background: rgba(0, 0, 0, 0.65);
+}
+
+.gallery-arrow.prev { left: 8px; }
+.gallery-arrow.next { right: 8px; }
+
+.gallery-arrow svg {
+    width: 18px;
+    height: 18px;
+}
+
+.gallery-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.gallery-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border-color);
+    cursor: pointer;
+    border: none;
+    padding: 0;
+}
+
+.gallery-dot.active {
+    background: var(--accent-primary);
+}
+
+.product-view-fields .view-detail-row:first-child {
+    border-top: 1px solid var(--border-light);
+}
+
+
+/* ===================== v4.04.0 PART 3 ADDITIONS ===================== */
+
+/* Task 2: Sale Summary layout — gap between the two bill-section cards */
+#page-sale-summary .bill-section + .bill-section {
+    margin-top: 16px;
+}
+
+/* Task 3: Past Bills date filter toolbar row */
+.bills-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    align-items: center;
+}
+
+.bills-filter-bar .filter-btn {
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    white-space: nowrap;
+}
+
+.bills-filter-bar .filter-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.bills-filter-bar .filter-btn.active {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+}
+
+.bills-filter-bar .filter-date-range {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.bills-filter-bar .filter-date-range input[type="date"] {
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 0.8125rem;
+    cursor: pointer;
+}
+
+.bills-date-separator {
+    padding: 8px 0 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-top: 1px solid var(--border-light);
+}
+
+.bills-date-separator:first-child {
+    border-top: none;
+}
+
+/* Task 4: Past Bill view modal */
+#bill-view-modal .modal-content {
+    max-width: 520px;
+}
+
+/* Task 1: Damaged stock checkbox in sales return */
+.return-damaged-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-input);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.return-damaged-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--accent-danger);
+    flex-shrink: 0;
+}
 </style>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -3030,6 +3345,28 @@ body.side-left .sidebar-header {
             <p class="footer-tagline">Simple billing, done right. v4.01.0</p>
         </div>
     </footer>
+
+    <!-- ===================== PRODUCT VIEW MODAL (v4.03.0 Part 2) ===================== -->
+    <div id="product-view-modal" class="modal">
+        <div class="modal-overlay" onclick="closeProductView()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="product-view-title">Product</h3>
+                <button class="modal-close" onclick="closeProductView()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="product-view-gallery"></div>
+                <div class="product-view-header">
+                    <div class="product-view-name" id="product-view-name"></div>
+                    <div class="product-view-brand" id="product-view-brand"></div>
+                    <div class="product-view-price" id="product-view-price"></div>
+                </div>
+                <div class="product-view-fields" id="product-view-fields"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- ===================== CUSTOM CONFIRM MODAL (v4.01.0) ===================== -->
     <div id="confirm-modal" class="modal">
@@ -3627,7 +3964,7 @@ function renderCatalogue() {
                     <thead><tr><th class="${colHidden(0)}">Name</th><th class="${colHidden(1)}">SKU</th><th class="${colHidden(2)}">Price</th><th class="${colHidden(3)}">Tax %</th><th class="${colHidden(4)}">Stock</th></tr></thead>
                     <tbody>
                         ${items.map(it => `
-                            <tr>
+                            <tr data-item-id="${it.id}">
                                 <td class="cell-strong${colHidden(0)}">${escapeHtml(it.name)}</td>
                                 <td class="cell-muted${colHidden(1)}">${escapeHtml(it.sku || '—')}</td>
                                 <td class="${colHidden(2)}">${formatCurrency(it.price)}</td>
@@ -3640,7 +3977,119 @@ function renderCatalogue() {
             </div>
         </div>`;
     }).join('');
+
+    // v4.03.0 Part 2 — row-click opens the read-only product page (see
+    // makeRowClickable in § Shared conventions / CONTEXT.md).
+    container.querySelectorAll('tr[data-item-id]').forEach(tr => {
+        const id = parseInt(tr.dataset.itemId, 10);
+        if (id) makeRowClickable(tr, () => viewProduct(id));
+    });
 }
+
+// ===================== PRODUCT VIEW / GALLERY (v4.03.0 Part 2) =====================
+// Turns a catalogue item into an e-commerce-style product page: name,
+// brand, SKU, price, tax %, all item fields, current stock, and an image
+// gallery (up to 4 images) with swipe (touch), click arrows (desktop) and
+// dot navigation.
+let productGalleryImages = [];
+let productGalleryIndex = 0;
+let productGalleryTouchStartX = null;
+
+function viewProduct(id) {
+    const it = CItems.find(i => i.id === id);
+    if (!it) return;
+
+    productGalleryImages = Array.isArray(it.images) ? it.images.filter(Boolean) : [];
+    productGalleryIndex = 0;
+
+    $('#product-view-title').textContent = it.name;
+    $('#product-view-name').textContent = it.name;
+    $('#product-view-brand').textContent = it.brand || 'Unbranded';
+    $('#product-view-price').textContent = formatCurrency(it.price);
+
+    $('#product-view-fields').innerHTML = `
+        <div class="view-detail-row"><span class="view-detail-label">SKU</span><span class="view-detail-value">${escapeHtml(it.sku) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">EAN / Barcode</span><span class="view-detail-value">${escapeHtml(it.ean) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Item Number</span><span class="view-detail-value">${escapeHtml(it.itemNumber) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Brand</span><span class="view-detail-value">${escapeHtml(it.brand) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Price</span><span class="view-detail-value">${formatCurrency(it.price)}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Tax %</span><span class="view-detail-value">${it.tax || 0}%</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Available Stock</span><span class="view-detail-value">${it.trackStock !== false ? (it.stock || 0) : 'Not tracked'}</span></div>
+    `;
+
+    renderProductGallery();
+    $('#product-view-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeProductView() {
+    $('#product-view-modal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function renderProductGallery() {
+    const wrap = $('#product-view-gallery');
+    if (!wrap) return;
+
+    if (productGalleryImages.length === 0) {
+        wrap.innerHTML = `
+            <div class="product-gallery">
+                <div class="product-gallery-main">
+                    <div class="product-gallery-placeholder">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                    </div>
+                </div>
+            </div>`;
+        return;
+    }
+
+    const showArrows = productGalleryImages.length > 1;
+    wrap.innerHTML = `
+        <div class="product-gallery">
+            <div class="product-gallery-main" id="product-gallery-main">
+                <img src="${productGalleryImages[productGalleryIndex]}" alt="Product image ${productGalleryIndex + 1}">
+                ${showArrows ? `
+                    <button type="button" class="gallery-arrow prev" onclick="galleryStep(-1)" title="Previous">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <button type="button" class="gallery-arrow next" onclick="galleryStep(1)" title="Next">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                ` : ''}
+            </div>
+            ${showArrows ? `
+                <div class="gallery-dots">
+                    ${productGalleryImages.map((_, i) => `<button type="button" class="gallery-dot${i === productGalleryIndex ? ' active' : ''}" onclick="galleryGoto(${i})"></button>`).join('')}
+                </div>
+            ` : ''}
+        </div>`;
+
+    const mainEl = $('#product-gallery-main');
+    if (mainEl && showArrows) {
+        mainEl.addEventListener('touchstart', (e) => {
+            productGalleryTouchStartX = e.touches[0].clientX;
+        }, { passive: true });
+        mainEl.addEventListener('touchend', (e) => {
+            if (productGalleryTouchStartX === null) return;
+            const dx = e.changedTouches[0].clientX - productGalleryTouchStartX;
+            productGalleryTouchStartX = null;
+            if (Math.abs(dx) < 40) return;
+            galleryStep(dx < 0 ? 1 : -1);
+        }, { passive: true });
+    }
+}
+
+function galleryStep(delta) {
+    if (productGalleryImages.length === 0) return;
+    productGalleryIndex = (productGalleryIndex + delta + productGalleryImages.length) % productGalleryImages.length;
+    renderProductGallery();
+}
+
+function galleryGoto(i) {
+    productGalleryIndex = i;
+    renderProductGallery();
+}
+
 
 // ===================== PRINT CATALOGUE =====================
 function printCatalogue() {

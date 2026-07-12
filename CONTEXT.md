@@ -15,10 +15,8 @@ Bill-Hive is a **vanilla HTML/CSS/JS POS billing app** — no build step, no fra
 
 > **Current work status:** see `prompt.md` in the project root for the full 3-part feature
 > work plan. **Part 1 (shared chrome/theming/settings infrastructure) is complete**,
-> including a v4.02.1 bug-fix pass. **Part 2 (Items & Catalogue domain) and Part 3
-> (Billing/Suppliers/Fulfillment domain) have not been started yet.** If you are an AI
-> agent picking up Part 2 or Part 3, read `prompt.md`'s section for your part plus the
-> § Shared conventions for Part 2 / Part 3 section below before writing any code.
+> including a v4.02.1 bug-fix pass. **Part 2 (Items & Catalogue domain) is complete as of
+> v4.03.0.** **Part 3 (Billing/Suppliers/Fulfillment domain) is complete as of v4.04.0.**
 
 ---
 
@@ -134,7 +132,7 @@ flow); `DB_VERSION` must be bumped whenever a store is added.
 
 ## Item object schema (billhive-items)
 
-Each item in the catalog has the following shape (as of v2.2):
+Each item in the catalog has the following shape (as of v4.03.0):
 
 ```js
 {
@@ -149,9 +147,17 @@ Each item in the catalog has the following shape (as of v2.2):
     discount: Number,     // Default discount % applied to line items
     tax: Number,          // Tax % applied to line items
     stock: Number,        // Current stock level (if trackStock === true)
-    trackStock: Boolean   // Whether stock deduction is active for this item
+    trackStock: Boolean,  // Whether stock deduction is active for this item
+    images: [String]      // v4.03.0 — up to 4 base64 data URLs, same 2MB-per-image
+                           // limit as brand logos (handleBrandLogoUpload). Optional;
+                           // legacy items simply have no `images` key or `[]`.
 }
 ```
+
+> **Deletion rule (v4.03.0):** an item cannot be deleted while `trackStock !== false`
+> and `stock > 0` — `deleteItem()` blocks it with a toast ("Reduce stock to 0 via
+> Stock Adjustment before deleting"). Untracked items (`trackStock === false`) can
+> always be deleted regardless of the `stock` value.
 
 > **Note:** Legacy items saved before v2.2 will have `sku`, `ean`, `itemNumber`, `brand`, and `cost` as `undefined`. Always use `item.sku || ''` style fallbacks when reading these fields.
 
@@ -215,12 +221,67 @@ To add a new page: add a `<section id="page-{name}">` in `index.html`, add a sid
 
 ---
 
-## Items page (v2.2)
+## Items page (v4.03.0 — Part 2)
 
-- **Table columns:** Name, SKU, Brand, Price, Cost, Disc %, Tax %, Stock, Actions
-- **Add/Edit modal fields:** Name, SKU Code, EAN/Barcode, Item Number, Brand (autocomplete from `billhive-brands`), Cost, Price, Discount %, Tax %, Opening Stock, Track Stock toggle
-- `openItemModal()` calls `populateBrandsDatalist()` to fill `<datalist id="brands-datalist">` from localStorage
-- On small screens (`max-width: 640px`), SKU, Brand, and Cost columns are hidden via CSS
+- **Table columns:** Name, SKU, Brand, Price, Cost, Disc %, Tax %, Stock, Actions — column-visibility picker (`items-table` in `TABLE_COLUMNS`, `script.js`) predates Part 2 and is unchanged.
+- **Add/Edit modal fields:** Name, SKU Code, EAN/Barcode, Item Number, Brand (autocomplete from `billhive-brands`), Cost, Price, Discount %, Tax %, Opening Stock, Track Stock toggle, **Product Images** (v4.03.0 — up to 4 slots, click-to-upload/click-to-replace, `#item-image-grid` + `renderItemImageSlots()`/`handleItemImageUpload()`/`removeItemImage()`, module-level `itemFormImages` array mirrors `brandFormLogoData`'s pattern but as an array).
+- `openItemModal()` calls `populateBrandsDatalist()` to fill `<datalist id="brands-datalist">`, and now also fully repopulates `sku`/`ean`/`itemNumber`/`brand`/`cost` on edit (v4.03.0 bug fix — these fields were silently left blank on every edit before this pass, even though `saveItemForm()` always saved them).
+- On small screens (`max-width: 640px`), SKU, Brand, and Cost columns are still hidden via CSS as a baseline; the column-visibility picker is the primary mechanism going forward.
+- **Row-click-to-view (v4.03.0 Part 2):** clicking a row (outside its Edit/Delete icons) opens `#item-view-modal` via `viewItem(id)`, following the `#brand-view-modal`/`viewBrand()` reference pattern — `.view-action-bar` with Edit/Delete, a small `.item-view-images` thumbnail strip, then `.view-detail-row` fields. `editItemFromView()`/`deleteItemFromView()` close the view and delegate to `openItemModal()`/`deleteItem()`.
+- **Delete restriction (v4.03.0 Part 2):** `deleteItem()` now blocks deletion with a toast when `trackStock !== false && stock > 0` ("Reduce stock to 0 via Stock Adjustment before deleting"). Untracked items delete freely. Applies whether triggered from the table row or the view modal.
+
+---
+
+## Catalogue page (v4.03.0 — Part 2)
+
+- Read-only, grouped-by-brand browse view (unchanged base behavior from v2.5) plus a new **product page** interface: clicking any item row (outside its cells' plain text) opens `#product-view-modal` via `viewProduct(id)`, an e-commerce-style detail view showing name, brand, SKU, EAN, item number, price, tax %, and current available stock.
+- **Image gallery:** up to 4 images (`item.images`) with a main image, previous/next arrow buttons (desktop), dot navigation, and touch swipe (`touchstart`/`touchend` on `#product-gallery-main`, ~40px swipe threshold) — `renderProductGallery()`/`galleryStep()`/`galleryGoto()`, state in module-level `productGalleryImages`/`productGalleryIndex`. Items with no images show a placeholder icon instead of an empty gallery.
+- Row-click wiring follows the same `makeRowClickable()` pattern as Brands/Suppliers/Items — added to `renderCatalogue()`'s per-brand `<table>` output (`data-item-id` on each `<tr>`).
+- `catalogue-table`'s column-visibility picker (`colHidden()`) is unchanged by this work.
+
+---
+
+## Supplier object schema (billhive-suppliers) — v4.04.0
+
+```js
+{
+    id: Number,             // Auto-incremented integer
+    name: String,           // Required — company/supplier name
+    contactPerson: String,  // Optional
+    phone: String,          // Optional
+    email: String,          // Optional
+    address: String,        // Optional
+    itemsSupplied: String,  // Free-text field — kept for backward compatibility
+    itemIds: [Number],      // v4.04.0 — linked catalogue item IDs (optional; legacy suppliers have [] or undefined)
+    notes: String           // Optional
+}
+```
+
+> `itemIds` is stored alongside the legacy `itemsSupplied` free-text field for backward compatibility. `suppliers.html` loads `items` from IndexedDB into `SItems` to drive the catalogue item linker picker.
+
+---
+
+## Past Bills page (v4.04.0 — Part 3)
+
+- **Date filter bar:** 6 quick-filter buttons (All / Today / This Week / This Month / This Year / Custom) rendered above the table via `.bills-filter-bar`. State is in `billsDateFilter` (module-level string). `setBillsDateFilter(filter)` updates state, toggles `.active` class, and re-renders. Custom mode shows a from/to date pair (`#bills-date-from`/`#bills-date-to`). Filter combines with the existing search box.
+- **Date-wise row separation:** `renderPastBills()` injects `<tr class="bills-date-separator">` rows between date groups (Today / Yesterday / older entries grouped by invoice date). The separator row spans all 6 columns.
+- **Row-click-to-view (v4.04.0):** each row carries `data-bill-id` and is wired with `makeRowClickable()` to open `#bill-view-modal` via `openBillViewModal(id)`. Inline icon buttons get `event.stopPropagation()`.
+- **Bill view modal (`#bill-view-modal`):** shows a `.view-action-bar` with Preview / Print / Delete, then `.view-detail-row` fields (invoice no, date, customer, contact, payment, total, items, notes). Preview opens the existing `#preview-modal` with `generatePOSBillHTML()`. Print calls `printBill()`. Delete calls `deletePastBill()` after closing the view.
+
+---
+
+## Sales Return page (v4.04.0 — Part 3)
+
+- **Damaged stock checkbox (`#return-damaged-stock`):** rendered inside `#return-summary` as a `.return-damaged-row` label. When checked, `processSalesReturn()` does NOT restock the item; instead it logs two stock movements for each returned tracked item — a Sales Return entry (positive) and an immediate Damaged entry (negative) — so the net stock effect is zero but both are visible in the stock log. Matches the convention established by Adjust Stock's "Don't add to inventory" checkbox (v2.3). The `damagedStock` boolean is also stored on the return record.
+- Checkbox is reset to unchecked after every successful return.
+
+---
+
+## Fulfillment page (v4.04.0 — Part 3)
+
+- **PO row-click:** `renderPOTable()` now attaches `makeRowClickable()` to each `<tr data-po-id>`, replacing the previous inline `onclick` attribute. Icon buttons retain `event.stopPropagation()`.
+- **PO view action bar:** `viewPO()` now renders a `.view-action-bar` at the top of `#po-modal-body` with Mark-as-next-status / Print / Delete buttons (moved from the bottom inline layout). `printPOFromModal(id)` opens a `window.open` print document.
+- **Supplier filter on restock table:** a second `<select id="restock-supplier-filter">` in the form-grid filters the low-stock items to only those linked to the chosen supplier's `itemIds`. Selecting a supplier also auto-fills `#po-supplier-select` if it is empty. Only suppliers with at least one linked item appear in the filter.
 
 ---
 
@@ -447,6 +508,8 @@ All CSS is in `styles.css`. CSS custom properties are defined on `:root` (light 
 | v4.01.0 | *(Reconstructed from code archaeology — no changelog entry existed for this version before now.)* Storage backend switched from raw `localStorage` to an **IndexedDB** wrapper (`dbInit`/`dbGet`/`dbSet`/`dbRemove`/`dbClearAll`) with one-time auto-migration of existing `billhive-*` `localStorage` keys, added to both `script.js` and `chrome.js`. The 4 standalone pages became **self-contained single-file bundles** (styles.css + chrome.js + page script all inlined) rather than linking external files. Custom `showConfirm()`/`closeConfirmModal()` modal added, replacing native `confirm()` calls app-wide. Column-visibility picker ("Task 7") added for `suppliers-table`, `po-table`, and (differently) `catalogue-table`. PO journey/status timeline UI added to Fulfillment. Header/footer edge-fade and misc CSS polish. |
 | v4.02.0 | **(Part 1 — "Shared Chrome, Theming & Settings Infrastructure".)** Menu Position, App Logo Consistency, row-click-to-open pattern + view action bars (reference: Brands, Suppliers), scroll/drag optimization, responsive fixes, border-filled Settings buttons, accent color picker, screen saver, type-to-confirm Erase All Data. Cache bumped to `billhive-v4.02`. |
 | v4.02.1 | **(Bug-fix pass on v4.02.0, driven by user testing feedback.)** **Accent color in dark mode**: fixed — `applyAccentColor()` now overrides `--accent-primary` as an inline style on `document.body` instead of `document.documentElement`, so it actually wins over `.dark-mode`'s own value (see § Shared conventions for the full explanation). **Menu Position**: fixed — `.app-header` is a CSS Grid, not flexbox, so the old `flex-direction: row-reverse` approach silently did nothing; now uses `order` on `.header-left`/`.header-center`/`.header-right`. **Screen saver**: switched from minutes to **seconds** (default 30, range 5–3600) for realistic testability, and fixed a duplicate-event-listener bug where every "Save Settings" click re-registered a fresh set of idle listeners. **Header/footer brand icon**: both now render the same inline hexagon SVG as the sidebar logo (accent-color tintable via `currentColor`), instead of the header using a static `favicon.svg` `<img>` and the footer mirroring the *uploaded company logo* (which was the wrong element to mirror — the small brand mark is intentionally independent of the company logo, which still only appears in the header center). Cache bumped to `billhive-v4.02.1`. |
+| v4.03.0 | **(Part 2 — "Items & Catalogue Domain".)** **Item delete restriction**: `deleteItem()` blocks deleting a tracked item while `stock > 0`, with an explanatory toast; untracked items delete freely. **Row-click-to-view on Items**: `#item-view-modal`/`viewItem()`, following the Brands/Suppliers reference pattern, with Edit/Delete in a `.view-action-bar`. **Item images**: item schema gains `images: []` (up to 4 base64 data URLs, 2MB-each limit, same convention as brand logos); Add/Edit modal gets a 4-slot click-to-upload/replace grid (`renderItemImageSlots()`); the item view modal and the Catalogue product page both display them. **Item modal edit bug fix**: `openItemModal()` now actually repopulates `sku`/`ean`/`itemNumber`/`brand`/`cost` when editing (previously always blank on edit despite being saved correctly). **Catalogue product page**: clicking a catalogue row opens an e-commerce-style product view (`#product-view-modal`/`viewProduct()`) with name/brand/SKU/EAN/item number/price/tax/available stock and an image gallery supporting arrow clicks, dot navigation, and touch swipe. Column-visibility and print behavior on Items/Catalogue are unchanged. Cache bumped to `billhive-v4.03.0`. |
+| v4.04.0 | **(Part 3 — "Billing, Sales Return, Suppliers & Fulfillment Domain".)** **Sales Return damaged stock**: added "Don't add to inventory (log as damaged stock)" checkbox (`#return-damaged-stock`) — when checked, two stock-log entries are created (Sales Return + Damaged), net effect zero, matching the Adjust Stock convention. **Sale Summary layout fix**: CSS bug where "Sales by Brand" and "Top Selling Items" cards merged visually — fixed by adding `margin-top: 16px` between consecutive `.bill-section` cards inside `#page-sale-summary`. **Past Bills date filtering & separation**: date-range filter bar (All/Today/This Week/This Month/This Year/Custom) combining with search; date-wise row separators (Today/Yesterday/date groups) injected into the table body. **Past Bills row-click + view modal**: `#bill-view-modal`/`openBillViewModal()` — `.view-action-bar` with Preview/Print/Delete; Preview reuses `#preview-modal`/`generatePOSBillHTML()`. **PO row-click & view action bar**: `renderPOTable()` uses `makeRowClickable()` (replaces inline `onclick`); `viewPO()` now shows a `.view-action-bar` with Mark/Print/Delete at the top; `printPOFromModal()` added. **Supplier catalogue management**: supplier schema gains `itemIds: [Number]`; `suppliers.html` loads `items` into `SItems`; supplier modal gets a catalogue item linker (picker + tag chips); `viewSupplier()` shows linked item names; fulfillment's restock table adds `#restock-supplier-filter` to filter low-stock items by supplier's `itemIds` and auto-fills the PO supplier select. Cache bumped to `billhive-v4.04.0`. |
 
 ---
 

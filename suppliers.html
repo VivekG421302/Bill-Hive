@@ -2781,6 +2781,321 @@ body.side-left .sidebar-header {
     font-family: var(--font-mono);
 }
 
+/* ===================== v4.03.0 PART 2 ADDITIONS ===================== */
+/* Item Add/Edit modal — up to 4 product image slots, click-to-upload when
+   empty, click-to-replace when filled. Same 2MB size-limit convention as
+   .logo-upload-area / handleBrandLogoUpload. */
+.item-image-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+@media (max-width: 480px) {
+    .item-image-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.item-image-slot {
+    position: relative;
+    aspect-ratio: 1;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-input);
+    transition: all var(--transition-fast);
+}
+
+.item-image-slot:hover {
+    border-color: var(--accent-primary);
+    background: rgba(34, 139, 230, 0.03);
+}
+
+.item-image-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.item-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+}
+
+.item-image-placeholder svg {
+    width: 20px;
+    height: 20px;
+}
+
+.item-image-placeholder span {
+    font-size: 0.6875rem;
+    font-weight: 500;
+}
+
+.item-image-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+/* Item view modal — small thumbnail strip of the item's images, shown
+   above the read-only detail rows. */
+.item-view-images {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.item-view-images:not(:empty) {
+    margin-bottom: 16px;
+}
+
+.item-view-images img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+/* Catalogue product page — e-commerce-style detail view with an image
+   gallery supporting swipe (touch), click arrows, and dot navigation. */
+.product-view-header {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.product-view-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.product-view-brand {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.product-view-price {
+    font-size: 1.375rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+    font-family: var(--font-mono);
+    margin-top: 6px;
+}
+
+.product-gallery {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto 12px;
+}
+
+.product-gallery-main {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg-input);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: pan-y;
+}
+
+.product-gallery-main img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.product-gallery-placeholder {
+    color: var(--text-muted);
+}
+
+.product-gallery-placeholder svg {
+    width: 48px;
+    height: 48px;
+}
+
+.gallery-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.gallery-arrow:hover {
+    background: rgba(0, 0, 0, 0.65);
+}
+
+.gallery-arrow.prev { left: 8px; }
+.gallery-arrow.next { right: 8px; }
+
+.gallery-arrow svg {
+    width: 18px;
+    height: 18px;
+}
+
+.gallery-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.gallery-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border-color);
+    cursor: pointer;
+    border: none;
+    padding: 0;
+}
+
+.gallery-dot.active {
+    background: var(--accent-primary);
+}
+
+.product-view-fields .view-detail-row:first-child {
+    border-top: 1px solid var(--border-light);
+}
+
+
+/* ===================== v4.04.0 PART 3 ADDITIONS ===================== */
+
+/* Task 2: Sale Summary layout — gap between the two bill-section cards */
+#page-sale-summary .bill-section + .bill-section {
+    margin-top: 16px;
+}
+
+/* Task 3: Past Bills date filter toolbar row */
+.bills-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    align-items: center;
+}
+
+.bills-filter-bar .filter-btn {
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    white-space: nowrap;
+}
+
+.bills-filter-bar .filter-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.bills-filter-bar .filter-btn.active {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #fff;
+}
+
+.bills-filter-bar .filter-date-range {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.bills-filter-bar .filter-date-range input[type="date"] {
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 0.8125rem;
+    cursor: pointer;
+}
+
+.bills-date-separator {
+    padding: 8px 0 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-top: 1px solid var(--border-light);
+}
+
+.bills-date-separator:first-child {
+    border-top: none;
+}
+
+/* Task 4: Past Bill view modal */
+#bill-view-modal .modal-content {
+    max-width: 520px;
+}
+
+/* Task 1: Damaged stock checkbox in sales return */
+.return-damaged-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-input);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.return-damaged-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--accent-danger);
+    flex-shrink: 0;
+}
 </style>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -3071,6 +3386,17 @@ body.side-left .sidebar-header {
                     <div class="form-group full-width">
                         <label>Items Supplied</label>
                         <input type="text" id="supplier-form-items" placeholder="e.g., Cotton fabric, buttons, thread">
+                    </div>
+                    <!-- Task 6 Part 3: Catalogue item linker -->
+                    <div class="form-group full-width">
+                        <label>Linked Catalogue Items</label>
+                        <div style="display:flex;gap:8px;margin-bottom:6px;">
+                            <select id="supplier-item-picker" style="flex:1;padding:7px 10px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-primary);">
+                                <option value="">— Pick an item to link —</option>
+                            </select>
+                            <button class="action-btn btn-clear" style="flex-shrink:0;" onclick="addSupplierItemLink()">Add</button>
+                        </div>
+                        <div id="supplier-linked-items" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;"></div>
                     </div>
                     <div class="form-group full-width">
                         <label>Notes</label>
@@ -3601,15 +3927,19 @@ window.addEventListener('appinstalled', () => {
 let Suppliers = [];
 let supplierIdCounter = 0;
 let editingSupplierId = null;
+let SItems = []; // catalogue items — loaded for the supplier item-picker (Task 6 Part 3)
 
 async function loadSuppliers() {
     await dbInit();
-    const data = await dbGet('suppliers');
-    if (data) {
+    const [suppliersData, itemsData] = await Promise.all([dbGet('suppliers'), dbGet('items')]);
+    if (suppliersData) {
         try {
-            Suppliers = data;
+            Suppliers = suppliersData;
             supplierIdCounter = Suppliers.reduce((max, s) => Math.max(max, s.id || 0), 0);
         } catch (e) { console.error('Error loading suppliers:', e); }
+    }
+    if (itemsData) {
+        try { SItems = itemsData; } catch (e) {}
     }
     renderSuppliers();
 }
@@ -3674,6 +4004,7 @@ function viewSupplier(id) {
         <div class="view-detail-row"><span class="view-detail-label">Address</span><span class="view-detail-value">${escapeHtml(s.address) || '—'}</span></div>
         <div class="view-detail-row"><span class="view-detail-label">Items Supplied</span><span class="view-detail-value">${escapeHtml(s.itemsSupplied) || '—'}</span></div>
         <div class="view-detail-row"><span class="view-detail-label">Notes</span><span class="view-detail-value">${escapeHtml(s.notes) || '—'}</span></div>
+        ${(s.itemIds && s.itemIds.length > 0) ? `<div class="view-detail-row"><span class="view-detail-label">Catalogue Items</span><span class="view-detail-value">${s.itemIds.map(id => { const it = SItems.find(i => i.id === id); return it ? escapeHtml(it.name) : ''; }).filter(Boolean).join(', ')}</span></div>` : ''}
     `;
     $('#supplier-view-modal').dataset.supplierId = id;
     $('#supplier-view-modal').classList.add('active');
@@ -3733,6 +4064,11 @@ function openSupplierModal(id = null) {
     editingSupplierId = id;
     const title = $('#supplier-modal-title');
 
+    // Populate item picker from SItems
+    const picker = $('#supplier-item-picker');
+    picker.innerHTML = '<option value="">— Pick an item to link —</option>' +
+        SItems.map(it => `<option value="${it.id}">${escapeHtml(it.name)}</option>`).join('');
+
     if (id) {
         const s = Suppliers.find(x => x.id === id);
         if (!s) return;
@@ -3744,13 +4080,52 @@ function openSupplierModal(id = null) {
         $('#supplier-form-address').value = s.address || '';
         $('#supplier-form-items').value = s.itemsSupplied || '';
         $('#supplier-form-notes').value = s.notes || '';
+        // Restore linked catalogue items
+        renderSupplierLinkedItems(s.itemIds || []);
     } else {
         title.textContent = 'Add Supplier';
         ['#supplier-form-name', '#supplier-form-contact', '#supplier-form-phone', '#supplier-form-email',
          '#supplier-form-address', '#supplier-form-items', '#supplier-form-notes'].forEach(id => { $(id).value = ''; });
+        renderSupplierLinkedItems([]);
     }
     $('#supplier-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
+}
+
+// Task 6: helpers for item linker
+let supplierFormItemIds = [];
+
+function renderSupplierLinkedItems(ids) {
+    supplierFormItemIds = [...ids];
+    const el = $('#supplier-linked-items');
+    if (!el) return;
+    if (supplierFormItemIds.length === 0) {
+        el.innerHTML = '<span style="font-size:0.8125rem;color:var(--text-muted);">No catalogue items linked yet.</span>';
+        return;
+    }
+    el.innerHTML = supplierFormItemIds.map(itemId => {
+        const item = SItems.find(i => i.id === itemId);
+        if (!item) return '';
+        return `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-sm);padding:3px 8px;font-size:0.8125rem;">
+            ${escapeHtml(item.name)}
+            <button onclick="removeSupplierItemLink(${itemId})" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:0;font-size:1rem;line-height:1;" title="Remove">×</button>
+        </span>`;
+    }).filter(Boolean).join('');
+}
+
+function addSupplierItemLink() {
+    const picker = $('#supplier-item-picker');
+    const itemId = parseInt(picker.value, 10);
+    if (!itemId) return;
+    if (supplierFormItemIds.includes(itemId)) { showToast('Item already linked'); return; }
+    supplierFormItemIds.push(itemId);
+    renderSupplierLinkedItems(supplierFormItemIds);
+    picker.value = '';
+}
+
+function removeSupplierItemLink(itemId) {
+    supplierFormItemIds = supplierFormItemIds.filter(id => id !== itemId);
+    renderSupplierLinkedItems(supplierFormItemIds);
 }
 
 function closeSupplierModal() {
@@ -3772,7 +4147,8 @@ async function saveSupplierForm() {
         email: $('#supplier-form-email').value.trim(),
         address: $('#supplier-form-address').value.trim(),
         itemsSupplied: $('#supplier-form-items').value.trim(),
-        notes: $('#supplier-form-notes').value.trim()
+        notes: $('#supplier-form-notes').value.trim(),
+        itemIds: [...supplierFormItemIds]
     };
 
     if (editingSupplierId) {

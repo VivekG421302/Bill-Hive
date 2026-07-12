@@ -411,6 +411,20 @@
                     <div class="column-toggle-dropdown" id="past-bills-table-column-dropdown"></div>
                 </div>
             </div>
+            <!-- Task 3: Date filter bar -->
+            <div class="bills-filter-bar">
+                <button class="filter-btn active" data-bills-filter="all" onclick="setBillsDateFilter('all')">All</button>
+                <button class="filter-btn" data-bills-filter="today" onclick="setBillsDateFilter('today')">Today</button>
+                <button class="filter-btn" data-bills-filter="week" onclick="setBillsDateFilter('week')">This Week</button>
+                <button class="filter-btn" data-bills-filter="month" onclick="setBillsDateFilter('month')">This Month</button>
+                <button class="filter-btn" data-bills-filter="year" onclick="setBillsDateFilter('year')">This Year</button>
+                <button class="filter-btn" data-bills-filter="custom" onclick="setBillsDateFilter('custom')">Custom</button>
+                <div class="filter-date-range" id="bills-custom-range" style="display:none;">
+                    <input type="date" id="bills-date-from" onchange="renderPastBills()">
+                    <span style="color:var(--text-muted);font-size:0.8125rem;">to</span>
+                    <input type="date" id="bills-date-to" onchange="renderPastBills()">
+                </div>
+            </div>
             <div class="table-wrap">
                 <table class="data-table" id="past-bills-table">
                     <thead>
@@ -548,6 +562,11 @@
                         <label>Reason</label>
                         <textarea id="return-reason" rows="2" placeholder="Reason for return (optional)"></textarea>
                     </div>
+                    <!-- Task 1 Part 3: Damaged stock checkbox -->
+                    <label class="return-damaged-row">
+                        <input type="checkbox" id="return-damaged-stock">
+                        <span>Don't add to inventory (log as damaged stock)</span>
+                    </label>
                     <button class="action-btn btn-save" onclick="processSalesReturn()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
                         Process Return
@@ -1005,11 +1024,42 @@
                             <span style="margin-left:8px;font-size:0.8125rem;">Track stock for this item</span>
                         </label>
                     </div>
+                    <div class="form-group full-width">
+                        <label>Product Images <span style="font-weight:400;color:var(--text-muted);">(up to 4, max 2MB each)</span></label>
+                        <div class="item-image-grid" id="item-image-grid"></div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="action-btn btn-save" onclick="saveItemForm()">Save Item</button>
                 <button class="action-btn btn-clear" onclick="closeItemModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== ITEM VIEW MODAL (v4.03.0 Part 2) ===================== -->
+    <div id="item-view-modal" class="modal">
+        <div class="modal-overlay" onclick="closeItemViewModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="item-view-title">Item</h3>
+                <button class="modal-close" onclick="closeItemViewModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="view-action-bar">
+                    <button class="action-btn btn-save" onclick="editItemFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                        Edit
+                    </button>
+                    <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteItemFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                        Delete
+                    </button>
+                </div>
+                <div class="item-view-images" id="item-view-images"></div>
+                <div id="item-view-body"></div>
             </div>
         </div>
     </div>
@@ -1063,6 +1113,36 @@
     </div>
 
     <!-- ===================== PREVIEW MODAL ===================== -->
+    <!-- ===================== BILL VIEW MODAL (Task 4 — Part 3) ===================== -->
+    <div id="bill-view-modal" class="modal">
+        <div class="modal-overlay" onclick="closeBillViewModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="bill-view-title">Invoice</h3>
+                <button class="modal-close" onclick="closeBillViewModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="view-action-bar">
+                    <button class="action-btn btn-save" onclick="previewBillFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Preview
+                    </button>
+                    <button class="action-btn btn-clear" onclick="printBillFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Print
+                    </button>
+                    <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteBillFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                        Delete
+                    </button>
+                </div>
+                <div id="bill-view-body"></div>
+            </div>
+        </div>
+    </div>
+
     <div id="preview-modal" class="modal">
         <div class="modal-overlay" onclick="closePreview()"></div>
         <div class="modal-content preview-modal-content">

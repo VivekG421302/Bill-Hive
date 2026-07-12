@@ -425,6 +425,7 @@ const AppState = {
 
 let itemIdCounter = 0;
 let editingItemId = null;
+let itemFormImages = []; // v4.03.0 Part 2 — up to 4 base64 data URLs for the item being added/edited
 
 // ===================== UTILITY FUNCTIONS =====================
 const $ = (selector) => document.querySelector(selector);
@@ -1915,20 +1916,33 @@ async function openItemModal(id = null) {
         if (!item) return;
         modalTitle.textContent = 'Edit Item';
         $('#item-form-name').value = item.name;
+        $('#item-form-sku').value = item.sku || '';
+        $('#item-form-ean').value = item.ean || '';
+        $('#item-form-itemno').value = item.itemNumber || '';
+        $('#item-form-brand').value = item.brand || '';
+        $('#item-form-cost').value = item.cost || '';
         $('#item-form-price').value = item.price;
         $('#item-form-discount').value = item.discount;
         $('#item-form-tax').value = item.tax;
         $('#item-form-stock').value = item.stock;
         $('#item-form-track-stock').checked = item.trackStock !== false;
+        itemFormImages = Array.isArray(item.images) ? item.images.slice(0, 4) : [];
     } else {
         modalTitle.textContent = 'Add Item';
         $('#item-form-name').value = '';
+        $('#item-form-sku').value = '';
+        $('#item-form-ean').value = '';
+        $('#item-form-itemno').value = '';
+        $('#item-form-brand').value = '';
+        $('#item-form-cost').value = '';
         $('#item-form-price').value = '';
         $('#item-form-discount').value = '';
         $('#item-form-tax').value = '';
         $('#item-form-stock').value = '';
         $('#item-form-track-stock').checked = true;
+        itemFormImages = [];
     }
+    renderItemImageSlots();
     await populateBrandsDatalist();
     $('#item-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -1938,6 +1952,53 @@ function closeItemModal() {
     $('#item-modal').classList.remove('active');
     document.body.style.overflow = '';
     editingItemId = null;
+}
+
+// ===================== ITEM IMAGES (v4.03.0 Part 2) =====================
+// Up to 4 images per item, same size-limit pattern as handleBrandLogoUpload
+// in brands.html (reject anything over 2MB). Each slot supports
+// click-to-upload when empty and click-to-replace when filled.
+function renderItemImageSlots() {
+    const grid = $('#item-image-grid');
+    if (!grid) return;
+    const slots = [];
+    for (let i = 0; i < 4; i++) {
+        const src = itemFormImages[i];
+        slots.push(`
+            <div class="item-image-slot" onclick="document.getElementById('item-image-input-${i}').click()">
+                <input type="file" id="item-image-input-${i}" accept="image/*" style="display:none;" onchange="handleItemImageUpload(${i}, event)">
+                ${src
+                    ? `<img src="${src}" alt="Product image ${i + 1}"><button type="button" class="item-image-remove" title="Remove" onclick="event.stopPropagation();removeItemImage(${i})">&times;</button>`
+                    : `<div class="item-image-placeholder">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                        <span>Add</span>
+                       </div>`
+                }
+            </div>
+        `);
+    }
+    grid.innerHTML = slots.join('');
+}
+
+function handleItemImageUpload(slot, event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+        showToast('Image must be under 2MB');
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        itemFormImages[slot] = e.target.result;
+        renderItemImageSlots();
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeItemImage(slot) {
+    itemFormImages[slot] = undefined;
+    itemFormImages = itemFormImages.filter(Boolean);
+    renderItemImageSlots();
 }
 
 async function saveItemForm() {
@@ -1958,7 +2019,8 @@ async function saveItemForm() {
         discount: parseFloat($('#item-form-discount').value) || 0,
         tax: parseFloat($('#item-form-tax').value) || 0,
         stock: parseFloat($('#item-form-stock').value) || 0,
-        trackStock: $('#item-form-track-stock').checked
+        trackStock: $('#item-form-track-stock').checked,
+        images: itemFormImages.filter(Boolean).slice(0, 4) // v4.03.0 Part 2
     };
 
     if (editingItemId) {
@@ -1978,6 +2040,14 @@ async function saveItemForm() {
 }
 
 async function deleteItem(id) {
+    const item = AppState.items.find(i => i.id === id);
+    if (!item) return;
+    // v4.03.0 Part 2 — tracked items can't be deleted while stock remains;
+    // untracked items (trackStock === false) can always be deleted.
+    if (item.trackStock !== false && (item.stock || 0) > 0) {
+        showToast('Reduce stock to 0 via Stock Adjustment before deleting');
+        return;
+    }
     if (!await showConfirm('Delete this item? This will not affect past bills.', 'Delete Item')) return;
     AppState.items = AppState.items.filter(i => i.id !== id);
     await saveItemsStorage();
@@ -1995,7 +2065,7 @@ function renderItemsTable() {
     $('#items-empty').style.display = AppState.items.length === 0 ? 'flex' : 'none';
 
     tbody.innerHTML = list.map(it => `
-        <tr>
+        <tr data-item-id="${it.id}">
             <td class="cell-strong">${escapeHtml(it.name)}</td>
             <td class="cell-muted">${escapeHtml(it.sku || '—')}</td>
             <td class="cell-muted">${escapeHtml(it.brand || '—')}</td>
@@ -2005,16 +2075,68 @@ function renderItemsTable() {
             <td>${it.tax}%</td>
             <td>${it.trackStock !== false ? it.stock : '—'}</td>
             <td class="cell-actions">
-                <button class="icon-btn" onclick="openItemModal(${it.id})" title="Edit">
+                <button class="icon-btn" onclick="event.stopPropagation();openItemModal(${it.id})" title="Edit">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
-                <button class="icon-btn icon-btn-danger" onclick="deleteItem(${it.id})" title="Delete">
+                <button class="icon-btn icon-btn-danger" onclick="event.stopPropagation();deleteItem(${it.id})" title="Delete">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                 </button>
             </td>
         </tr>
     `).join('');
     initColumnVisibility('items-table');
+
+    // v4.03.0 Part 2 — row-click-to-view pattern (see makeRowClickable in
+    // § Shared conventions / CONTEXT.md, reference: Brands/Suppliers pages).
+    tbody.querySelectorAll('tr[data-item-id]').forEach(tr => {
+        const id = parseInt(tr.dataset.itemId, 10);
+        if (id) makeRowClickable(tr, () => viewItem(id));
+    });
+}
+
+// ===================== ITEM VIEW (v4.03.0 Part 2 — row-click-to-view) =====================
+function viewItem(id) {
+    const it = AppState.items.find(i => i.id === id);
+    if (!it) return;
+    $('#item-view-title').textContent = it.name;
+
+    const images = Array.isArray(it.images) ? it.images.filter(Boolean) : [];
+    $('#item-view-images').innerHTML = images.length
+        ? images.map(src => `<img src="${src}" alt="${escapeHtml(it.name)}">`).join('')
+        : '';
+
+    $('#item-view-body').innerHTML = `
+        <div class="view-detail-row"><span class="view-detail-label">SKU</span><span class="view-detail-value">${escapeHtml(it.sku) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">EAN / Barcode</span><span class="view-detail-value">${escapeHtml(it.ean) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Item Number</span><span class="view-detail-value">${escapeHtml(it.itemNumber) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Brand</span><span class="view-detail-value">${escapeHtml(it.brand) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Cost</span><span class="view-detail-value">${it.cost ? formatCurrency(it.cost) : '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Price</span><span class="view-detail-value">${formatCurrency(it.price)}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Discount %</span><span class="view-detail-value">${it.discount || 0}%</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Tax %</span><span class="view-detail-value">${it.tax || 0}%</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Stock</span><span class="view-detail-value">${it.trackStock !== false ? (it.stock || 0) : 'Not tracked'}</span></div>
+    `;
+
+    $('#item-view-modal').dataset.itemId = id;
+    $('#item-view-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeItemViewModal() {
+    $('#item-view-modal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function editItemFromView() {
+    const id = parseInt($('#item-view-modal').dataset.itemId, 10);
+    closeItemViewModal();
+    openItemModal(id);
+}
+
+async function deleteItemFromView() {
+    const id = parseInt($('#item-view-modal').dataset.itemId, 10);
+    closeItemViewModal();
+    await deleteItem(id);
 }
 
 // ===================== STOCK =====================
@@ -2135,37 +2257,104 @@ async function applyStockAdjustment() {
 }
 
 // ===================== PAST BILLS =====================
+let billsDateFilter = 'all'; // 'all' | 'today' | 'week' | 'month' | 'year' | 'custom'
+
+function setBillsDateFilter(filter) {
+    billsDateFilter = filter;
+    // Update active button
+    $$('[data-bills-filter]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.billsFilter === filter);
+    });
+    const customRange = $('#bills-custom-range');
+    if (customRange) customRange.style.display = filter === 'custom' ? 'flex' : 'none';
+    renderPastBills();
+}
+
+function billMatchesDateFilter(bill) {
+    if (billsDateFilter === 'all') return true;
+    const d = new Date(bill.createdAt || bill.invoiceDate);
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (billsDateFilter === 'today') return d >= startOfDay;
+    if (billsDateFilter === 'week') {
+        const startOfWeek = new Date(startOfDay);
+        startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
+        return d >= startOfWeek;
+    }
+    if (billsDateFilter === 'month') return d >= new Date(now.getFullYear(), now.getMonth(), 1);
+    if (billsDateFilter === 'year') return d >= new Date(now.getFullYear(), 0, 1);
+    if (billsDateFilter === 'custom') {
+        const from = $('#bills-date-from')?.value;
+        const to = $('#bills-date-to')?.value;
+        const dStr = (bill.invoiceDate || (bill.createdAt || '').slice(0, 10));
+        if (from && dStr < from) return false;
+        if (to && dStr > to) return false;
+        return true;
+    }
+    return true;
+}
+
+function getBillDateLabel(bill) {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfToday.getDate() - 1);
+    const d = new Date(bill.createdAt || bill.invoiceDate);
+    if (d >= startOfToday) return 'Today';
+    if (d >= startOfYesterday) return 'Yesterday';
+    // Older: group by date string
+    return formatDate(bill.invoiceDate || (bill.createdAt || '').slice(0, 10));
+}
+
 function renderPastBills() {
     const tbody = $('#past-bills-body');
     if (!tbody) return;
     const query = ($('#bills-search')?.value || '').toLowerCase().trim();
 
-    const list = [...AppState.savedBills].reverse().filter(b =>
-        !query || (b.customerName || '').toLowerCase().includes(query) || (b.invoiceNo || '').toLowerCase().includes(query)
-    );
+    const list = [...AppState.savedBills].reverse().filter(b => {
+        const matchQuery = !query || (b.customerName || '').toLowerCase().includes(query) || (b.invoiceNo || '').toLowerCase().includes(query);
+        return matchQuery && billMatchesDateFilter(b);
+    });
 
-    $('#past-bills-empty').style.display = AppState.savedBills.length === 0 ? 'flex' : 'none';
+    $('#past-bills-empty').style.display = (AppState.savedBills.length === 0 || list.length === 0) ? 'flex' : 'none';
 
-    tbody.innerHTML = list.map(b => `
-        <tr>
+    // Build rows with date-wise separators
+    let lastLabel = null;
+    const rows = [];
+    list.forEach(b => {
+        const label = getBillDateLabel(b);
+        if (label !== lastLabel) {
+            rows.push(`<tr class="bills-date-separator"><td colspan="6" class="bills-date-separator">${escapeHtml(label)}</td></tr>`);
+            lastLabel = label;
+        }
+        rows.push(`
+        <tr data-bill-id="${b.id}">
             <td class="cell-strong">${b.invoiceNo}</td>
             <td>${formatDate(b.invoiceDate)}</td>
             <td>${escapeHtml(b.customerName)}</td>
             <td>${formatCurrency(b.grandTotal)}</td>
             <td><span class="status-pill status-ok">${b.paymentMode.toUpperCase()}</span></td>
             <td class="cell-actions">
-                <button class="icon-btn" onclick="viewPastBill(${b.id})" title="Preview">
+                <button class="icon-btn" onclick="event.stopPropagation();viewPastBill(${b.id})" title="Preview">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
-                <button class="icon-btn" onclick="reprintPastBill(${b.id})" title="Print">
+                <button class="icon-btn" onclick="event.stopPropagation();reprintPastBill(${b.id})" title="Print">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                 </button>
-                <button class="icon-btn icon-btn-danger" onclick="deletePastBill(${b.id})" title="Delete">
+                <button class="icon-btn icon-btn-danger" onclick="event.stopPropagation();deletePastBill(${b.id})" title="Delete">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                 </button>
             </td>
-        </tr>
-    `).join('');
+        </tr>`);
+    });
+    tbody.innerHTML = rows.join('');
+
+    // Task 4: row-click-to-view
+    tbody.querySelectorAll('tr[data-bill-id]').forEach(tr => {
+        const id = parseInt(tr.dataset.billId, 10);
+        if (id) makeRowClickable(tr, () => openBillViewModal(id));
+    });
+
     initColumnVisibility('past-bills-table');
 }
 
@@ -2195,6 +2384,56 @@ async function deletePastBill(id) {
     await dbSet('bills', AppState.savedBills);
     renderPastBills();
     showToast('Bill deleted');
+}
+
+// ===================== BILL VIEW MODAL (Task 4 — Part 3) =====================
+function openBillViewModal(id) {
+    const bill = findBill(id);
+    if (!bill) return;
+    $('#bill-view-title').textContent = `Invoice ${bill.invoiceNo}`;
+    $('#bill-view-modal').dataset.billId = id;
+    $('#bill-view-body').innerHTML = `
+        <div class="view-detail-row"><span class="view-detail-label">Invoice No</span><span class="view-detail-value">${escapeHtml(bill.invoiceNo)}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Date</span><span class="view-detail-value">${formatDate(bill.invoiceDate)}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Customer</span><span class="view-detail-value">${escapeHtml(bill.customerName) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Contact</span><span class="view-detail-value">${escapeHtml(bill.customerContact) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Payment</span><span class="view-detail-value">${bill.paymentMode ? bill.paymentMode.toUpperCase() : '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Grand Total</span><span class="view-detail-value">${formatCurrency(bill.grandTotal)}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Items</span><span class="view-detail-value">${bill.lineItems ? bill.lineItems.map(i => `${escapeHtml(i.name)} × ${i.qty}`).join(', ') : '—'}</span></div>
+        ${bill.notes ? `<div class="view-detail-row"><span class="view-detail-label">Notes</span><span class="view-detail-value">${escapeHtml(bill.notes)}</span></div>` : ''}
+    `;
+    $('#bill-view-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeBillViewModal() {
+    $('#bill-view-modal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function previewBillFromView() {
+    const id = parseInt($('#bill-view-modal').dataset.billId, 10);
+    const bill = findBill(id);
+    if (!bill) return;
+    closeBillViewModal();
+    const previewContainer = $('#preview-bill-container');
+    previewContainer.innerHTML = generatePOSBillHTML(bill);
+    $('#preview-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    $('#preview-modal').dataset.billId = id;
+}
+
+function printBillFromView() {
+    const id = parseInt($('#bill-view-modal').dataset.billId, 10);
+    const bill = findBill(id);
+    if (!bill) return;
+    printBill(bill);
+}
+
+async function deleteBillFromView() {
+    const id = parseInt($('#bill-view-modal').dataset.billId, 10);
+    closeBillViewModal();
+    await deletePastBill(id);
 }
 
 // ===================== SALES RETURN =====================
@@ -2301,6 +2540,7 @@ async function processSalesReturn() {
     const bill = findBill(id);
     if (!bill) return;
 
+    const damagedStock = $('#return-damaged-stock') && $('#return-damaged-stock').checked;
     const checks = $$('.return-item-check');
     const returnedItems = [];
     let refund = 0;
@@ -2318,12 +2558,19 @@ async function processSalesReturn() {
             refund += amount;
             returnedItems.push({ name: item.name, qty: returnQty, amount, itemId: item.itemId || null });
 
-            // restock
-            if (item.itemId) {
+            // restock (skipped if damaged stock checkbox is checked)
+            if (item.itemId && !damagedStock) {
                 const catalogItem = AppState.items.find(it => it.id === item.itemId);
                 if (catalogItem && catalogItem.trackStock !== false) {
                     catalogItem.stock += returnQty;
                     logStockMovement(catalogItem.id, catalogItem.name, 'Sales Return', returnQty, bill.invoiceNo);
+                }
+            } else if (item.itemId && damagedStock) {
+                // Log as damaged: two movements — refund entry + immediate removal tagged damaged
+                const catalogItem = AppState.items.find(it => it.id === item.itemId);
+                if (catalogItem && catalogItem.trackStock !== false) {
+                    logStockMovement(catalogItem.id, catalogItem.name, 'Sales Return', returnQty, bill.invoiceNo);
+                    logStockMovement(catalogItem.id, catalogItem.name, 'Damaged (not added to inventory)', -returnQty, 'Damaged stock from return');
                 }
             }
         }
@@ -2342,18 +2589,21 @@ async function processSalesReturn() {
         customerName: bill.customerName,
         items: returnedItems,
         refundAmount: refund,
-        reason: $('#return-reason').value.trim()
+        reason: $('#return-reason').value.trim(),
+        damagedStock: !!damagedStock
     };
 
     AppState.salesReturns.push(returnRecord);
     await dbSet('returns', AppState.salesReturns);
     await saveStockStorage();
 
-    showToast(`Return processed — refund ${formatCurrency(refund)}`);
+    const toastNote = damagedStock ? ' (logged as damaged)' : '';
+    showToast(`Return processed — refund ${formatCurrency(refund)}${toastNote}`);
     $('#return-bill-select').value = '';
     $('#return-items-container').innerHTML = '';
     $('#return-summary').style.display = 'none';
     $('#return-reason').value = '';
+    if ($('#return-damaged-stock')) $('#return-damaged-stock').checked = false;
 
     renderStockTable();
     renderReturnsTable();
