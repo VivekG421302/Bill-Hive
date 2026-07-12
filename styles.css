@@ -2141,17 +2141,10 @@ a {
     color: #fff !important;
 }
 
-/* Items table responsive: hide less-critical columns on small screens */
-@media (max-width: 640px) {
-    .data-table th:nth-child(2),
-    .data-table td:nth-child(2),
-    .data-table th:nth-child(3),
-    .data-table td:nth-child(3),
-    .data-table th:nth-child(5),
-    .data-table td:nth-child(5) {
-        display: none;
-    }
-}
+/* Items table responsive: column visibility is now controlled entirely by
+   the column-toggle system. The old nth-child overrides below have been
+   removed (v4.04.0) because they conflicted with user selections and made
+   only 2 columns visible on mobile regardless of the user's saved config. */
 
 /* ===================== v2.3 ADDITIONS ===================== */
 
@@ -2325,12 +2318,30 @@ a {
     border-radius: var(--radius-md);
     padding: 8px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-    z-index: 60;
+    z-index: 200;
     min-width: 180px;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .column-toggle-dropdown.open {
     display: block;
+}
+
+/* On mobile: render as a fixed bottom sheet so it never clips off-screen */
+@media (max-width: 640px) {
+    .column-toggle-dropdown.open {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        padding: 16px;
+        max-height: 70vh;
+        overflow-y: auto;
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.22);
+    }
 }
 
 .column-toggle-item {
@@ -3080,4 +3091,293 @@ body.side-left .sidebar-header {
     accent-color: var(--accent-danger);
     flex-shrink: 0;
 }
+
+
+/* ===================== v4.04.1 — PRODUCT PAGE + MOBILE FIXES ===================== */
+
+/* Column dropdown mobile backdrop overlay */
+.column-toggle-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 199;
+}
+.column-toggle-backdrop.open {
+    display: block;
+}
+
+/* Mobile bottom-sheet drag handle */
+@media (max-width: 640px) {
+    .column-toggle-dropdown.open::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border-color);
+        margin: 0 auto 14px;
+    }
+}
+
+/* ===================== ITEM PRODUCT PAGE (Amazon-style) ===================== */
+
+/* Full-screen product page modal */
+#item-product-modal {
+    z-index: 300;
+}
+
+#item-product-modal .modal-content {
+    max-width: 600px;
+    max-height: 95vh;
+}
+
+/* Image gallery - main stage */
+.product-page-gallery {
+    position: relative;
+    width: 100%;
+    background: var(--bg-input);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    aspect-ratio: 1;
+    touch-action: pan-y;
+    user-select: none;
+}
+
+.product-page-gallery-track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
+.product-page-gallery-track img {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+.product-page-gallery-empty {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    gap: 8px;
+}
+
+.product-page-gallery-empty svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.3;
+}
+
+/* Arrow buttons */
+.product-page-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.45);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: background 0.15s, opacity 0.15s;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.product-page-arrow svg {
+    width: 18px;
+    height: 18px;
+    stroke: #fff;
+    flex-shrink: 0;
+}
+
+.product-page-arrow:hover {
+    background: rgba(0,0,0,0.65);
+}
+
+.product-page-arrow.prev { left: 10px; }
+.product-page-arrow.next { right: 10px; }
+
+.product-page-arrow:disabled {
+    opacity: 0.2;
+    cursor: default;
+}
+
+/* Image counter badge */
+.product-page-img-counter {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 2px 9px;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* Dot navigation */
+.product-page-dots {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 10px;
+}
+
+.product-page-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border-color);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+    flex-shrink: 0;
+}
+
+.product-page-dot.active {
+    background: var(--accent-primary);
+    transform: scale(1.25);
+}
+
+/* Product info section */
+.product-page-info {
+    margin-top: 16px;
+}
+
+.product-page-name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+
+.product-page-brand-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+    background: var(--accent-soft, rgba(79,140,255,0.1));
+    border: 1px solid var(--accent-primary);
+    border-radius: 20px;
+    padding: 2px 10px;
+    margin-top: 4px;
+}
+
+.product-page-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.product-page-price {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+    font-family: var(--font-mono);
+}
+
+.product-page-cost {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* Stock badge */
+.product-page-stock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+}
+
+.product-page-stock-badge.in-stock {
+    background: rgba(34,197,94,0.12);
+    color: #16a34a;
+    border: 1px solid rgba(34,197,94,0.3);
+}
+
+.product-page-stock-badge.low-stock {
+    background: rgba(245,158,11,0.12);
+    color: #d97706;
+    border: 1px solid rgba(245,158,11,0.3);
+}
+
+.product-page-stock-badge.out-stock {
+    background: rgba(239,68,68,0.1);
+    color: var(--accent-danger);
+    border: 1px solid rgba(239,68,68,0.2);
+}
+
+/* Specs grid */
+.product-page-specs {
+    margin-top: 16px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.product-page-spec-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 0.875rem;
+}
+
+.product-page-spec-row:last-child {
+    border-bottom: none;
+}
+
+.product-page-spec-label {
+    color: var(--text-muted);
+    font-weight: 500;
+    width: 120px;
+    flex-shrink: 0;
+}
+
+.product-page-spec-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-family: var(--font-mono);
+}
+
+/* Return detail view in returns table */
+.return-detail-items {
+    margin-top: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.return-detail-item-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.return-detail-item-row:last-child { border-bottom: none; }
 

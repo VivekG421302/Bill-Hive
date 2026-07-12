@@ -219,20 +219,29 @@ async function toggleColumn(tableId, columnIndex) {
     applyColumnVisibility(tableId);
 }
 
+function closeAllColumnDropdowns() {
+    document.querySelectorAll('.column-toggle-dropdown.open').forEach(d => d.classList.remove('open'));
+    const backdrop = document.getElementById('column-toggle-backdrop');
+    if (backdrop) backdrop.classList.remove('open');
+}
+
 async function toggleColumnDropdown(tableId) {
     const dropdown = document.getElementById(tableId + '-column-dropdown');
     if (!dropdown) return;
     const isOpen = dropdown.classList.contains('open');
-    document.querySelectorAll('.column-toggle-dropdown.open').forEach(d => d.classList.remove('open'));
+    closeAllColumnDropdowns();
     if (!isOpen) {
         await renderColumnToggles(tableId);
         dropdown.classList.add('open');
+        // Show backdrop on mobile
+        const backdrop = document.getElementById('column-toggle-backdrop');
+        if (backdrop && window.innerWidth <= 640) backdrop.classList.add('open');
     }
 }
 
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('.column-toggle-wrap')) {
-        document.querySelectorAll('.column-toggle-dropdown.open').forEach(d => d.classList.remove('open'));
+    if (!e.target.closest('.column-toggle-wrap') && !e.target.closest('.column-toggle-dropdown')) {
+        closeAllColumnDropdowns();
     }
 });
 
@@ -2095,49 +2104,224 @@ function renderItemsTable() {
 }
 
 // ===================== ITEM VIEW (v4.03.0 Part 2 — row-click-to-view) =====================
+// ===================== ITEM PRODUCT PAGE (Amazon-style, v4.04.1) =====================
+let itemPGIndex = 0;
+let itemPGImages = [];
+let itemPGTouchStartX = null;
+let itemPGTouchStartY = null;
+let itemPGDragX = 0;
+let itemPGIsDragging = false;
+
 function viewItem(id) {
     const it = AppState.items.find(i => i.id === id);
     if (!it) return;
-    $('#item-view-title').textContent = it.name;
 
-    const images = Array.isArray(it.images) ? it.images.filter(Boolean) : [];
-    $('#item-view-images').innerHTML = images.length
-        ? images.map(src => `<img src="${src}" alt="${escapeHtml(it.name)}">`).join('')
-        : '';
+    itemPGImages = Array.isArray(it.images) ? it.images.filter(Boolean) : [];
+    itemPGIndex = 0;
 
-    $('#item-view-body').innerHTML = `
-        <div class="view-detail-row"><span class="view-detail-label">SKU</span><span class="view-detail-value">${escapeHtml(it.sku) || '—'}</span></div>
-        <div class="view-detail-row"><span class="view-detail-label">EAN / Barcode</span><span class="view-detail-value">${escapeHtml(it.ean) || '—'}</span></div>
-        <div class="view-detail-row"><span class="view-detail-label">Item Number</span><span class="view-detail-value">${escapeHtml(it.itemNumber) || '—'}</span></div>
-        <div class="view-detail-row"><span class="view-detail-label">Brand</span><span class="view-detail-value">${escapeHtml(it.brand) || '—'}</span></div>
-        <div class="view-detail-row"><span class="view-detail-label">Cost</span><span class="view-detail-value">${it.cost ? formatCurrency(it.cost) : '—'}</span></div>
-        <div class="view-detail-row"><span class="view-detail-label">Price</span><span class="view-detail-value">${formatCurrency(it.price)}</span></div>
-        <div class="view-detail-row"><span class="view-detail-label">Discount %</span><span class="view-detail-value">${it.discount || 0}%</span></div>
-        <div class="view-detail-row"><span class="view-detail-label">Tax %</span><span class="view-detail-value">${it.tax || 0}%</span></div>
-        <div class="view-detail-row"><span class="view-detail-label">Stock</span><span class="view-detail-value">${it.trackStock !== false ? (it.stock || 0) : 'Not tracked'}</span></div>
-    `;
+    $('#item-product-title').textContent = it.name;
+    $('#item-pg-name').textContent = it.name;
 
-    $('#item-view-modal').dataset.itemId = id;
-    $('#item-view-modal').classList.add('active');
+    // Brand badge
+    const brandBadge = $('#item-pg-brand-badge');
+    if (it.brand) {
+        brandBadge.textContent = it.brand;
+        brandBadge.style.display = 'inline-block';
+    } else {
+        brandBadge.style.display = 'none';
+    }
+
+    // Price / cost
+    $('#item-pg-price').textContent = formatCurrency(it.price || 0);
+    const costEl = $('#item-pg-cost');
+    costEl.textContent = it.cost ? `Cost: ${formatCurrency(it.cost)}` : '';
+
+    // Stock badge
+    const stockEl = $('#item-pg-stock-badge');
+    if (it.trackStock === false) {
+        stockEl.className = 'product-page-stock-badge in-stock';
+        stockEl.textContent = 'Stock not tracked';
+    } else {
+        const stock = it.stock || 0;
+        if (stock <= 0) {
+            stockEl.className = 'product-page-stock-badge out-stock';
+            stockEl.textContent = 'Out of Stock';
+        } else if (stock <= 5) {
+            stockEl.className = 'product-page-stock-badge low-stock';
+            stockEl.textContent = `Low Stock — ${stock} left`;
+        } else {
+            stockEl.className = 'product-page-stock-badge in-stock';
+            stockEl.textContent = `In Stock — ${stock} units`;
+        }
+    }
+
+    // Specs
+    const specs = [
+        it.sku        ? ['SKU',         it.sku]        : null,
+        it.ean        ? ['Barcode / EAN', it.ean]       : null,
+        it.itemNumber ? ['Item Number',  it.itemNumber] : null,
+        ['Discount',  `${it.discount || 0}%`],
+        ['Tax',       `${it.tax || 0}%`],
+    ].filter(Boolean);
+
+    $('#item-pg-specs').innerHTML = specs.map(([label, val]) => `
+        <div class="product-page-spec-row">
+            <span class="product-page-spec-label">${escapeHtml(label)}</span>
+            <span class="product-page-spec-value">${escapeHtml(String(val))}</span>
+        </div>
+    `).join('');
+
+    // Gallery
+    itemPGRenderGallery();
+
+    $('#item-product-modal').dataset.itemId = id;
+    $('#item-product-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Touch / drag swipe
+    const gallery = $('#item-pg-gallery');
+    gallery.addEventListener('touchstart', itemPGTouchStart, { passive: true });
+    gallery.addEventListener('touchmove', itemPGTouchMove, { passive: false });
+    gallery.addEventListener('touchend', itemPGTouchEnd);
+    gallery.addEventListener('mousedown', itemPGMouseDown);
 }
 
-function closeItemViewModal() {
-    $('#item-view-modal').classList.remove('active');
+function itemPGRenderGallery() {
+    const track = $('#item-pg-track');
+    const dotsEl = $('#item-pg-dots');
+    const counter = $('#item-pg-counter');
+    const prevBtn = $('#item-pg-prev');
+    const nextBtn = $('#item-pg-next');
+
+    if (itemPGImages.length === 0) {
+        track.innerHTML = `
+            <div class="product-page-gallery-empty" style="flex:0 0 100%;width:100%;display:flex;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span style="font-size:0.875rem;">No images</span>
+            </div>`;
+        dotsEl.innerHTML = '';
+        counter.style.display = 'none';
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+        return;
+    }
+
+    track.innerHTML = itemPGImages.map(src =>
+        `<img src="${src}" alt="product image">`
+    ).join('');
+
+    // Dots
+    dotsEl.innerHTML = itemPGImages.map((_, i) =>
+        `<button class="product-page-dot ${i === 0 ? 'active' : ''}" onclick="itemPGGoTo(${i})"></button>`
+    ).join('');
+
+    // Counter only if >1 image
+    if (itemPGImages.length > 1) {
+        counter.style.display = '';
+        prevBtn.style.display = '';
+        nextBtn.style.display = '';
+    } else {
+        counter.style.display = 'none';
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+    }
+
+    itemPGUpdatePosition(false);
+}
+
+function itemPGUpdatePosition(animated = true) {
+    const track = $('#item-pg-track');
+    const counter = $('#item-pg-counter');
+    const n = itemPGImages.length;
+    if (!track) return;
+    track.style.transition = animated ? 'transform 0.32s cubic-bezier(0.4,0,0.2,1)' : 'none';
+    track.style.transform = `translateX(${-itemPGIndex * 100}%)`;
+    if (counter && n > 1) counter.textContent = `${itemPGIndex + 1} / ${n}`;
+    // Dots
+    $$('#item-pg-dots .product-page-dot').forEach((d, i) => d.classList.toggle('active', i === itemPGIndex));
+    // Arrow states
+    const prev = $('#item-pg-prev');
+    const next = $('#item-pg-next');
+    if (prev) prev.disabled = itemPGIndex === 0;
+    if (next) next.disabled = itemPGIndex === n - 1;
+}
+
+function itemPGMove(dir) {
+    const n = itemPGImages.length;
+    itemPGIndex = Math.max(0, Math.min(n - 1, itemPGIndex + dir));
+    itemPGUpdatePosition(true);
+}
+
+function itemPGGoTo(idx) {
+    itemPGIndex = idx;
+    itemPGUpdatePosition(true);
+}
+
+// Touch handlers
+function itemPGTouchStart(e) {
+    itemPGTouchStartX = e.touches[0].clientX;
+    itemPGTouchStartY = e.touches[0].clientY;
+}
+function itemPGTouchMove(e) {
+    if (itemPGTouchStartX === null) return;
+    const dx = e.touches[0].clientX - itemPGTouchStartX;
+    const dy = e.touches[0].clientY - itemPGTouchStartY;
+    if (Math.abs(dx) > Math.abs(dy)) e.preventDefault(); // prevent page scroll during swipe
+}
+function itemPGTouchEnd(e) {
+    if (itemPGTouchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - itemPGTouchStartX;
+    if (Math.abs(dx) > 40) itemPGMove(dx < 0 ? 1 : -1);
+    itemPGTouchStartX = null;
+    itemPGTouchStartY = null;
+}
+
+// Mouse drag handlers
+function itemPGMouseDown(e) {
+    itemPGDragX = e.clientX;
+    itemPGIsDragging = true;
+    const onMove = (ev) => { /* visual drag could be added */ };
+    const onUp = (ev) => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        if (!itemPGIsDragging) return;
+        itemPGIsDragging = false;
+        const dx = ev.clientX - itemPGDragX;
+        if (Math.abs(dx) > 40) itemPGMove(dx < 0 ? 1 : -1);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+}
+
+function closeItemProductPage() {
+    $('#item-product-modal').classList.remove('active');
     document.body.style.overflow = '';
+    // Clean up touch listeners
+    const gallery = $('#item-pg-gallery');
+    if (gallery) {
+        gallery.removeEventListener('touchstart', itemPGTouchStart);
+        gallery.removeEventListener('touchmove', itemPGTouchMove);
+        gallery.removeEventListener('touchend', itemPGTouchEnd);
+        gallery.removeEventListener('mousedown', itemPGMouseDown);
+    }
 }
 
-function editItemFromView() {
-    const id = parseInt($('#item-view-modal').dataset.itemId, 10);
-    closeItemViewModal();
+function editItemFromProductPage() {
+    const id = parseInt($('#item-product-modal').dataset.itemId, 10);
+    closeItemProductPage();
     openItemModal(id);
 }
 
-async function deleteItemFromView() {
-    const id = parseInt($('#item-view-modal').dataset.itemId, 10);
-    closeItemViewModal();
+async function deleteItemFromProductPage() {
+    const id = parseInt($('#item-product-modal').dataset.itemId, 10);
+    closeItemProductPage();
     await deleteItem(id);
 }
+
+// Keep old names as aliases so any stale references don't break
+function closeItemViewModal() { closeItemProductPage(); }
+function editItemFromView() { editItemFromProductPage(); }
+async function deleteItemFromView() { await deleteItemFromProductPage(); }
 
 // ===================== STOCK =====================
 let stockAdjustItemId = null;
@@ -2172,17 +2356,23 @@ function renderStockTable() {
         const tracked = it.trackStock !== false;
         const low = tracked && it.stock <= 5;
         return `
-        <tr>
+        <tr data-item-id="${it.id}">
             <td class="cell-strong">${escapeHtml(it.name)}</td>
             <td>${tracked ? 'Tracked' : 'Not tracked'}</td>
             <td>${tracked ? it.stock : '—'}</td>
             <td>${tracked ? `<span class="status-pill ${low ? 'status-low' : 'status-ok'}">${low ? 'Low Stock' : 'In Stock'}</span>` : '<span class="status-pill">N/A</span>'}</td>
             <td class="cell-actions">
-                <button class="icon-btn" onclick="openStockModal(${it.id})" title="Adjust" ${!tracked ? 'disabled' : ''}>
+                <button class="icon-btn" onclick="event.stopPropagation();openStockModal(${it.id})" title="Adjust" ${!tracked ? 'disabled' : ''}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
             </td>
         </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('tr[data-item-id]').forEach(tr => {
+        const id = parseInt(tr.dataset.itemId, 10);
+        if (id) makeRowClickable(tr, () => viewItem(id));
+    });
     }).join('');
 
     const logBody = $('#stock-log-body');
@@ -2613,15 +2803,53 @@ async function processSalesReturn() {
 function renderReturnsTable() {
     const tbody = $('#returns-table-body');
     if (!tbody) return;
-    tbody.innerHTML = [...AppState.salesReturns].reverse().map(r => `
-        <tr>
+    const returns = [...AppState.salesReturns].reverse();
+    tbody.innerHTML = returns.map((r, i) => `
+        <tr data-return-idx="${AppState.salesReturns.length - 1 - i}">
             <td>${formatDate(r.date)}</td>
             <td class="cell-strong">${r.invoiceNo}</td>
             <td>${escapeHtml(r.customerName)}</td>
             <td>${formatCurrency(r.refundAmount)}</td>
         </tr>
     `).join('') || '<tr><td colspan="4" class="cell-muted">No returns yet</td></tr>';
+
+    tbody.querySelectorAll('tr[data-return-idx]').forEach(tr => {
+        const idx = parseInt(tr.dataset.returnIdx, 10);
+        makeRowClickable(tr, () => viewReturn(idx));
+    });
+
     initColumnVisibility('returns-table');
+}
+
+function viewReturn(idx) {
+    const r = AppState.salesReturns[idx];
+    if (!r) return;
+    $('#return-detail-title').textContent = `Return — ${r.invoiceNo}`;
+    const damagedNote = r.damagedStock ? `<div class="view-detail-row"><span class="view-detail-label">Stock</span><span class="view-detail-value" style="color:var(--accent-danger);">Logged as damaged</span></div>` : '';
+    const itemsHtml = Array.isArray(r.returnedItems) && r.returnedItems.length
+        ? `<div style="margin-top:12px;font-size:0.8125rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Returned Items</div>
+           <div class="return-detail-items">${r.returnedItems.map(item => `
+               <div class="return-detail-item-row">
+                   <span>${escapeHtml(item.name)}</span>
+                   <span style="color:var(--text-muted);">×${item.qty} — ${formatCurrency(item.amount)}</span>
+               </div>`).join('')}</div>` : '';
+
+    $('#return-detail-body').innerHTML = `
+        <div class="view-detail-row"><span class="view-detail-label">Invoice</span><span class="view-detail-value">${escapeHtml(r.invoiceNo)}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Date</span><span class="view-detail-value">${formatDate(r.date)}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Customer</span><span class="view-detail-value">${escapeHtml(r.customerName) || '—'}</span></div>
+        <div class="view-detail-row"><span class="view-detail-label">Refund</span><span class="view-detail-value" style="color:var(--accent-primary);font-weight:700;">${formatCurrency(r.refundAmount)}</span></div>
+        ${r.reason ? `<div class="view-detail-row"><span class="view-detail-label">Reason</span><span class="view-detail-value">${escapeHtml(r.reason)}</span></div>` : ''}
+        ${damagedNote}
+        ${itemsHtml}
+    `;
+    $('#return-detail-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeReturnDetailModal() {
+    $('#return-detail-modal').classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 async function loadReturns() {

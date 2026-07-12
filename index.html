@@ -1038,28 +1038,73 @@
     </div>
 
     <!-- ===================== ITEM VIEW MODAL (v4.03.0 Part 2) ===================== -->
-    <div id="item-view-modal" class="modal">
-        <div class="modal-overlay" onclick="closeItemViewModal()"></div>
+    <!-- ===================== ITEM PRODUCT PAGE MODAL (Amazon-style, v4.04.1) ===================== -->
+    <div id="item-product-modal" class="modal">
+        <div class="modal-overlay" onclick="closeItemProductPage()"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="item-view-title">Item</h3>
-                <button class="modal-close" onclick="closeItemViewModal()">
+                <h3 id="item-product-title" style="font-size:0.95rem;font-weight:700;max-width:calc(100% - 60px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Item</h3>
+                <button class="modal-close" onclick="closeItemProductPage()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding:0 16px 20px;">
+                <!-- Image gallery -->
+                <div class="product-page-gallery" id="item-pg-gallery">
+                    <div class="product-page-gallery-track" id="item-pg-track"></div>
+                    <button class="product-page-arrow prev" id="item-pg-prev" onclick="itemPGMove(-1)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <button class="product-page-arrow next" id="item-pg-next" onclick="itemPGMove(1)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                    <div class="product-page-img-counter" id="item-pg-counter" style="display:none;"></div>
+                </div>
+                <div class="product-page-dots" id="item-pg-dots"></div>
+
+                <!-- Info -->
+                <div class="product-page-info">
+                    <div class="product-page-name" id="item-pg-name"></div>
+                    <div id="item-pg-brand-badge" class="product-page-brand-badge" style="display:none;"></div>
+
+                    <div class="product-page-price-row">
+                        <div class="product-page-price" id="item-pg-price"></div>
+                        <div class="product-page-cost" id="item-pg-cost"></div>
+                    </div>
+
+                    <div id="item-pg-stock-badge" class="product-page-stock-badge"></div>
+
+                    <!-- Specs -->
+                    <div class="product-page-specs" id="item-pg-specs"></div>
+
+                    <!-- Actions -->
+                    <div class="view-action-bar" style="margin-top:16px;">
+                        <button class="action-btn btn-save" onclick="editItemFromProductPage()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                            Edit
+                        </button>
+                        <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteItemFromProductPage()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== RETURN DETAIL MODAL (v4.04.1) ===================== -->
+    <div id="return-detail-modal" class="modal">
+        <div class="modal-overlay" onclick="closeReturnDetailModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="return-detail-title">Return</h3>
+                <button class="modal-close" onclick="closeReturnDetailModal()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="view-action-bar">
-                    <button class="action-btn btn-save" onclick="editItemFromView()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-                        Edit
-                    </button>
-                    <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteItemFromView()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-                        Delete
-                    </button>
-                </div>
-                <div class="item-view-images" id="item-view-images"></div>
-                <div id="item-view-body"></div>
+                <div id="return-detail-body"></div>
             </div>
         </div>
     </div>
@@ -1268,6 +1313,8 @@
 
     <script src="script.js"></script>
 
-    <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
+    <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>    <!-- Column toggle backdrop (mobile bottom sheet) -->
+    <div id="column-toggle-backdrop" class="column-toggle-backdrop" onclick="closeAllColumnDropdowns()"></div>
+
 </body>
 </html>

@@ -2155,17 +2155,8 @@ a {
     color: #fff !important;
 }
 
-/* Items table responsive: hide less-critical columns on small screens */
-@media (max-width: 640px) {
-    .data-table th:nth-child(2),
-    .data-table td:nth-child(2),
-    .data-table th:nth-child(3),
-    .data-table td:nth-child(3),
-    .data-table th:nth-child(5),
-    .data-table td:nth-child(5) {
-        display: none;
-    }
-}
+/* Column visibility is handled by the column-toggle system (v4.04.1).
+   The old nth-child mobile overrides have been removed to avoid conflicts. */
 
 /* ===================== v2.3 ADDITIONS ===================== */
 
@@ -2339,8 +2330,10 @@ a {
     border-radius: var(--radius-md);
     padding: 8px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-    z-index: 60;
+    z-index: 200;
     min-width: 180px;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .column-toggle-dropdown.open {
@@ -3096,6 +3089,33 @@ body.side-left .sidebar-header {
     accent-color: var(--accent-danger);
     flex-shrink: 0;
 }
+
+/* Mobile column dropdown bottom-sheet (v4.04.1) */
+@media (max-width: 640px) {
+    .column-toggle-dropdown.open {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-radius: 16px 16px 0 0;
+        padding: 16px;
+        max-height: 70vh;
+        overflow-y: auto;
+        box-shadow: 0 -8px 32px rgba(0,0,0,0.22);
+        z-index: 200;
+    }
+    .column-toggle-dropdown.open::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border-color);
+        margin: 0 auto 14px;
+    }
+}
+
 </style>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
