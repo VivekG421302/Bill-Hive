@@ -2373,7 +2373,6 @@ function renderStockTable() {
         const id = parseInt(tr.dataset.itemId, 10);
         if (id) makeRowClickable(tr, () => viewItem(id));
     });
-    }).join('');
 
     const logBody = $('#stock-log-body');
     if (logBody) {
