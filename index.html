@@ -868,18 +868,18 @@
                     Save Settings
                 </button>
 
+
                 <div class="settings-group">
                     <h3>Data Management</h3>
-                    <p class="settings-desc">Everything is stored locally in your browser. Export a full backup any time, or restore from a previously exported file.</p>
+                    <p class="settings-desc">Everything is stored locally in your browser. Choose exactly what to export or import — mix and match by category.</p>
                     <div class="data-actions">
-                        <button class="action-btn btn-save" onclick="exportAllData()">
+                        <button class="action-btn btn-save" onclick="openExportModal()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            Export All Data (JSON)
+                            Export Data
                         </button>
-                        <label class="action-btn btn-clear import-btn">
+                        <label class="action-btn btn-clear import-btn" onclick="openImportModal(); return false;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                             Import Data
-                            <input type="file" accept="application/json" id="import-file-input" style="display:none;" onchange="importAllData(event)">
                         </label>
                     </div>
                 </div>
@@ -1313,7 +1313,70 @@
 
     <script src="script.js"></script>
 
-    <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>    <!-- Column toggle backdrop (mobile bottom sheet) -->
+    <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>    <!-- ===================== EXPORT PICKER MODAL ===================== -->
+    <div id="export-modal" class="modal">
+        <div class="modal-overlay" onclick="closeExportModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Export Data</h3>
+                <button class="modal-close" onclick="closeExportModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:14px;">Choose what to include in the exported file. You can share or restore individual sections without overwriting everything.</p>
+                <div class="io-category-list" id="export-category-list"></div>
+                <div style="display:flex;gap:10px;margin-top:18px;">
+                    <button class="action-btn" style="flex:1;background:transparent;border:1.5px solid var(--border-color);color:var(--text-secondary);" onclick="ioToggleAll('export',true)">Select All</button>
+                    <button class="action-btn" style="flex:1;background:transparent;border:1.5px solid var(--border-color);color:var(--text-secondary);" onclick="ioToggleAll('export',false)">Deselect All</button>
+                </div>
+                <button class="action-btn btn-save" style="width:100%;margin-top:10px;" onclick="runExport()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download Export
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== IMPORT PICKER MODAL ===================== -->
+    <div id="import-modal" class="modal">
+        <div class="modal-overlay" onclick="closeImportModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Import Data</h3>
+                <button class="modal-close" onclick="closeImportModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Step 1: file pick -->
+                <div id="import-step-pick">
+                    <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:14px;">Choose a Bill-Hive backup file (.json), then select which sections to restore.</p>
+                    <label class="action-btn btn-save" style="width:100%;justify-content:center;cursor:pointer;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Choose File
+                        <input type="file" accept="application/json" id="import-file-input" style="display:none;" onchange="importFileChosen(event)">
+                    </label>
+                </div>
+                <!-- Step 2: category chooser (shown after file is read) -->
+                <div id="import-step-choose" style="display:none;">
+                    <div id="import-file-info" style="font-size:0.8125rem;color:var(--text-muted);margin-bottom:14px;padding:8px 12px;background:var(--bg-input);border-radius:var(--radius-sm);"></div>
+                    <div class="io-category-list" id="import-category-list"></div>
+                    <div style="display:flex;gap:10px;margin-top:18px;">
+                        <button class="action-btn" style="flex:1;background:transparent;border:1.5px solid var(--border-color);color:var(--text-secondary);" onclick="ioToggleAll('import',true)">Select All</button>
+                        <button class="action-btn" style="flex:1;background:transparent;border:1.5px solid var(--border-color);color:var(--text-secondary);" onclick="ioToggleAll('import',false)">Deselect All</button>
+                    </div>
+                    <button class="action-btn btn-save" style="width:100%;margin-top:10px;" onclick="runImport()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Import Selected
+                    </button>
+                    <button class="action-btn" style="width:100%;margin-top:6px;background:transparent;border:1.5px solid var(--border-color);color:var(--text-secondary);" onclick="importResetFile()">Choose Different File</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Column toggle backdrop (mobile bottom sheet) -->
     <div id="column-toggle-backdrop" class="column-toggle-backdrop" onclick="closeAllColumnDropdowns()"></div>
 
 </body>

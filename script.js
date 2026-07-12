@@ -3001,38 +3001,240 @@ async function loadConfig() {
 }
 
 // ===================== EXPORT / IMPORT =====================
-async function exportAllData() {
+// ===================== EXPORT / IMPORT — CUSTOMISABLE PICKER (v4.04.2) =====================
+
+// Master list of all exportable/importable categories.
+// Each entry defines: key in the JSON bundle, label, description, icon SVG path,
+// the dbGet/dbSet key used in IndexedDB, and an optional AppState key.
+const IO_CATEGORIES = [
+    {
+        id: 'companyData',
+        label: 'Business Info',
+        desc: 'Company name, address, GST, logo, contact',
+        dbKey: 'company',
+        stateKey: 'companyData',
+        icon: '<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'
+    },
+    {
+        id: 'settings',
+        label: 'Settings & Preferences',
+        desc: 'Theme, accent color, print settings, screensaver',
+        dbKey: 'settings',
+        stateKey: 'settings',
+        icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>'
+    },
+    {
+        id: 'items',
+        label: 'Items (Catalogue)',
+        desc: 'All products, prices, stock levels, images',
+        dbKey: 'items',
+        stateKey: 'items',
+        icon: '<path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'
+    },
+    {
+        id: 'stockLog',
+        label: 'Stock Log',
+        desc: 'Full history of stock movements and adjustments',
+        dbKey: 'stocklog',
+        stateKey: 'stockLog',
+        icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'
+    },
+    {
+        id: 'brands',
+        label: 'Brands',
+        desc: 'Brand names, logos and notes',
+        dbKey: 'brands',
+        icon: '<path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2 12.01V2h10.01l8.58 8.58a2 2 0 010 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/>'
+    },
+    {
+        id: 'suppliers',
+        label: 'Suppliers',
+        desc: 'Supplier contacts and linked catalogue items',
+        dbKey: 'suppliers',
+        icon: '<rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>'
+    },
+    {
+        id: 'savedBills',
+        label: 'Past Bills',
+        desc: 'All saved invoices and billing history',
+        dbKey: 'bills',
+        stateKey: 'savedBills',
+        icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'
+    },
+    {
+        id: 'salesReturns',
+        label: 'Sales Returns',
+        desc: 'Return records and refund history',
+        dbKey: 'returns',
+        stateKey: 'salesReturns',
+        icon: '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>'
+    },
+    {
+        id: 'purchaseOrders',
+        label: 'Purchase Orders',
+        desc: 'All POs and fulfillment records',
+        dbKey: 'purchaseOrders',
+        icon: '<path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>'
+    },
+    {
+        id: 'invoiceCount',
+        label: 'Invoice Counter',
+        desc: 'Invoice numbering sequence (keeps numbers continuous)',
+        dbKey: 'meta',
+        stateKey: 'invoiceCount',
+        icon: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>'
+    },
+    {
+        id: 'theme',
+        label: 'Theme (Light / Dark)',
+        desc: 'Current colour scheme preference',
+        dbKey: 'theme',
+        icon: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    }
+];
+
+// ---- EXPORT ----
+
+function openExportModal() {
+    renderIOCategoryList('export', IO_CATEGORIES, null);
+    $('#export-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeExportModal() {
+    $('#export-modal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function renderIOCategoryList(mode, categories, bundleData) {
+    const listEl = $(`#${mode}-category-list`);
+    if (!listEl) return;
+
+    listEl.innerHTML = categories.map(cat => {
+        // Count items if possible
+        let count = '';
+        if (bundleData && bundleData[cat.id] !== undefined) {
+            const val = bundleData[cat.id];
+            if (Array.isArray(val)) count = `${val.length} records`;
+            else if (typeof val === 'object' && val !== null) count = 'Present';
+            else if (typeof val === 'string') count = 'Present';
+        } else if (mode === 'export') {
+            const stateVal = cat.stateKey ? AppState[cat.stateKey] : null;
+            if (Array.isArray(stateVal)) count = `${stateVal.length} records`;
+        }
+
+        return `
+        <label class="io-category-row io-checked" data-cat="${cat.id}" onclick="ioRowClick(this)">
+            <input type="checkbox" class="io-checkbox" data-mode="${mode}" data-cat="${cat.id}" checked onclick="event.stopPropagation();" onchange="ioCheckboxChange(this)">
+            <div class="io-category-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${cat.icon}</svg>
+            </div>
+            <div class="io-category-info">
+                <div class="io-category-label">${cat.label}</div>
+                <div class="io-category-desc">${cat.desc}</div>
+            </div>
+            ${count ? `<span class="io-category-count">${count}</span>` : ''}
+        </label>`;
+    }).join('');
+}
+
+function ioRowClick(row) {
+    const cb = row.querySelector('input[type="checkbox"]');
+    if (!cb) return;
+    cb.checked = !cb.checked;
+    row.classList.toggle('io-checked', cb.checked);
+}
+
+function ioCheckboxChange(cb) {
+    const row = cb.closest('.io-category-row');
+    if (row) row.classList.toggle('io-checked', cb.checked);
+}
+
+function ioToggleAll(mode, checked) {
+    $$(`#${mode}-category-list .io-checkbox`).forEach(cb => {
+        cb.checked = checked;
+        const row = cb.closest('.io-category-row');
+        if (row) row.classList.toggle('io-checked', checked);
+    });
+}
+
+function ioGetSelected(mode) {
+    return Array.from($$(`#${mode}-category-list .io-checkbox`))
+        .filter(cb => cb.checked)
+        .map(cb => cb.dataset.cat);
+}
+
+async function runExport() {
+    const selected = ioGetSelected('export');
+    if (selected.length === 0) { showToast('Select at least one category to export'); return; }
+
     const bundle = {
         exportedAt: new Date().toISOString(),
         app: 'bill-hive',
         version: '1.0',
-        companyData: AppState.companyData,
-        settings: AppState.settings,
-        config: AppState.config,
-        items: AppState.items,
-        stockLog: AppState.stockLog,
-        savedBills: AppState.savedBills,
-        salesReturns: AppState.salesReturns,
-        invoiceCount: AppState.invoiceCount,
-        theme: (await dbGet('theme')) || 'light',
-        brands: (await dbGet('brands')) || [],
-        suppliers: (await dbGet('suppliers')) || [],
-        purchaseOrders: (await dbGet('purchaseOrders')) || []
+        exportedCategories: selected
     };
+
+    for (const cat of IO_CATEGORIES) {
+        if (!selected.includes(cat.id)) continue;
+        if (cat.id === 'companyData') bundle.companyData = AppState.companyData;
+        else if (cat.id === 'settings')  bundle.settings = AppState.settings;
+        else if (cat.id === 'items')     bundle.items = AppState.items;
+        else if (cat.id === 'stockLog')  bundle.stockLog = AppState.stockLog;
+        else if (cat.id === 'savedBills') bundle.savedBills = AppState.savedBills;
+        else if (cat.id === 'salesReturns') bundle.salesReturns = AppState.salesReturns;
+        else if (cat.id === 'invoiceCount') bundle.invoiceCount = AppState.invoiceCount;
+        else if (cat.id === 'theme')     bundle.theme = (await dbGet('theme')) || 'light';
+        else if (cat.id === 'brands')    bundle.brands = (await dbGet('brands')) || [];
+        else if (cat.id === 'suppliers') bundle.suppliers = (await dbGet('suppliers')) || [];
+        else if (cat.id === 'purchaseOrders') bundle.purchaseOrders = (await dbGet('purchaseOrders')) || [];
+    }
+
+    const catNames = selected.map(id => IO_CATEGORIES.find(c => c.id === id)?.label || id);
+    const suffix = selected.length === IO_CATEGORIES.length ? 'full' : selected.length === 1 ? catNames[0].toLowerCase().replace(/\s+/g,'-') : 'partial';
+    const filename = `bill-hive-${suffix}-${new Date().toISOString().slice(0, 10)}.json`;
 
     const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `bill-hive-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('Data exported');
+
+    closeExportModal();
+    showToast(`Exported: ${catNames.join(', ')}`);
 }
 
-function importAllData(event) {
+// ---- IMPORT ----
+
+let importBundleData = null;
+
+function openImportModal() {
+    importBundleData = null;
+    $('#import-step-pick').style.display = '';
+    $('#import-step-choose').style.display = 'none';
+    const fileInput = $('#import-file-input');
+    if (fileInput) fileInput.value = '';
+    $('#import-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImportModal() {
+    $('#import-modal').classList.remove('active');
+    document.body.style.overflow = '';
+    importBundleData = null;
+}
+
+function importResetFile() {
+    importBundleData = null;
+    $('#import-step-pick').style.display = '';
+    $('#import-step-choose').style.display = 'none';
+    const fileInput = $('#import-file-input');
+    if (fileInput) fileInput.value = '';
+}
+
+function importFileChosen(event) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -3040,33 +3242,69 @@ function importAllData(event) {
     reader.onload = async (e) => {
         try {
             const data = JSON.parse(e.target.result);
+
             if (data.app !== 'bill-hive') {
-                if (!await showConfirm('This file does not look like a Bill-Hive backup. Import anyway?', 'Unrecognised File')) return;
+                if (!await showConfirm('This file does not look like a Bill-Hive backup. Continue?', 'Unrecognised File')) {
+                    event.target.value = '';
+                    return;
+                }
             }
 
-            if (data.companyData) await dbSet('company', data.companyData);
-            if (data.settings) await dbSet('settings', data.settings);
-            if (data.config) await dbSet('config', data.config);
-            if (data.items) await dbSet('items', data.items);
-            if (data.stockLog) await dbSet('stocklog', data.stockLog);
-            if (data.savedBills) await dbSet('bills', data.savedBills);
-            if (data.salesReturns) await dbSet('returns', data.salesReturns);
-            if (data.invoiceCount) await dbSet('meta', data.invoiceCount);
-            if (data.theme) await dbSet('theme', data.theme);
-            if (data.brands) await dbSet('brands', data.brands);
-            if (data.suppliers) await dbSet('suppliers', data.suppliers);
-            if (data.purchaseOrders) await dbSet('purchaseOrders', data.purchaseOrders);
+            importBundleData = data;
 
-            showToast('Data imported — reloading...');
-            setTimeout(() => window.location.reload(), 1000);
+            // Show file info
+            const exported = data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'Unknown';
+            const cats = data.exportedCategories
+                ? data.exportedCategories.map(id => IO_CATEGORIES.find(c => c.id === id)?.label || id).join(', ')
+                : 'Full backup (legacy format)';
+            $('#import-file-info').innerHTML = `<strong>${file.name}</strong><br>Exported: ${exported}<br>Contains: ${cats}`;
+
+            // Only show categories that are present in the file
+            const available = IO_CATEGORIES.filter(cat => data[cat.id] !== undefined);
+            if (available.length === 0) {
+                showToast('No recognisable data found in this file');
+                importResetFile();
+                return;
+            }
+
+            renderIOCategoryList('import', available, data);
+            $('#import-step-pick').style.display = 'none';
+            $('#import-step-choose').style.display = '';
         } catch (err) {
             console.error(err);
-            showToast('Invalid backup file');
+            showToast('Invalid backup file — could not parse JSON');
+            event.target.value = '';
         }
     };
     reader.readAsText(file);
-    event.target.value = '';
 }
+
+async function runImport() {
+    if (!importBundleData) return;
+    const selected = ioGetSelected('import');
+    if (selected.length === 0) { showToast('Select at least one category to import'); return; }
+
+    const catNames = selected.map(id => IO_CATEGORIES.find(c => c.id === id)?.label || id);
+    if (!await showConfirm(
+        `This will overwrite: ${catNames.join(', ')}.\n\nData not selected will be left untouched. Continue?`,
+        'Confirm Import'
+    )) return;
+
+    const data = importBundleData;
+    for (const id of selected) {
+        const cat = IO_CATEGORIES.find(c => c.id === id);
+        if (!cat || data[id] === undefined) continue;
+        await dbSet(cat.dbKey, data[id]);
+    }
+
+    closeImportModal();
+    showToast(`Imported: ${catNames.join(', ')} — reloading…`);
+    setTimeout(() => window.location.reload(), 900);
+}
+
+// Keep the old exportAllData/importAllData as aliases for any external callers
+async function exportAllData() { openExportModal(); }
+function importAllData(event) { importFileChosen(event); }
 
 // v4.02.0 Part 1 — Erase Data now requires typing "delete" into a text
 // input rather than just clicking through confirm() dialogs.
