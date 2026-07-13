@@ -3246,71 +3246,107 @@ function ioResetFileInput() {
 }
 
 function importFileChosen(event) {
-    const file = event.target.files[0];
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = async (e) => {
+        let data;
         try {
-            const data = JSON.parse(e.target.result);
-
-            if (data.app !== 'bill-hive') {
-                if (!await showConfirm('This file does not look like a Bill-Hive backup. Continue?', 'Unrecognised File')) {
-                    event.target.value = '';
-                    return;
-                }
-            }
-
-            importBundleData = data;
-
-            // Show file info
-            const exported = data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'Unknown';
-            const cats = data.exportedCategories
-                ? data.exportedCategories.map(id => IO_CATEGORIES.find(c => c.id === id)?.label || id).join(', ')
-                : 'Full backup (legacy format)';
-            $('#import-file-info').innerHTML = `<strong>${file.name}</strong><br>Exported: ${exported}<br>Contains: ${cats}`;
-
-            // Only show categories that are present in the file
-            const available = IO_CATEGORIES.filter(cat => data[cat.id] !== undefined);
-            if (available.length === 0) {
-                showToast('No recognisable data found in this file');
-                importResetFile();
-                return;
-            }
-
-            renderIOCategoryList('import', available, data);
-            $('#import-step-pick').style.display = 'none';
-            $('#import-step-choose').style.display = '';
+            data = JSON.parse(e.target.result);
         } catch (err) {
-            console.error(err);
-            showToast('Invalid backup file — could not parse JSON');
-            event.target.value = '';
+            showToast('Invalid file — could not parse JSON. Make sure you chose a Bill-Hive .json backup.');
+            ioResetFileInput();
+            return;
         }
+
+        // Warn but don't block if it's not a recognised Bill-Hive file
+        if (data.app !== 'bill-hive') {
+            showToast('⚠ File does not appear to be a Bill-Hive backup — showing all found data categories anyway.');
+        }
+
+        importBundleData = data;
+
+        // File info line
+        const exported = data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'Unknown date';
+        const cats = Array.isArray(data.exportedCategories)
+            ? data.exportedCategories.map(id => IO_CATEGORIES.find(c => c.id === id)?.label || id).join(', ')
+            : 'Legacy / full backup';
+        $('#import-file-info').innerHTML =
+            `<strong>${escapeHtml(file.name)}</strong><br>Exported: ${exported}<br>Contains: ${escapeHtml(cats)}`;
+
+        // Only show categories actually present in the file
+        const available = IO_CATEGORIES.filter(cat => data[cat.id] !== undefined);
+        if (available.length === 0) {
+            showToast('No recognisable data found in this file.');
+            importBundleData = null;
+            ioResetFileInput();
+            return;
+        }
+
+        renderIOCategoryList('import', available, data);
+        $('#import-step-pick').style.display = 'none';
+        $('#import-step-choose').style.display = '';
     };
+
+    reader.onerror = () => {
+        showToast('Could not read the file. Please try again.');
+        ioResetFileInput();
+    };
+
     reader.readAsText(file);
 }
 
 async function runImport() {
-    if (!importBundleData) return;
+    if (!importBundleData) { showToast('No file loaded'); return; }
     const selected = ioGetSelected('import');
     if (selected.length === 0) { showToast('Select at least one category to import'); return; }
 
     const catNames = selected.map(id => IO_CATEGORIES.find(c => c.id === id)?.label || id);
+
+    // Close import modal BEFORE opening confirm so two modals don't stack
+    closeImportModal();
+
     if (!await showConfirm(
         `This will overwrite: ${catNames.join(', ')}.\n\nData not selected will be left untouched. Continue?`,
         'Confirm Import'
     )) return;
 
-    const data = importBundleData;
+    // Make sure DB is ready
+    try { await dbInit(); } catch (e) { /* already inited — ignore */ }
+
+    const data = importBundleData || {};
+    const errors = [];
+    const written = [];
+
     for (const id of selected) {
         const cat = IO_CATEGORIES.find(c => c.id === id);
-        if (!cat || data[id] === undefined) continue;
-        await dbSet(cat.dbKey, data[id]);
+        if (!cat) continue;
+        const value = data[id];
+        if (value === undefined) continue;
+        try {
+            await dbSet(cat.dbKey, value);
+            written.push(cat.label);
+        } catch (err) {
+            console.error(`Import failed for ${cat.label}:`, err);
+            errors.push(cat.label);
+        }
     }
 
-    closeImportModal();
-    showToast(`Imported: ${catNames.join(', ')} — reloading…`);
-    setTimeout(() => window.location.reload(), 900);
+    importBundleData = null;
+
+    if (errors.length > 0 && written.length === 0) {
+        showToast(`Import failed — could not write any data. Try reloading and trying again.`);
+        return;
+    }
+
+    if (errors.length > 0) {
+        showToast(`Imported ${written.length} categories. Failed: ${errors.join(', ')}. Reloading…`);
+    } else {
+        showToast(`Imported: ${written.join(', ')} — reloading…`);
+    }
+
+    setTimeout(() => window.location.reload(), 1000);
 }
 
 // Keep the old exportAllData/importAllData as aliases for any external callers
