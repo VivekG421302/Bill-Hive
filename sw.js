@@ -1,5 +1,9 @@
-// ===================== BILL-HIVE SERVICE WORKER v2.2 =====================
-const CACHE_NAME = 'billhive-v4.04.1';
+// ===================== BILL-HIVE SERVICE WORKER v4.04.7 =====================
+// Strategy: network-first for all app files so updates always reach the user.
+// Cache is used only as fallback when offline.
+
+const CACHE_NAME = 'billhive-v4.04.7';
+
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -8,77 +12,85 @@ const STATIC_ASSETS = [
   '/fulfillment.html',
   '/catalogue.html',
   '/script.js',
+  '/styles.css',
   '/manifest.json',
-  '/favicon.svg',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/favicon.svg'
 ];
 
-// Install: cache all static assets
+// Install: pre-cache everything fresh from network, then activate immediately
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS.map(url => {
-        return new Request(url, { cache: 'reload' });
-      })).catch(() => {
-        // If any asset fails (e.g., icons not found), still install
-        return Promise.resolve();
-      });
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then(cache =>
+        Promise.allSettled(
+          STATIC_ASSETS.map(url =>
+            fetch(new Request(url, { cache: 'no-store' }))
+              .then(res => { if (res.ok) cache.put(url, res); })
+              .catch(() => {})
+          )
+        )
+      )
+      .then(() => self.skipWaiting())   // activate new SW immediately, don't wait for tabs to close
   );
 });
 
-// Activate: clean up old caches
+// Activate: delete every old cache, then take control of all open tabs now
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter(name => name !== CACHE_NAME)
-          .map(name => caches.delete(name))
-      );
-    }).then(() => self.clients.claim())
+    caches.keys()
+      .then(names =>
+        Promise.all(names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n)))
+      )
+      .then(() => self.clients.claim())  // take control without reload
   );
 });
 
-// Fetch: cache-first for local assets, network-first for external
+// Fetch: NETWORK-FIRST for same-origin assets
+// → always tries to pull fresh copy from server
+// → falls back to cache only when offline
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  const url = new URL(request.url);
-
-  // Skip non-GET requests
   if (request.method !== 'GET') return;
 
-  // Network-first for Google Fonts (external)
-  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
+  const url = new URL(request.url);
+
+  // External resources (fonts) — cache-first is fine, they never change
+  if (
+    url.hostname.includes('fonts.googleapis.com') ||
+    url.hostname.includes('fonts.gstatic.com')
+  ) {
     event.respondWith(
-      fetch(request).then(response => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-        return response;
-      }).catch(() => caches.match(request))
+      caches.match(request).then(cached => {
+        if (cached) return cached;
+        return fetch(request).then(res => {
+          if (res && res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(request, clone));
+          }
+          return res;
+        });
+      })
     );
     return;
   }
 
-  // Cache-first for same-origin assets
+  // Same-origin assets: NETWORK-FIRST
   if (url.origin === self.location.origin) {
     event.respondWith(
-      caches.match(request).then(cached => {
-        if (cached) return cached;
-        return fetch(request).then(response => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+      fetch(request, { cache: 'no-store' })           // always fetch fresh
+        .then(res => {
+          if (res && res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(request, clone)); // update cache
           }
-          return response;
-        }).catch(() => {
-          // Offline fallback: return index.html for navigation requests
-          if (request.mode === 'navigate') {
-            return caches.match('/index.html');
-          }
-        });
-      })
+          return res;
+        })
+        .catch(() =>
+          // Offline: serve from cache
+          caches.match(request).then(cached =>
+            cached || (request.mode === 'navigate' ? caches.match('/index.html') : null)
+          )
+        )
     );
     return;
   }
