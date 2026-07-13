@@ -167,11 +167,18 @@
     <!-- ===================== HEADER ===================== -->
     <header class="app-header">
         <div class="header-left">
-            <div class="header-left" onclick="location.reload()" style="cursor:pointer;" title="Reload Bill-Hive" role="button" tabindex="0" onkeydown="if(event.key==='Enter')location.reload()">
-    <svg class="header-brand-icon" viewBox="0 0 48 48" fill="none">
+            <svg class="header-brand-icon" viewBox="0 0 48 48" fill="none">
+                <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+                <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
+                <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+            </svg>
         </div>
         <div class="header-center">
-            <div class="logo-container" id="header-logo-container">
+            <div class="logo-container" id="header-logo-container" onclick="window.location.reload()" style="cursor:pointer;" title="Reload Bill-Hive">
                 <img id="header-logo" src="" alt="Company Logo" style="display:none;">
                 <div class="logo-placeholder" id="header-logo-placeholder">
                     <svg viewBox="0 0 48 48" fill="none">
