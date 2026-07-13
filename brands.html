@@ -3141,41 +3141,80 @@ body.side-left .sidebar-header {
 /* ===== BRAND COLOUR PICKER ===== */
 .brand-color-picker-wrap {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 10px;
-}
-
-.brand-color-input {
-    width: 42px;
-    height: 42px;
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    padding: 2px;
-    background: none;
-    flex-shrink: 0;
 }
 
 .brand-color-swatches {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
+    align-items: center;
 }
 
 .brand-color-swatch {
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    border: 2px solid transparent;
+    border: 3px solid transparent;
     cursor: pointer;
-    transition: transform 0.15s, border-color 0.15s;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
     padding: 0;
+    flex-shrink: 0;
 }
 
-.brand-color-swatch:hover,
+.brand-color-swatch:hover {
+    transform: scale(1.15);
+}
+
 .brand-color-swatch.active {
-    transform: scale(1.2);
     border-color: var(--text-primary);
+    box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--text-primary);
+}
+
+/* Custom colour row — shows the native picker + current hex preview */
+.brand-color-custom-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    background: var(--bg-input);
+}
+
+.brand-color-custom-row:hover {
+    border-color: var(--accent-primary);
+}
+
+.brand-color-preview-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.brand-color-custom-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+.brand-color-hex {
+    font-size: 0.8125rem;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+}
+
+.brand-color-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
 }
 
 /* Brand card colour dot */
@@ -3671,19 +3710,25 @@ body.side-left .sidebar-header {
                             <img id="brand-form-logo-preview" src="" alt="Logo Preview" style="display:none;">
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group full-width">
                         <label>Brand Colour</label>
                         <div class="brand-color-picker-wrap">
-                            <input type="color" id="brand-form-color" value="#228be6" class="brand-color-input">
                             <div class="brand-color-swatches" id="brand-color-swatches">
-                                <button class="brand-color-swatch" style="background:#228be6;" data-color="#228be6" onclick="setBrandColor('#228be6')"></button>
-                                <button class="brand-color-swatch" style="background:#e03131;" data-color="#e03131" onclick="setBrandColor('#e03131')"></button>
-                                <button class="brand-color-swatch" style="background:#2f9e44;" data-color="#2f9e44" onclick="setBrandColor('#2f9e44')"></button>
-                                <button class="brand-color-swatch" style="background:#e67700;" data-color="#e67700" onclick="setBrandColor('#e67700')"></button>
-                                <button class="brand-color-swatch" style="background:#9c36b5;" data-color="#9c36b5" onclick="setBrandColor('#9c36b5')"></button>
-                                <button class="brand-color-swatch" style="background:#1098ad;" data-color="#1098ad" onclick="setBrandColor('#1098ad')"></button>
-                                <button class="brand-color-swatch" style="background:#f06595;" data-color="#f06595" onclick="setBrandColor('#f06595')"></button>
-                                <button class="brand-color-swatch" style="background:#1a1a2e;" data-color="#1a1a2e" onclick="setBrandColor('#1a1a2e')"></button>
+                                <button type="button" class="brand-color-swatch" style="background:#228be6;" data-color="#228be6" onclick="setBrandColor('#228be6')"></button>
+                                <button type="button" class="brand-color-swatch" style="background:#e03131;" data-color="#e03131" onclick="setBrandColor('#e03131')"></button>
+                                <button type="button" class="brand-color-swatch" style="background:#2f9e44;" data-color="#2f9e44" onclick="setBrandColor('#2f9e44')"></button>
+                                <button type="button" class="brand-color-swatch" style="background:#e67700;" data-color="#e67700" onclick="setBrandColor('#e67700')"></button>
+                                <button type="button" class="brand-color-swatch" style="background:#9c36b5;" data-color="#9c36b5" onclick="setBrandColor('#9c36b5')"></button>
+                                <button type="button" class="brand-color-swatch" style="background:#1098ad;" data-color="#1098ad" onclick="setBrandColor('#1098ad')"></button>
+                                <button type="button" class="brand-color-swatch" style="background:#f06595;" data-color="#f06595" onclick="setBrandColor('#f06595')"></button>
+                                <button type="button" class="brand-color-swatch" style="background:#1a1a2e;" data-color="#1a1a2e" onclick="setBrandColor('#1a1a2e')"></button>
+                            </div>
+                            <!-- Custom colour row — tapping opens the native color picker -->
+                            <div class="brand-color-custom-row" onclick="$('#brand-form-color').click()">
+                                <div class="brand-color-preview-dot" id="brand-color-preview-dot" style="background:#228be6;"></div>
+                                <span class="brand-color-custom-label">Custom colour</span>
+                                <span class="brand-color-hex" id="brand-color-hex">#228be6</span>
+                                <input type="color" id="brand-form-color" value="#228be6" class="brand-color-input" oninput="onBrandColorInput(this.value)" onchange="onBrandColorInput(this.value)">
                             </div>
                         </div>
                     </div>
@@ -4230,6 +4275,21 @@ async function saveBrandsStorage() {
 function setBrandColor(hex) {
     const input = $('#brand-form-color');
     if (input) input.value = hex;
+    updateBrandColorUI(hex);
+}
+
+function onBrandColorInput(hex) {
+    // Deselect all swatches when using custom picker
+    $$('#brand-color-swatches .brand-color-swatch').forEach(s => s.classList.remove('active'));
+    updateBrandColorUI(hex);
+}
+
+function updateBrandColorUI(hex) {
+    // Update preview dot and hex label
+    const dot = $('#brand-color-preview-dot');
+    const label = $('#brand-color-hex');
+    if (dot) dot.style.background = hex;
+    if (label) label.textContent = hex;
     updateBrandColorSwatches(hex);
 }
 
@@ -4403,7 +4463,7 @@ function openBrandModal(id = null) {
         $('#brand-form-description').value = b.description || '';
         const color = b.color || '#228be6';
         $('#brand-form-color').value = color;
-        updateBrandColorSwatches(color);
+        updateBrandColorUI(color);
         if (b.logo) {
             brandFormLogoData = b.logo;
             preview.src = b.logo;
@@ -4414,7 +4474,7 @@ function openBrandModal(id = null) {
         $('#brand-form-name').value = '';
         $('#brand-form-description').value = '';
         $('#brand-form-color').value = '#228be6';
-        updateBrandColorSwatches('#228be6');
+        updateBrandColorUI('#228be6');
     }
     $('#brand-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
