@@ -1604,6 +1604,16 @@ a {
     z-index: 1;
 }
 
+#brand-form-logo-preview {
+    position: absolute;
+    inset: 8px;
+    max-width: calc(100% - 16px);
+    max-height: calc(100% - 16px);
+    object-fit: contain;
+    z-index: 1;
+    border-radius: var(--radius-sm);
+}
+
 /* ===================== SETTINGS PAGE ===================== */
 .settings-container {
     display: flex;
@@ -4359,23 +4369,6 @@ function renderBrands() {
 
 // viewBrand kept as alias (called from old brand-view-modal buttons)
 function viewBrand(id) { viewBrandPage(id); }
-    $('#brand-view-title').textContent = b.name;
-    $('#brand-view-logo').innerHTML = b.logo
-        ? `<img src="${b.logo}" alt="${escapeHtml(b.name)}">`
-        : `<div class="brand-card-logo-placeholder">
-             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2 12.01V2h10.01l8.58 8.58a2 2 0 010 2.83z"/>
-                <line x1="7" y1="7" x2="7.01" y2="7"/>
-             </svg>
-           </div>`;
-    $('#brand-view-body').innerHTML = `
-        <div class="view-detail-row"><span class="view-detail-label">Name</span><span class="view-detail-value">${escapeHtml(b.name)}</span></div>
-        <div class="view-detail-row"><span class="view-detail-label">Description</span><span class="view-detail-value">${escapeHtml(b.description) || '—'}</span></div>
-    `;
-    $('#brand-view-modal').dataset.brandId = id;
-    $('#brand-view-modal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
 
 function closeBrandViewModal() {
     $('#brand-view-modal').classList.remove('active');
