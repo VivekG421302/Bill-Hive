@@ -4338,7 +4338,7 @@ async function viewBrandPage(id) {
             : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
         const stock = it.trackStock === false ? '' : it.stock <= 0 ? 'Out of stock' : it.stock <= 5 ? `${it.stock} left` : `${it.stock} in stock`;
         return `
-        <div class="brand-product-card" onclick="closeBrandPage()">
+        <div class="brand-product-card" onclick="openBrandItemPage(${it.id})">
             <div class="brand-product-img">${img}</div>
             <div class="brand-product-info">
                 <div class="brand-product-name">${escapeHtml(it.name)}</div>
@@ -4355,6 +4355,120 @@ async function viewBrandPage(id) {
 function closeBrandPage() {
     $('#brand-page-modal').classList.remove('active');
     document.body.style.overflow = '';
+}
+
+// ===================== BRAND ITEM PRODUCT PAGE =====================
+let brandItemPGIndex = 0;
+let brandItemPGImages = [];
+
+function openBrandItemPage(itemId) {
+    const it = BItems.find(i => i.id === itemId);
+    if (!it) return;
+
+    brandItemPGImages = Array.isArray(it.images) ? it.images.filter(Boolean) : [];
+    brandItemPGIndex = 0;
+
+    $('#brand-item-title').textContent = it.name;
+    $('#brand-item-name').textContent = it.name;
+
+    const brandBadge = $('#brand-item-brand-badge');
+    if (it.brand) { brandBadge.textContent = it.brand; brandBadge.style.display = 'inline-block'; }
+    else { brandBadge.style.display = 'none'; }
+
+    $('#brand-item-price').textContent = formatCurrency(it.price || 0);
+    const costEl = $('#brand-item-cost');
+    costEl.textContent = it.cost ? `Cost: ${formatCurrency(it.cost)}` : '';
+
+    const stockEl = $('#brand-item-stock-badge');
+    if (it.trackStock === false) {
+        stockEl.className = 'product-page-stock-badge in-stock';
+        stockEl.textContent = 'Stock not tracked';
+    } else {
+        const stock = it.stock || 0;
+        if (stock <= 0) { stockEl.className = 'product-page-stock-badge out-stock'; stockEl.textContent = 'Out of Stock'; }
+        else if (stock <= 5) { stockEl.className = 'product-page-stock-badge low-stock'; stockEl.textContent = `Low Stock — ${stock} left`; }
+        else { stockEl.className = 'product-page-stock-badge in-stock'; stockEl.textContent = `In Stock — ${stock} units`; }
+    }
+
+    const specs = [
+        it.sku        ? ['SKU',          it.sku]        : null,
+        it.ean        ? ['Barcode / EAN', it.ean]        : null,
+        it.itemNumber ? ['Item Number',   it.itemNumber] : null,
+        ['Discount', `${it.discount || 0}%`],
+        ['Tax',      `${it.tax || 0}%`],
+    ].filter(Boolean);
+
+    $('#brand-item-specs').innerHTML = specs.map(([label, val]) => `
+        <div class="product-page-spec-row">
+            <span class="product-page-spec-label">${escapeHtml(label)}</span>
+            <span class="product-page-spec-value">${escapeHtml(String(val))}</span>
+        </div>`).join('');
+
+    brandItemRenderGallery();
+    $('#brand-item-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Touch swipe
+    const gallery = $('#brand-item-gallery');
+    gallery.addEventListener('touchstart', e => { brandItemPGTouchX = e.touches[0].clientX; }, { passive: true });
+    gallery.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - brandItemPGTouchX;
+        if (Math.abs(dx) > 40) brandItemMove(dx < 0 ? 1 : -1);
+    });
+}
+
+let brandItemPGTouchX = 0;
+
+function brandItemRenderGallery() {
+    const track = $('#brand-item-track');
+    const dots = $('#brand-item-dots');
+    const counter = $('#brand-item-counter');
+    const prev = $('#brand-item-prev');
+    const next = $('#brand-item-next');
+    const n = brandItemPGImages.length;
+
+    if (n === 0) {
+        track.innerHTML = `<div class="product-page-gallery-empty" style="flex:0 0 100%;width:100%;display:flex;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span style="font-size:0.875rem;">No images</span></div>`;
+        dots.innerHTML = ''; counter.style.display = 'none';
+        prev.style.display = 'none'; next.style.display = 'none';
+        return;
+    }
+    track.innerHTML = brandItemPGImages.map(src => `<img src="${src}" alt="product">`).join('');
+    dots.innerHTML = brandItemPGImages.map((_, i) =>
+        `<button class="product-page-dot ${i === 0 ? 'active' : ''}" onclick="brandItemGoTo(${i})"></button>`).join('');
+    prev.style.display = n > 1 ? '' : 'none';
+    next.style.display = n > 1 ? '' : 'none';
+    counter.style.display = n > 1 ? '' : 'none';
+    brandItemUpdatePos(false);
+}
+
+function brandItemUpdatePos(animated = true) {
+    const track = $('#brand-item-track');
+    const counter = $('#brand-item-counter');
+    const n = brandItemPGImages.length;
+    track.style.transition = animated ? 'transform 0.32s cubic-bezier(0.4,0,0.2,1)' : 'none';
+    track.style.transform = `translateX(${-brandItemPGIndex * 100}%)`;
+    if (n > 1) counter.textContent = `${brandItemPGIndex + 1} / ${n}`;
+    $$('#brand-item-dots .product-page-dot').forEach((d, i) => d.classList.toggle('active', i === brandItemPGIndex));
+    $('#brand-item-prev').disabled = brandItemPGIndex === 0;
+    $('#brand-item-next').disabled = brandItemPGIndex === n - 1;
+}
+
+function brandItemMove(dir) {
+    brandItemPGIndex = Math.max(0, Math.min(brandItemPGImages.length - 1, brandItemPGIndex + dir));
+    brandItemUpdatePos(true);
+}
+
+function brandItemGoTo(idx) {
+    brandItemPGIndex = idx;
+    brandItemUpdatePos(true);
+}
+
+function closeBrandItemPage() {
+    $('#brand-item-modal').classList.remove('active');
+    document.body.style.overflow = 'hidden'; // keep brand page scroll locked
 }
 
 function editBrandFromPage() {
@@ -4553,7 +4667,43 @@ document.addEventListener('DOMContentLoaded', loadBrands);
         </svg>
         <p>Click or press any key to continue</p>
     </div>
-    <!-- ===================== BRAND PAGE MODAL (ecom-style, v4.04.2) ===================== -->
+    <!-- ===================== BRAND ITEM PRODUCT PAGE ===================== -->
+    <div id="brand-item-modal" class="modal" style="z-index:1200;">
+        <div class="modal-overlay" onclick="closeBrandItemPage()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="brand-item-title" style="font-size:0.95rem;font-weight:700;max-width:calc(100% - 48px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></h3>
+                <button class="modal-close" onclick="closeBrandItemPage()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding:0 16px 20px;">
+                <div class="product-page-gallery" id="brand-item-gallery">
+                    <div class="product-page-gallery-track" id="brand-item-track"></div>
+                    <button class="product-page-arrow prev" id="brand-item-prev" onclick="brandItemMove(-1)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <button class="product-page-arrow next" id="brand-item-next" onclick="brandItemMove(1)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                    <div class="product-page-img-counter" id="brand-item-counter" style="display:none;"></div>
+                </div>
+                <div class="product-page-dots" id="brand-item-dots"></div>
+                <div class="product-page-info">
+                    <div class="product-page-name" id="brand-item-name"></div>
+                    <div id="brand-item-brand-badge" class="product-page-brand-badge" style="display:none;"></div>
+                    <div class="product-page-price-row">
+                        <div class="product-page-price" id="brand-item-price"></div>
+                        <div class="product-page-cost" id="brand-item-cost"></div>
+                    </div>
+                    <div id="brand-item-stock-badge" class="product-page-stock-badge"></div>
+                    <div class="product-page-specs" id="brand-item-specs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
     <div id="brand-page-modal" class="modal brand-page-modal">
         <div class="modal-overlay" onclick="closeBrandPage()"></div>
         <div class="modal-content brand-page-content">

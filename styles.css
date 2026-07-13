@@ -3480,3 +3480,131 @@ body.side-left .sidebar-header {
     border-radius: 10px;
     white-space: nowrap;
 }
+
+/* ===================== RESPONSIVENESS FIXES (v4.04.9) ===================== */
+
+/* 1. view-detail-value: long text (SKU, EAN, invoice numbers) overflows on
+      narrow screens — break words and left-align on very small viewports */
+.view-detail-value {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 60%;
+}
+
+@media (max-width: 380px) {
+    .view-detail-row {
+        flex-direction: column;
+        gap: 2px;
+    }
+    .view-detail-value {
+        max-width: 100%;
+        text-align: left;
+    }
+}
+
+/* 2. product-page-spec-label fixed width breaks on sub-360px screens */
+@media (max-width: 360px) {
+    .product-page-spec-label {
+        width: 90px;
+    }
+    .product-page-spec-row {
+        font-size: 0.8rem;
+    }
+}
+
+/* 3. product-page-name too large on very small screens */
+@media (max-width: 380px) {
+    .product-page-name {
+        font-size: 1rem;
+    }
+    .product-page-price {
+        font-size: 1.3rem;
+    }
+}
+
+/* 4. io-category-row: tighter on small screens to avoid overflow */
+@media (max-width: 400px) {
+    .io-category-row {
+        padding: 9px 10px;
+        gap: 8px;
+    }
+    .io-category-icon {
+        width: 26px;
+        height: 26px;
+    }
+    .io-category-count {
+        display: none; /* hide count badge on very small screens */
+    }
+}
+
+/* 5. Modal: full-screen on phones under 400px so content isn't squished */
+@media (max-width: 400px) {
+    .modal {
+        padding: 0;
+        align-items: flex-end;
+    }
+    .modal-content {
+        max-width: 100%;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        max-height: 92vh;
+    }
+}
+
+/* 6. bills-filter-bar date inputs: go full-width on mobile */
+@media (max-width: 480px) {
+    .bills-filter-bar .filter-date-range {
+        width: 100%;
+    }
+    .bills-filter-bar .filter-date-range input[type="date"] {
+        flex: 1;
+    }
+}
+
+/* 7. data-table cell-actions: tighter padding on mobile so action icons
+      don't push rows too tall */
+@media (max-width: 480px) {
+    .data-table .cell-actions {
+        padding: 6px 8px;
+    }
+    .icon-btn {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+/* 8. toolbar search box: min-width was 220px which forced toolbar to
+      overflow on screens under 260px (very narrow) */
+@media (max-width: 320px) {
+    .search-box {
+        min-width: 0;
+    }
+}
+
+/* 9. Brand page products grid: single column on very small screens */
+@media (max-width: 320px) {
+    .brand-page-products {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 10. stat-value font-size too large on narrow screens */
+@media (max-width: 360px) {
+    .stat-value {
+        font-size: 1.1rem;
+    }
+}
+
+/* 11. line-item-fields grid: single column on very small screens */
+@media (max-width: 360px) {
+    .line-item-fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 12. Product page gallery: reduce height on very short screens (landscape) */
+@media (max-height: 500px) {
+    .product-page-gallery {
+        aspect-ratio: 16/9;
+    }
+}
+
