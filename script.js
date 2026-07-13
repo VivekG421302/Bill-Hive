@@ -519,15 +519,15 @@ function showConfirm(message, title = 'Confirm') {
         document.body.style.overflow = 'hidden';
 
         const yesBtn = $('#confirm-yes-btn');
-        // Remove any previous listener before adding a fresh one
-        yesBtn.onclick = () => { closeConfirmModal(); resolve(true); };
+        // Null out _confirmResolve FIRST so closeConfirmModal doesn't fire false
+        yesBtn.onclick = () => { _confirmResolve = null; closeConfirmModal(); resolve(true); };
     });
 }
 
 function closeConfirmModal() {
     $('#confirm-modal').classList.remove('active');
     document.body.style.overflow = '';
-    if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+    if (_confirmResolve) { const r = _confirmResolve; _confirmResolve = null; r(false); }
 }
 
 // ===================== SIDEBAR =====================
@@ -3214,8 +3214,7 @@ function openImportModal() {
     importBundleData = null;
     $('#import-step-pick').style.display = '';
     $('#import-step-choose').style.display = 'none';
-    const fileInput = $('#import-file-input');
-    if (fileInput) fileInput.value = '';
+    ioResetFileInput();
     $('#import-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -3230,8 +3229,20 @@ function importResetFile() {
     importBundleData = null;
     $('#import-step-pick').style.display = '';
     $('#import-step-choose').style.display = 'none';
-    const fileInput = $('#import-file-input');
-    if (fileInput) fileInput.value = '';
+    ioResetFileInput();
+}
+
+// Recreate the file <input> so the same file triggers onchange again
+function ioResetFileInput() {
+    const old = $('#import-file-input');
+    if (!old) return;
+    const newInput = document.createElement('input');
+    newInput.type = 'file';
+    newInput.accept = 'application/json';
+    newInput.id = 'import-file-input';
+    newInput.style.display = 'none';
+    newInput.onchange = importFileChosen;
+    old.parentNode.replaceChild(newInput, old);
 }
 
 function importFileChosen(event) {

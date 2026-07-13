@@ -3128,6 +3128,262 @@ body.side-left .sidebar-header {
     }
 }
 
+/* ===== BRAND COLOUR PICKER ===== */
+.brand-color-picker-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-color-input {
+    width: 42px;
+    height: 42px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    padding: 2px;
+    background: none;
+    flex-shrink: 0;
+}
+
+.brand-color-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.brand-color-swatch {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    padding: 0;
+}
+
+.brand-color-swatch:hover,
+.brand-color-swatch.active {
+    transform: scale(1.2);
+    border-color: var(--text-primary);
+}
+
+/* Brand card colour dot */
+.brand-card-color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-block;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+/* ===== BRAND PAGE (ecom-style) ===== */
+.brand-page-modal {
+    z-index: 1100;
+    padding: 0;
+    align-items: flex-end;
+}
+
+@media (min-width: 640px) {
+    .brand-page-modal { align-items: center; padding: 16px; }
+}
+
+.brand-page-content {
+    max-width: 640px;
+    max-height: 95vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 640px) {
+    .brand-page-content { border-radius: var(--radius-lg); }
+}
+
+.brand-page-hero {
+    position: relative;
+    padding: 28px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    flex-shrink: 0;
+    /* colour set inline via JS */
+}
+
+.brand-page-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #fff;
+}
+
+.brand-page-close svg { width: 16px; height: 16px; stroke: #fff; }
+
+.brand-page-hero-logo {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.brand-page-hero-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.brand-page-hero-logo svg { width: 36px; height: 36px; stroke: rgba(255,255,255,0.7); }
+
+.brand-page-name {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+.brand-page-desc {
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.8);
+    max-width: 340px;
+}
+
+.brand-page-hero-actions {
+    margin-top: 4px;
+}
+
+.brand-page-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.2);
+    border: 1.5px solid rgba(255,255,255,0.4);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.brand-page-action-btn:hover { background: rgba(255,255,255,0.32); }
+.brand-page-action-btn svg { width: 14px; height: 14px; stroke: #fff; }
+
+.brand-page-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: var(--bg-primary);
+}
+
+.brand-page-section-title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+}
+
+.brand-page-products {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 480px) {
+    .brand-page-products { grid-template-columns: repeat(3, 1fr); }
+}
+
+.brand-product-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.brand-product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.brand-product-img {
+    width: 100%;
+    aspect-ratio: 1;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.brand-product-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.brand-product-img svg {
+    width: 32px;
+    height: 32px;
+    opacity: 0.25;
+}
+
+.brand-product-info {
+    padding: 8px 10px 10px;
+}
+
+.brand-product-name {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.brand-product-price {
+    font-size: 0.875rem;
+    font-weight: 800;
+    margin-top: 3px;
+    /* brand colour applied inline */
+}
+
+.brand-product-stock {
+    font-size: 0.725rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.brand-page-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    grid-column: 1 / -1;
+}
+
 </style>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -3403,6 +3659,22 @@ body.side-left .sidebar-header {
                                 <small>4:1 ratio recommended &middot; PNG, JPG, SVG &middot; max 2MB</small>
                             </div>
                             <img id="brand-form-logo-preview" src="" alt="Logo Preview" style="display:none;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Brand Colour</label>
+                        <div class="brand-color-picker-wrap">
+                            <input type="color" id="brand-form-color" value="#228be6" class="brand-color-input">
+                            <div class="brand-color-swatches" id="brand-color-swatches">
+                                <button class="brand-color-swatch" style="background:#228be6;" data-color="#228be6" onclick="setBrandColor('#228be6')"></button>
+                                <button class="brand-color-swatch" style="background:#e03131;" data-color="#e03131" onclick="setBrandColor('#e03131')"></button>
+                                <button class="brand-color-swatch" style="background:#2f9e44;" data-color="#2f9e44" onclick="setBrandColor('#2f9e44')"></button>
+                                <button class="brand-color-swatch" style="background:#e67700;" data-color="#e67700" onclick="setBrandColor('#e67700')"></button>
+                                <button class="brand-color-swatch" style="background:#9c36b5;" data-color="#9c36b5" onclick="setBrandColor('#9c36b5')"></button>
+                                <button class="brand-color-swatch" style="background:#1098ad;" data-color="#1098ad" onclick="setBrandColor('#1098ad')"></button>
+                                <button class="brand-color-swatch" style="background:#f06595;" data-color="#f06595" onclick="setBrandColor('#f06595')"></button>
+                                <button class="brand-color-swatch" style="background:#1a1a2e;" data-color="#1a1a2e" onclick="setBrandColor('#1a1a2e')"></button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3945,6 +4217,91 @@ async function saveBrandsStorage() {
     await dbSet('brands', Brands);
 }
 
+function setBrandColor(hex) {
+    const input = $('#brand-form-color');
+    if (input) input.value = hex;
+    updateBrandColorSwatches(hex);
+}
+
+function updateBrandColorSwatches(hex) {
+    $$('#brand-color-swatches .brand-color-swatch').forEach(s => {
+        s.classList.toggle('active', s.dataset.color === hex);
+    });
+}
+
+// ===================== BRAND PAGE (ecom-style) =====================
+let BItems = []; // loaded once for brand page product cards
+
+async function ensureBItems() {
+    if (BItems.length === 0) {
+        BItems = (await dbGet('items')) || [];
+    }
+}
+
+async function viewBrandPage(id) {
+    const b = Brands.find(x => x.id === id);
+    if (!b) return;
+    await ensureBItems();
+
+    const color = b.color || '#228be6';
+    const hero = $('#brand-page-hero');
+    hero.style.background = `linear-gradient(135deg, ${color} 0%, ${colorDarken(color, 20)} 100%)`;
+
+    // Logo
+    $('#brand-page-logo').innerHTML = b.logo
+        ? `<img src="${b.logo}" alt="${escapeHtml(b.name)}">`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2 12.01V2h10.01l8.58 8.58a2 2 0 010 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`;
+
+    $('#brand-page-name').textContent = b.name;
+    $('#brand-page-desc').textContent = b.description || '';
+    $('#brand-page-modal').dataset.brandId = id;
+
+    // Products belonging to this brand
+    const products = BItems.filter(it => (it.brand || '').toLowerCase() === b.name.toLowerCase());
+    $('#brand-page-product-count').textContent = products.length
+        ? `${products.length} Product${products.length !== 1 ? 's' : ''}`
+        : '';
+
+    $('#brand-page-products').innerHTML = products.length ? products.map(it => {
+        const img = Array.isArray(it.images) && it.images[0]
+            ? `<img src="${it.images[0]}" alt="${escapeHtml(it.name)}">`
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+        const stock = it.trackStock === false ? '' : it.stock <= 0 ? 'Out of stock' : it.stock <= 5 ? `${it.stock} left` : `${it.stock} in stock`;
+        return `
+        <div class="brand-product-card" onclick="closeBrandPage()">
+            <div class="brand-product-img">${img}</div>
+            <div class="brand-product-info">
+                <div class="brand-product-name">${escapeHtml(it.name)}</div>
+                <div class="brand-product-price" style="color:${color};">${formatCurrency(it.price || 0)}</div>
+                ${stock ? `<div class="brand-product-stock">${stock}</div>` : ''}
+            </div>
+        </div>`;
+    }).join('') : `<div class="brand-page-empty">No products linked to ${escapeHtml(b.name)} yet.<br><small>Set the Brand field on items to link them here.</small></div>`;
+
+    $('#brand-page-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeBrandPage() {
+    $('#brand-page-modal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function editBrandFromPage() {
+    const id = parseInt($('#brand-page-modal').dataset.brandId, 10);
+    closeBrandPage();
+    openBrandModal(id);
+}
+
+// Darken a hex colour by `amount` (0–255)
+function colorDarken(hex, amount) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.max(0, (num >> 16) - amount);
+    const g = Math.max(0, ((num >> 8) & 0xff) - amount);
+    const bv = Math.max(0, (num & 0xff) - amount);
+    return `#${[r, g, bv].map(v => v.toString(16).padStart(2, '0')).join('')}`;
+}
+
 function renderBrands() {
     const grid = $('#brand-grid');
     const empty = $('#brands-empty');
@@ -3956,12 +4313,14 @@ function renderBrands() {
     empty.style.display = Brands.length === 0 ? 'flex' : 'none';
     grid.style.display = Brands.length === 0 ? 'none' : 'grid';
 
-    grid.innerHTML = filtered.map(b => `
-        <div class="brand-card" data-brand-id="${b.id}">
+    grid.innerHTML = filtered.map(b => {
+        const color = b.color || '#228be6';
+        return `
+        <div class="brand-card" data-brand-id="${b.id}" style="border-top: 3px solid ${color};">
             <div class="brand-card-logo">
                 ${b.logo
                     ? `<img src="${b.logo}" alt="${escapeHtml(b.name)}">`
-                    : `<div class="brand-card-logo-placeholder">
+                    : `<div class="brand-card-logo-placeholder" style="color:${color};">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M20.59 13.41L13.42 20.58a2 2 0 01-2.83 0L2 12.01V2h10.01l8.58 8.58a2 2 0 010 2.83z"/>
                             <line x1="7" y1="7" x2="7.01" y2="7"/>
@@ -3970,7 +4329,10 @@ function renderBrands() {
                 }
             </div>
             <div class="brand-card-body">
-                <div class="brand-card-name">${escapeHtml(b.name)}</div>
+                <div class="brand-card-name">
+                    ${escapeHtml(b.name)}
+                    <span class="brand-card-color-dot" style="background:${color};"></span>
+                </div>
                 ${b.description ? `<div class="brand-card-desc">${escapeHtml(b.description)}</div>` : ''}
             </div>
             <div class="brand-card-actions">
@@ -3981,26 +4343,22 @@ function renderBrands() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                 </button>
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 
     if (Brands.length > 0 && filtered.length === 0) {
         grid.innerHTML = `<div class="placeholder-content" style="grid-column:1/-1;"><p>No brands match your search.</p></div>`;
     }
 
-    // v4.02.0 Part 1 — clicking anywhere on a brand card (outside its
-    // action icons) opens the read-only Brand View, per the row-click
-    // pattern documented in CONTEXT.md.
+    // Row-click opens the ecom-style brand page
     grid.querySelectorAll('.brand-card').forEach(card => {
         const id = parseInt(card.dataset.brandId, 10);
-        makeRowClickable(card, () => viewBrand(id));
+        makeRowClickable(card, () => viewBrandPage(id));
     });
 }
 
-// ===================== BRAND VIEW (v4.02.0 Part 1 — reference pattern) =====================
-function viewBrand(id) {
-    const b = Brands.find(x => x.id === id);
-    if (!b) return;
+// viewBrand kept as alias (called from old brand-view-modal buttons)
+function viewBrand(id) { viewBrandPage(id); }
     $('#brand-view-title').textContent = b.name;
     $('#brand-view-logo').innerHTML = b.logo
         ? `<img src="${b.logo}" alt="${escapeHtml(b.name)}">`
@@ -4050,6 +4408,9 @@ function openBrandModal(id = null) {
         title.textContent = 'Edit Brand';
         $('#brand-form-name').value = b.name || '';
         $('#brand-form-description').value = b.description || '';
+        const color = b.color || '#228be6';
+        $('#brand-form-color').value = color;
+        updateBrandColorSwatches(color);
         if (b.logo) {
             brandFormLogoData = b.logo;
             preview.src = b.logo;
@@ -4059,6 +4420,8 @@ function openBrandModal(id = null) {
         title.textContent = 'Add Brand';
         $('#brand-form-name').value = '';
         $('#brand-form-description').value = '';
+        $('#brand-form-color').value = '#228be6';
+        updateBrandColorSwatches('#228be6');
     }
     $('#brand-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -4094,17 +4457,19 @@ async function saveBrandForm() {
         return;
     }
     const description = $('#brand-form-description').value.trim();
+    const color = $('#brand-form-color')?.value || '#228be6';
 
     if (editingBrandId) {
         const b = Brands.find(x => x.id === editingBrandId);
         if (b) {
             b.name = name;
             b.description = description;
+            b.color = color;
             if (brandFormLogoData) b.logo = brandFormLogoData;
         }
     } else {
         brandIdCounter++;
-        Brands.push({ id: brandIdCounter, name, description, logo: brandFormLogoData || '' });
+        Brands.push({ id: brandIdCounter, name, description, color, logo: brandFormLogoData || '' });
     }
 
     await saveBrandsStorage();
@@ -4135,5 +4500,34 @@ document.addEventListener('DOMContentLoaded', loadBrands);
         </svg>
         <p>Click or press any key to continue</p>
     </div>
+    <!-- ===================== BRAND PAGE MODAL (ecom-style, v4.04.2) ===================== -->
+    <div id="brand-page-modal" class="modal brand-page-modal">
+        <div class="modal-overlay" onclick="closeBrandPage()"></div>
+        <div class="modal-content brand-page-content">
+            <!-- Hero header with brand colour -->
+            <div class="brand-page-hero" id="brand-page-hero">
+                <button class="modal-close brand-page-close" onclick="closeBrandPage()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <div class="brand-page-hero-logo" id="brand-page-logo"></div>
+                <div class="brand-page-hero-info">
+                    <div class="brand-page-name" id="brand-page-name"></div>
+                    <div class="brand-page-desc" id="brand-page-desc"></div>
+                </div>
+                <div class="brand-page-hero-actions">
+                    <button class="brand-page-action-btn" onclick="editBrandFromPage()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                        Edit
+                    </button>
+                </div>
+            </div>
+            <!-- Products grid -->
+            <div class="brand-page-body">
+                <div class="brand-page-section-title" id="brand-page-product-count"></div>
+                <div class="brand-page-products" id="brand-page-products"></div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

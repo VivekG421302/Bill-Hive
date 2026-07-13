@@ -3861,7 +3861,7 @@ function showConfirm(message, title = 'Confirm') {
         if (msgEl)   msgEl.textContent   = message;
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        yesBtn.onclick = () => { closeConfirmModal(); resolve(true); };
+        yesBtn.onclick = () => { _confirmResolve = null; closeConfirmModal(); resolve(true); };
     });
 }
 
@@ -3869,7 +3869,7 @@ function closeConfirmModal() {
     const modal = document.getElementById('confirm-modal');
     if (modal) modal.classList.remove('active');
     document.body.style.overflow = '';
-    if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+    if (_confirmResolve) { const r = _confirmResolve; _confirmResolve = null; r(false); }
 }
 
 // ===================== SHARED CHROME INIT =====================
