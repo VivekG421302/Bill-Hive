@@ -411,7 +411,13 @@ const AppState = {
         currencySymbol: '₹',
         print: {
             fontWeight: 'bold',
-            paperSize: '80mm'
+            paperSize: '80mm',
+            fontSize: 12,
+            margins: 'normal',
+            show: {
+                logo: true, gst: true, address: true, contact: true,
+                discount: true, tax: true, thankyou: true, terms: true
+            }
         },
         sidebarSide: 'right',       // v4.02.0 Part 1 — 'left' or 'right'
         accentColor: '',            // v4.02.0 Part 1 — empty = default theme accent
@@ -848,25 +854,65 @@ const PRINT_WEIGHT_MAP = {
 };
 const PRINT_SIZE_MAP = {
     '58mm': { maxWidth: 220, baseFont: 10 },
-    '80mm': { maxWidth: 300, baseFont: 12 }
+    '80mm': { maxWidth: 300, baseFont: 12 },
+    'a4':   { maxWidth: 680, baseFont: 13 }
+};
+
+const PRINT_MARGIN_MAP = {
+    none:   '0',
+    narrow: '4mm',
+    normal: '8mm',
+    wide:   '16mm'
 };
 
 function getPrintConfig(overrides = {}) {
     const saved = AppState.settings.print || {};
     const fontWeightKey = overrides.fontWeight || saved.fontWeight || 'bold';
     const paperSizeKey = overrides.paperSize || saved.paperSize || '80mm';
+    const fontSizeVal = overrides.fontSize !== undefined ? overrides.fontSize : (saved.fontSize !== undefined ? saved.fontSize : null);
+    const marginsKey = overrides.margins || saved.margins || 'normal';
+    const sizeConfig = PRINT_SIZE_MAP[paperSizeKey] || PRINT_SIZE_MAP['80mm'];
     return {
         weights: PRINT_WEIGHT_MAP[fontWeightKey] || PRINT_WEIGHT_MAP.bold,
-        size: PRINT_SIZE_MAP[paperSizeKey] || PRINT_SIZE_MAP['80mm']
+        size: {
+            ...sizeConfig,
+            // Override baseFont only if explicitly set
+            baseFont: (fontSizeVal !== null && fontSizeVal !== undefined) ? parseInt(fontSizeVal, 10) : sizeConfig.baseFont
+        },
+        margins: PRINT_MARGIN_MAP[marginsKey] || PRINT_MARGIN_MAP.normal,
+        show: {
+            logo:     overrides.showLogo     !== undefined ? overrides.showLogo     : (saved.show?.logo     !== false),
+            gst:      overrides.showGst      !== undefined ? overrides.showGst      : (saved.show?.gst      !== false),
+            address:  overrides.showAddress  !== undefined ? overrides.showAddress  : (saved.show?.address  !== false),
+            contact:  overrides.showContact  !== undefined ? overrides.showContact  : (saved.show?.contact  !== false),
+            discount: overrides.showDiscount !== undefined ? overrides.showDiscount : (saved.show?.discount !== false),
+            tax:      overrides.showTax      !== undefined ? overrides.showTax      : (saved.show?.tax      !== false),
+            thankyou: overrides.showThankyou !== undefined ? overrides.showThankyou : (saved.show?.thankyou !== false),
+            terms:    overrides.showTerms    !== undefined ? overrides.showTerms    : (saved.show?.terms    !== false)
+        }
     };
 }
 
-// Reads the (possibly unsaved) Print Setup selects on the Settings page,
+// Reads the (possibly unsaved) Print Setup controls on the Settings page,
 // so Preview/Print Dummy Bill always reflects what's currently selected.
 function getPrintSetupOverrides() {
     const fontWeight = $('#print-font-weight')?.value;
     const paperSize = $('#print-paper-size')?.value;
-    return { fontWeight, paperSize };
+    const fontSize = $('#print-font-size')?.value;
+    const margins = $('#print-margins')?.value;
+    return {
+        fontWeight, paperSize,
+        fontSize: fontSize ? parseInt(fontSize, 10) : undefined,
+        margins,
+        showLogo:     $('#print-show-logo')?.checked,
+        showGst:      $('#print-show-gst')?.checked,
+        showAddress:  $('#print-show-address')?.checked,
+        showContact:  $('#print-show-contact')?.checked,
+        showDiscount: $('#print-show-discount')?.checked,
+        showTax:      $('#print-show-tax')?.checked,
+        showThankyou: $('#print-show-thankyou')?.checked,
+        showTerms:    $('#print-show-terms')?.checked
+    };
 }
 
 function getDummyBillData() {
@@ -935,10 +981,16 @@ function generatePOSBillHTML(billData, forPrint = false, printConfigOverride = n
     const dateStr = formatDate(billData.invoiceDate || now);
     const timeStr = formatTime(now);
 
+    const show = printCfg.show || {};
+
     let logoHtml = '';
-    if (company.logo) {
+    if (company.logo && show.logo !== false) {
         logoHtml = `<img src="${company.logo}" class="pos-logo" alt="Logo" style="filter:grayscale(100%) contrast(1.15);">`;
     }
+
+    // Build items table columns based on show settings
+    const showDisc = show.discount !== false;
+    const showTax  = show.tax     !== false;
 
     let itemsHtml = billData.lineItems.map((item, idx) => {
         const discStr = item.discount > 0 ? `${item.discount}%` : '-';
@@ -949,24 +1001,25 @@ function generatePOSBillHTML(billData, forPrint = false, printConfigOverride = n
                 <td>${escapeHtml(item.name) || 'Item'}</td>
                 <td class="pos-td-center">${item.qty}</td>
                 <td class="pos-td-right">${symbol}${item.price.toFixed(2)}</td>
-                <td class="pos-td-center">${discStr}</td>
-                <td class="pos-td-center">${taxStr}</td>
+                ${showDisc ? `<td class="pos-td-center">${discStr}</td>` : ''}
+                ${showTax  ? `<td class="pos-td-center">${taxStr}</td>`  : ''}
                 <td class="pos-td-right">${symbol}${item.total.toFixed(2)}</td>
             </tr>
         `;
     }).join('');
 
     const totalQty = billData.lineItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
+    const marginVal = printCfg.margins || '8mm';
 
     return `
-        <div class="pos-bill" id="${forPrint ? 'print-bill' : ''}" style="--pw-base:${printCfg.weights.base};--pw-strong:${printCfg.weights.strong};--pw-size:${printCfg.size.baseFont}px;max-width:${printCfg.size.maxWidth}px;">
+        <div class="pos-bill" id="${forPrint ? 'print-bill' : ''}" style="--pw-base:${printCfg.weights.base};--pw-strong:${printCfg.weights.strong};--pw-size:${printCfg.size.baseFont}px;max-width:${printCfg.size.maxWidth}px;padding:${marginVal};">
             <div class="pos-header">
                 ${logoHtml}
                 <div class="pos-company-name">${escapeHtml(company.name) || 'Your Company'}</div>
-                ${company.gst ? `<div class="pos-gst">GSTIN: ${escapeHtml(company.gst)}</div>` : ''}
-                ${company.address ? `<div class="pos-address">${escapeHtml(company.address).replace(/\n/g, '<br>')}</div>` : ''}
-                ${company.phone ? `<div class="pos-contact">Ph: ${escapeHtml(company.phone)}</div>` : ''}
-                ${company.email ? `<div class="pos-contact">${escapeHtml(company.email)}</div>` : ''}
+                ${(company.gst && show.gst !== false) ? `<div class="pos-gst">GSTIN: ${escapeHtml(company.gst)}</div>` : ''}
+                ${(company.address && show.address !== false) ? `<div class="pos-address">${escapeHtml(company.address).replace(/\n/g, '<br>')}</div>` : ''}
+                ${(company.phone && show.contact !== false) ? `<div class="pos-contact">Ph: ${escapeHtml(company.phone)}</div>` : ''}
+                ${(company.email && show.contact !== false) ? `<div class="pos-contact">${escapeHtml(company.email)}</div>` : ''}
             </div>
 
             <hr class="pos-divider">
@@ -993,8 +1046,8 @@ function generatePOSBillHTML(billData, forPrint = false, printConfigOverride = n
                         <th>Item</th>
                         <th class="pos-td-center">Qty</th>
                         <th class="pos-td-right">Rate</th>
-                        <th class="pos-td-center">Disc</th>
-                        <th class="pos-td-center">Tax</th>
+                        ${showDisc ? '<th class="pos-td-center">Disc</th>' : ''}
+                        ${showTax  ? '<th class="pos-td-center">Tax</th>'  : ''}
                         <th class="pos-td-right">Amt</th>
                     </tr>
                 </thead>
@@ -1012,14 +1065,8 @@ function generatePOSBillHTML(billData, forPrint = false, printConfigOverride = n
                     <span>Bill Amount</span>
                     <span>${symbol}${billData.billAmount.toFixed(2)}</span>
                 </div>
-                <div class="pos-total-row">
-                    <span>Item Discount</span>
-                    <span>${symbol}${billData.discountAmount.toFixed(2)}</span>
-                </div>
-                <div class="pos-total-row">
-                    <span>GST/Tax</span>
-                    <span>${symbol}${billData.taxAmount.toFixed(2)}</span>
-                </div>
+                ${showDisc ? `<div class="pos-total-row"><span>Item Discount</span><span>${symbol}${billData.discountAmount.toFixed(2)}</span></div>` : ''}
+                ${showTax  ? `<div class="pos-total-row"><span>GST/Tax</span><span>${symbol}${billData.taxAmount.toFixed(2)}</span></div>` : ''}
                 <div class="pos-total-row grand">
                     <span>Net Amount</span>
                     <span>${symbol}${billData.grandTotal.toFixed(2)}</span>
@@ -1034,9 +1081,9 @@ function generatePOSBillHTML(billData, forPrint = false, printConfigOverride = n
 
             <hr class="pos-divider">
 
-            <div class="pos-thankyou">${escapeHtml(thankYouMsg)}</div>
+            ${show.thankyou !== false ? `<div class="pos-thankyou">${escapeHtml(thankYouMsg)}</div>` : ''}
 
-            ${settings.termsConditions ? `<div class="pos-terms">${escapeHtml(settings.termsConditions).replace(/\n/g, '<br>')}</div>` : ''}
+            ${(settings.termsConditions && show.terms !== false) ? `<div class="pos-terms">${escapeHtml(settings.termsConditions).replace(/\n/g, '<br>')}</div>` : ''}
 
             <div style="text-align:center;font-size:9px;font-weight:700;margin-top:6px;color:#444;">
                 Powered by Bill-Hive
@@ -1135,7 +1182,9 @@ async function saveAndPrint() {
 
 function printBill(billData, printConfigOverride = null) {
     const printWindow = window.open('', '_blank');
-    const posHtml = generatePOSBillHTML(billData, true, printConfigOverride);
+    const resolvedCfg = printConfigOverride || getPrintConfig();
+    const posHtml = generatePOSBillHTML(billData, true, resolvedCfg);
+    const pageMargin = resolvedCfg.margins || '8mm';
 
     printWindow.document.write(`
         <!DOCTYPE html>
@@ -1145,6 +1194,7 @@ function printBill(billData, printConfigOverride = null) {
             <title>Bill ${billData.invoiceNo}</title>
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; }
+                @page { margin: ${pageMargin}; }
                 body { 
                     font-family: 'Courier New', 'Consolas', monospace; 
                     font-weight: var(--pw-base, 700);
@@ -1407,10 +1457,22 @@ async function saveSettings() {
     // Currency
     AppState.settings.currencySymbol = $('#currency-symbol').value || '₹';
 
-    // Print setup
+    // Print setup (extended)
     AppState.settings.print = {
         fontWeight: $('#print-font-weight')?.value || 'bold',
-        paperSize: $('#print-paper-size')?.value || '80mm'
+        paperSize: $('#print-paper-size')?.value || '80mm',
+        fontSize: parseInt($('#print-font-size')?.value || '12', 10),
+        margins: $('#print-margins')?.value || 'normal',
+        show: {
+            logo:     !!$('#print-show-logo')?.checked,
+            gst:      !!$('#print-show-gst')?.checked,
+            address:  !!$('#print-show-address')?.checked,
+            contact:  !!$('#print-show-contact')?.checked,
+            discount: !!$('#print-show-discount')?.checked,
+            tax:      !!$('#print-show-tax')?.checked,
+            thankyou: !!$('#print-show-thankyou')?.checked,
+            terms:    !!$('#print-show-terms')?.checked
+        }
     };
 
     // v4.02.0 Part 1 — Menu position, accent color, screen saver
@@ -1459,6 +1521,21 @@ async function loadSettings() {
             const printCfg = data.print || {};
             if ($('#print-font-weight')) $('#print-font-weight').value = printCfg.fontWeight || 'bold';
             if ($('#print-paper-size')) $('#print-paper-size').value = printCfg.paperSize || '80mm';
+            const fsz = printCfg.fontSize || 12;
+            if ($('#print-font-size')) { $('#print-font-size').value = fsz; }
+            const fszDisplay = $('#print-font-size-display');
+            if (fszDisplay) fszDisplay.textContent = fsz + 'px';
+            if ($('#print-margins')) $('#print-margins').value = printCfg.margins || 'normal';
+            const showCfg = printCfg.show || {};
+            const boolField = (id, key) => { const el = $(id); if (el) el.checked = showCfg[key] !== false; };
+            boolField('#print-show-logo',     'logo');
+            boolField('#print-show-gst',      'gst');
+            boolField('#print-show-address',  'address');
+            boolField('#print-show-contact',  'contact');
+            boolField('#print-show-discount', 'discount');
+            boolField('#print-show-tax',      'tax');
+            boolField('#print-show-thankyou', 'thankyou');
+            boolField('#print-show-terms',    'terms');
 
             // v4.02.0 Part 1 — Menu position, accent color, screen saver
             const sidebarSide = data.sidebarSide || 'right';
@@ -2576,12 +2653,13 @@ async function deletePastBill(id) {
 }
 
 // ===================== BILL VIEW MODAL (Task 4 — Part 3) =====================
-function openBillViewModal(id) {
-    const bill = findBill(id);
-    if (!bill) return;
-    $('#bill-view-title').textContent = `Invoice ${bill.invoiceNo}`;
-    $('#bill-view-modal').dataset.billId = id;
-    $('#bill-view-body').innerHTML = `
+// Returns true if we should use the desktop split-pane for Past Bills
+function isSplitLayout() {
+    return window.matchMedia('(min-width: 1100px)').matches;
+}
+
+function _buildBillDetailHTML(bill) {
+    return `
         <div class="view-detail-row"><span class="view-detail-label">Invoice No</span><span class="view-detail-value">${escapeHtml(bill.invoiceNo)}</span></div>
         <div class="view-detail-row"><span class="view-detail-label">Date</span><span class="view-detail-value">${formatDate(bill.invoiceDate)}</span></div>
         <div class="view-detail-row"><span class="view-detail-label">Customer</span><span class="view-detail-value">${escapeHtml(bill.customerName) || '—'}</span></div>
@@ -2591,20 +2669,81 @@ function openBillViewModal(id) {
         <div class="view-detail-row"><span class="view-detail-label">Items</span><span class="view-detail-value">${bill.lineItems ? bill.lineItems.map(i => `${escapeHtml(i.name)} × ${i.qty}`).join(', ') : '—'}</span></div>
         ${bill.notes ? `<div class="view-detail-row"><span class="view-detail-label">Notes</span><span class="view-detail-value">${escapeHtml(bill.notes)}</span></div>` : ''}
     `;
-    $('#bill-view-modal').classList.add('active');
-    document.body.style.overflow = 'hidden';
+}
+
+function openBillViewModal(id) {
+    const bill = findBill(id);
+    if (!bill) return;
+
+    if (isSplitLayout()) {
+        // Desktop: populate inline detail pane
+        const pane = $('#bills-split-pane');
+        if (!pane) return;
+        pane.classList.remove('empty-state');
+        pane.dataset.billId = id;
+        pane.innerHTML = `
+            <div class="split-detail-header">
+                <h3>Invoice ${escapeHtml(bill.invoiceNo)}</h3>
+                <div class="split-detail-actions">
+                    <button class="action-btn btn-save" onclick="previewBillFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Preview
+                    </button>
+                    <button class="action-btn btn-clear" onclick="printBillFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Print
+                    </button>
+                    <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteBillFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                        Delete
+                    </button>
+                </div>
+            </div>
+            <div class="split-detail-body">${_buildBillDetailHTML(bill)}</div>
+        `;
+        // Highlight selected row
+        $$('#past-bills-body tr').forEach(tr => tr.classList.remove('split-selected'));
+        const selectedRow = document.querySelector(`#past-bills-body tr[data-bill-id="${id}"]`);
+        if (selectedRow) selectedRow.classList.add('split-selected');
+    } else {
+        // Mobile: use modal
+        $('#bill-view-title').textContent = `Invoice ${bill.invoiceNo}`;
+        $('#bill-view-modal').dataset.billId = id;
+        $('#bill-view-body').innerHTML = _buildBillDetailHTML(bill);
+        $('#bill-view-modal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function closeBillViewModal() {
     $('#bill-view-modal').classList.remove('active');
     document.body.style.overflow = '';
+    // Reset split pane to empty state on desktop
+    const pane = $('#bills-split-pane');
+    if (pane && isSplitLayout()) {
+        pane.classList.add('empty-state');
+        pane.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <p>Select a bill to view details</p>
+        `;
+        $$('#past-bills-body tr').forEach(tr => tr.classList.remove('split-selected'));
+        delete pane.dataset.billId;
+    }
+}
+
+function _getCurrentBillViewId() {
+    if (isSplitLayout()) {
+        const pane = $('#bills-split-pane');
+        return pane ? parseInt(pane.dataset.billId, 10) : NaN;
+    }
+    return parseInt($('#bill-view-modal').dataset.billId, 10);
 }
 
 function previewBillFromView() {
-    const id = parseInt($('#bill-view-modal').dataset.billId, 10);
+    const id = _getCurrentBillViewId();
     const bill = findBill(id);
     if (!bill) return;
-    closeBillViewModal();
+    if (!isSplitLayout()) closeBillViewModal();
     const previewContainer = $('#preview-bill-container');
     previewContainer.innerHTML = generatePOSBillHTML(bill);
     $('#preview-modal').classList.add('active');
@@ -2613,14 +2752,14 @@ function previewBillFromView() {
 }
 
 function printBillFromView() {
-    const id = parseInt($('#bill-view-modal').dataset.billId, 10);
+    const id = _getCurrentBillViewId();
     const bill = findBill(id);
     if (!bill) return;
     printBill(bill);
 }
 
 async function deleteBillFromView() {
-    const id = parseInt($('#bill-view-modal').dataset.billId, 10);
+    const id = _getCurrentBillViewId();
     closeBillViewModal();
     await deletePastBill(id);
 }

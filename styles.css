@@ -3608,3 +3608,232 @@ body.side-left .sidebar-header {
     }
 }
 
+/* ===================== DESKTOP SPLIT-PANE LAYOUT (≥1100px) ===================== */
+/*
+ * On wide screens, pages with a list + view use a two-column master-detail layout:
+ * left pane = list (fixed width), right pane = inline detail panel.
+ * Pages that opt in add class "split-page" to their <section>.
+ */
+@media (min-width: 1100px) {
+    body {
+        /* Allow wider content on desktop */
+    }
+
+    .main-content {
+        max-width: 1400px;
+        padding: 20px 24px;
+    }
+
+    /* Pages that have a master-detail layout */
+    .split-page {
+        display: grid;
+        grid-template-columns: minmax(340px, 420px) 1fr;
+        grid-template-rows: auto auto 1fr;
+        gap: 0 0;
+        min-height: calc(100vh - var(--header-height) - var(--footer-height) - 40px);
+        align-items: start;
+    }
+
+    .split-page .page-header {
+        grid-column: 1 / -1;
+    }
+
+    .split-page .toolbar,
+    .split-page .bills-filter-bar {
+        grid-column: 1;
+        padding-right: 12px;
+    }
+
+    .split-page .table-wrap {
+        grid-column: 1;
+        padding-right: 12px;
+        border-right: 1.5px solid var(--border-color);
+        min-height: 400px;
+        overflow-x: auto;
+    }
+
+    /* Detail pane — shown inline on desktop instead of a modal */
+    .split-detail-pane {
+        grid-column: 2;
+        grid-row: 2 / span 10;
+        padding-left: 24px;
+        position: sticky;
+        top: calc(var(--header-height) + 20px);
+        max-height: calc(100vh - var(--header-height) - var(--footer-height) - 40px);
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .split-detail-pane.empty-state {
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        text-align: center;
+        gap: 16px;
+        padding-top: 60px;
+    }
+
+    .split-detail-pane.empty-state svg {
+        width: 56px;
+        height: 56px;
+        opacity: 0.35;
+        color: var(--text-muted);
+    }
+
+    .split-detail-pane.empty-state p {
+        font-size: 0.9rem;
+        max-width: 220px;
+        line-height: 1.5;
+    }
+
+    .split-detail-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 14px;
+        border-bottom: 1.5px solid var(--border-color);
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .split-detail-header h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+    }
+
+    .split-detail-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .split-detail-body {
+        flex: 1;
+    }
+
+    /* Hide modal on desktop for split-enabled pages */
+    body.desktop-split #bill-view-modal {
+        display: none !important;
+    }
+
+    /* Row highlight when selected in split view */
+    .data-table tr.split-selected td {
+        background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    }
+    .data-table tr.split-selected {
+        outline: 2px solid var(--accent-primary);
+        outline-offset: -1px;
+    }
+
+    /* Settings grid: two-column on desktop */
+    .settings-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 32px;
+        align-items: start;
+    }
+
+    /* Let wide groups span full width */
+    .settings-group.full-width {
+        grid-column: 1 / -1;
+    }
+}
+
+/* ===================== PRINT SETTINGS ENHANCEMENTS ===================== */
+.print-content-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.print-toggle-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+    user-select: none;
+}
+
+.print-toggle-chip input[type="checkbox"] {
+    accent-color: var(--accent-primary);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+
+.print-toggle-chip:has(input:checked) {
+    border-color: var(--accent-primary);
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+    color: var(--accent-primary);
+}
+
+.font-size-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.font-size-row input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent-primary);
+    height: 4px;
+}
+
+.font-size-value {
+    min-width: 42px;
+    text-align: right;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+}
+
+.print-page-size-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.print-size-card {
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+    font-size: 0.8125rem;
+}
+
+.print-size-card:hover {
+    border-color: var(--accent-primary);
+    background: var(--bg-hover);
+}
+
+.print-size-card.selected {
+    border-color: var(--accent-primary);
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+    color: var(--accent-primary);
+    font-weight: 600;
+}
+
+.print-size-card .size-icon {
+    display: block;
+    font-size: 1.25rem;
+    margin-bottom: 4px;
+}
+
+
