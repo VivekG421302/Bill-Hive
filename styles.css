@@ -3837,3 +3837,122 @@ body.side-left .sidebar-header {
 }
 
 
+
+/* ===================== DESKTOP LAYOUT IMPROVEMENTS (≥1100px) — v4.05.0 ===================== */
+@media (min-width: 1100px) {
+    /* Create Bill: two-column layout — customer info + line items side by side */
+    #page-create-bill .bill-container {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 16px;
+        align-items: start;
+    }
+
+    /* Customer section stays in col 1 */
+    #page-create-bill .bill-section:nth-child(1) {
+        grid-column: 1;
+        grid-row: 1 / 3;
+        position: sticky;
+        top: calc(var(--header-height) + 16px);
+        max-height: calc(100vh - var(--header-height) - var(--footer-height) - 32px);
+        overflow-y: auto;
+    }
+
+    /* Line items span col 2 */
+    #page-create-bill .bill-section:nth-child(2) {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    /* Totals + actions span col 2 */
+    #page-create-bill .bill-section:nth-child(3),
+    #page-create-bill .bill-section:nth-child(4) {
+        grid-column: 2;
+    }
+
+    /* Sale Summary: stats grid can go wider */
+    #page-sale-summary .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    /* Sale Summary: two brand/item cards side by side */
+    #page-sale-summary > div:not(.page-header):not(.stats-grid) {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    #page-sale-summary .bill-section + .bill-section {
+        margin-top: 0;
+    }
+
+    /* Items page: wider table, no need to truncate */
+    #page-items .data-table th,
+    #page-items .data-table td,
+    #page-stock .data-table th,
+    #page-stock .data-table td,
+    #page-past-bills .data-table th,
+    #page-past-bills .data-table td {
+        white-space: nowrap;
+    }
+
+    /* Sale Summary brand/top-items cards: force side-by-side when inside page */
+    #page-sale-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    #page-sale-summary .page-header + * {
+        display: block;
+    }
+
+    /* Sales return: side-by-side layout for the form and summary */
+    #page-sales-return .bill-container {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 16px;
+        align-items: start;
+    }
+
+    #page-sales-return .bill-section:last-child {
+        position: sticky;
+        top: calc(var(--header-height) + 16px);
+    }
+
+    /* Your Data / Stock pages: wider stat cards */
+    #page-your-data .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    /* Modal on desktop: a bit more room */
+    .modal-content {
+        max-width: 680px;
+    }
+
+    .preview-modal-content {
+        max-width: 580px;
+    }
+}
+
+/* ===================== SALE SUMMARY CARDS GRID ===================== */
+.summary-cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+@media (min-width: 1100px) {
+    .summary-cards-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: start;
+    }
+
+    /* Remove the old top-margin fix — gap handles it now */
+    #page-sale-summary .bill-section + .bill-section {
+        margin-top: 0;
+    }
+}
