@@ -1197,44 +1197,43 @@ function printBill(billData, printConfigOverride = null) {
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; }
                 @page { margin: ${pageMargin}; }
-                body { 
-                    font-family: 'Courier New', 'Consolas', monospace; 
-                    font-weight: var(--pw-base, 700);
-                    background: #fff; 
+                body {
+                    font-family: 'Courier New', 'Consolas', monospace;
+                    background: #fff;
                     color: #000;
                     padding: 0;
                     -webkit-print-color-adjust: exact;
                     print-color-adjust: exact;
                     -webkit-font-smoothing: antialiased;
                 }
-                .pos-bill { 
-                    max-width: 300px; 
-                    margin: 0 auto; 
+                .pos-bill {
+                    max-width: ${resolvedCfg.size.maxWidth}px;
+                    margin: 0 auto;
                     padding: 8px;
-                    font-size: var(--pw-size, 12px);
-                    font-weight: var(--pw-base, 700);
+                    font-size: ${resolvedCfg.size.baseFont}px;
+                    font-weight: ${resolvedCfg.weights.base};
                     line-height: 1.45;
                 }
                 .pos-header { text-align: center; padding-bottom: 6px; border-bottom: 2px dashed #000; margin-bottom: 6px; }
                 .pos-logo { width: 100%; max-width: 160px; height: auto; aspect-ratio: 4 / 1; object-fit: contain; margin: 0 auto 4px; display: block; }
-                .pos-company-name { font-size: 14px; font-weight: var(--pw-strong, 800); }
-                .pos-gst, .pos-address, .pos-contact { font-size: 11px; font-weight: var(--pw-base, 700); line-height: 1.35; }
+                .pos-company-name { font-size: 1.15em; font-weight: ${resolvedCfg.weights.strong}; }
+                .pos-gst, .pos-address, .pos-contact { font-size: 0.82em; font-weight: ${resolvedCfg.weights.base}; line-height: 1.35; }
                 .pos-divider { border: none; border-top: 2px dashed #000; margin: 5px 0; }
-                .pos-meta { display: flex; justify-content: space-between; font-size: 11px; font-weight: var(--pw-base, 700); margin-bottom: 2px; }
-                .pos-meta-label { font-weight: var(--pw-strong, 800); }
-                .pos-customer-label { font-weight: var(--pw-strong, 800); font-size: 11px; }
-                .pos-table { width: 100%; border-collapse: collapse; font-size: 11px; font-weight: var(--pw-base, 700); margin: 4px 0; }
-                .pos-table th { border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 3px 2px; text-align: left; font-weight: var(--pw-strong, 800); }
-                .pos-table td { padding: 2px 2px; vertical-align: top; font-weight: var(--pw-base, 700); }
+                .pos-meta { display: flex; justify-content: space-between; font-size: 0.85em; font-weight: ${resolvedCfg.weights.base}; margin-bottom: 2px; }
+                .pos-meta-label { font-weight: ${resolvedCfg.weights.strong}; }
+                .pos-customer-label { font-weight: ${resolvedCfg.weights.strong}; font-size: 0.9em; }
+                .pos-table { width: 100%; border-collapse: collapse; font-size: 0.9em; font-weight: ${resolvedCfg.weights.base}; margin: 4px 0; }
+                .pos-table th { border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 3px 2px; text-align: left; font-weight: ${resolvedCfg.weights.strong}; }
+                .pos-table td { padding: 2px 2px; vertical-align: top; font-weight: ${resolvedCfg.weights.base}; }
                 .pos-td-right { text-align: right; }
                 .pos-td-center { text-align: center; }
-                .pos-totals { border-top: 2px solid #000; padding-top: 3px; font-size: 11px; font-weight: var(--pw-base, 700); }
+                .pos-totals { border-top: 2px solid #000; padding-top: 3px; font-size: 0.9em; font-weight: ${resolvedCfg.weights.base}; }
                 .pos-total-row { display: flex; justify-content: space-between; margin-bottom: 1px; }
-                .pos-total-row.grand { font-weight: var(--pw-strong, 800); font-size: 13px; border-top: 2px solid #000; padding-top: 3px; margin-top: 2px; }
-                .pos-saved { text-align: center; font-size: 11px; font-weight: var(--pw-base, 700); margin: 4px 0; font-style: italic; }
-                .pos-payment { font-size: 11px; font-weight: var(--pw-base, 700); margin: 3px 0; }
-                .pos-thankyou { text-align: center; font-size: 12px; font-weight: var(--pw-strong, 800); margin: 4px 0; }
-                .pos-terms { font-size: 10px; font-weight: var(--pw-base, 700); text-align: center; line-height: 1.35; margin-top: 3px; padding-top: 3px; border-top: 2px dashed #000; }
+                .pos-total-row.grand { font-weight: ${resolvedCfg.weights.strong}; font-size: 1.1em; border-top: 2px solid #000; padding-top: 3px; margin-top: 2px; }
+                .pos-saved { text-align: center; font-size: 0.9em; font-weight: ${resolvedCfg.weights.base}; margin: 4px 0; font-style: italic; }
+                .pos-payment { font-size: 0.9em; font-weight: ${resolvedCfg.weights.base}; margin: 3px 0; }
+                .pos-thankyou { text-align: center; font-size: 1em; font-weight: ${resolvedCfg.weights.strong}; margin: 4px 0; }
+                .pos-terms { font-size: 0.82em; font-weight: ${resolvedCfg.weights.base}; text-align: center; line-height: 1.35; margin-top: 3px; padding-top: 3px; border-top: 2px dashed #000; }
                 @media print { body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
             </style>
         </head>
@@ -3560,7 +3559,106 @@ async function loadInvoiceMeta() {
 }
 
 // ===================== INIT =====================
+/* ─── Auth ─── */
+const AUTH_KEY = 'bh_auth_v1';
+// Dev credentials (replace with real auth when going to production)
+const DEV_CREDENTIALS = { username: 'admin', password: 'password' };
+
+function isLoggedIn() {
+    try { return JSON.parse(sessionStorage.getItem(AUTH_KEY))?.ok === true; } catch { return false; }
+}
+
+function doLogin() {
+    const u = document.getElementById('login-username')?.value.trim();
+    const p = document.getElementById('login-password')?.value;
+    const errEl = document.getElementById('login-error');
+    if (u === DEV_CREDENTIALS.username && p === DEV_CREDENTIALS.password) {
+        sessionStorage.setItem(AUTH_KEY, JSON.stringify({ ok: true, username: u, ts: Date.now() }));
+        document.getElementById('login-screen')?.classList.add('hidden');
+        _syncAccountUI(u);
+        _bootApp();
+    } else {
+        if (errEl) { errEl.style.display = 'flex'; }
+        document.getElementById('login-password').value = '';
+        document.getElementById('login-password').focus();
+        // Shake animation
+        const card = document.querySelector('.login-card');
+        if (card) {
+            card.style.animation = 'none';
+            card.offsetHeight; // reflow
+            card.style.animation = 'bhShake 0.4s ease';
+        }
+    }
+}
+
+function doLogout() {
+    sessionStorage.removeItem(AUTH_KEY);
+    // Clear sensitive fields
+    document.getElementById('login-username').value = '';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-error').style.display = 'none';
+    document.getElementById('login-screen')?.classList.remove('hidden');
+    document.getElementById('login-username')?.focus();
+}
+
+function toggleLoginPw() {
+    const inp = document.getElementById('login-password');
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function _syncAccountUI(username) {
+    const initials = username.slice(0, 2).toUpperCase();
+    const el = document.getElementById('account-avatar-display');
+    if (el) el.textContent = initials;
+    const nameEl = document.getElementById('account-display-name');
+    if (nameEl) nameEl.textContent = username;
+    const sessionEl = document.getElementById('session-username-display');
+    if (sessionEl) sessionEl.textContent = username;
+}
+
+function saveAccountProfile() {
+    const name = document.getElementById('account-name-input')?.value.trim() || 'Admin';
+    const initials = name.slice(0, 2).toUpperCase();
+    const el = document.getElementById('account-avatar-display');
+    if (el) el.textContent = initials;
+    const dispEl = document.getElementById('account-display-name');
+    if (dispEl) dispEl.textContent = name;
+    showToast('Profile saved');
+}
+
+function changePassword() {
+    const current = document.getElementById('account-current-pw')?.value;
+    const newPw   = document.getElementById('account-new-pw')?.value;
+    const confirm = document.getElementById('account-confirm-pw')?.value;
+    if (current !== DEV_CREDENTIALS.password) { showToast('Current password is incorrect'); return; }
+    if (!newPw || newPw.length < 4) { showToast('New password must be at least 4 characters'); return; }
+    if (newPw !== confirm) { showToast('Passwords do not match'); return; }
+    // In dev mode just update the in-memory credential
+    DEV_CREDENTIALS.password = newPw;
+    document.getElementById('account-current-pw').value = '';
+    document.getElementById('account-new-pw').value = '';
+    document.getElementById('account-confirm-pw').value = '';
+    showToast('Password updated ✓');
+}
+
 async function init() {
+    // Auth gate — show login if not authenticated
+    if (!isLoggedIn()) {
+        document.getElementById('login-screen')?.classList.remove('hidden');
+        document.getElementById('login-username')?.focus();
+        // Don't boot the rest of the app until login succeeds
+        return;
+    }
+    // Restore account UI from session
+    try {
+        const session = JSON.parse(sessionStorage.getItem(AUTH_KEY));
+        if (session?.username) _syncAccountUI(session.username);
+    } catch {}
+    _bootApp();
+}
+
+async function _bootApp() {
     // v4.01.0: open/migrate IndexedDB before anything else reads storage
     await dbInit();
 
