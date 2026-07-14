@@ -1375,7 +1375,7 @@ a {
 .brand-card-logo {
     width: 100%;
     aspect-ratio: 4 / 1;
-    background: var(--bg-tertiary);
+    background: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1605,13 +1605,50 @@ a {
 }
 
 #brand-form-logo-preview {
-    position: absolute;
-    inset: 8px;
-    max-width: calc(100% - 16px);
-    max-height: calc(100% - 16px);
+    display: block;
+    max-width: 100%;
+    max-height: 90px;
     object-fit: contain;
-    z-index: 1;
     border-radius: var(--radius-sm);
+}
+
+.brand-logo-preview-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 4px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.brand-logo-remove-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent-danger, #e03131);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 3;
+    padding: 0;
+    transition: transform var(--transition-fast);
+}
+
+.brand-logo-remove-btn:hover {
+    transform: scale(1.15);
+}
+
+.brand-logo-remove-btn svg {
+    width: 12px;
+    height: 12px;
 }
 
 /* ===================== SETTINGS PAGE ===================== */
@@ -3698,7 +3735,7 @@ body.side-left .sidebar-header {
                         <label>Brand Logo</label>
                         <div class="logo-upload-area" id="brand-logo-upload-area">
                             <input type="file" id="brand-form-logo-input" accept="image/*" onchange="handleBrandLogoUpload(event)">
-                            <div class="logo-upload-content">
+                            <div class="logo-upload-content" id="brand-logo-upload-hint">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
                                     <polyline points="17 8 12 3 7 8"/>
@@ -3707,7 +3744,12 @@ body.side-left .sidebar-header {
                                 <span>Click to upload logo</span>
                                 <small>4:1 ratio recommended &middot; PNG, JPG, SVG &middot; max 2MB</small>
                             </div>
-                            <img id="brand-form-logo-preview" src="" alt="Logo Preview" style="display:none;">
+                            <div class="brand-logo-preview-wrap" id="brand-logo-preview-wrap" style="display:none;">
+                                <img id="brand-form-logo-preview" src="" alt="Logo Preview">
+                                <button type="button" class="brand-logo-remove-btn" onclick="removeBrandLogo(event)" title="Remove logo">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group full-width">
@@ -4566,8 +4608,12 @@ function openBrandModal(id = null) {
     brandFormLogoData = '';
     const title = $('#brand-modal-title');
     const preview = $('#brand-form-logo-preview');
+    const previewWrap = $('#brand-logo-preview-wrap');
+    const uploadHint = $('#brand-logo-upload-hint');
     preview.style.display = 'none';
     preview.src = '';
+    previewWrap.style.display = 'none';
+    uploadHint.style.display = '';
 
     if (id) {
         const b = Brands.find(x => x.id === id);
@@ -4582,6 +4628,8 @@ function openBrandModal(id = null) {
             brandFormLogoData = b.logo;
             preview.src = b.logo;
             preview.style.display = 'block';
+            previewWrap.style.display = 'flex';
+            uploadHint.style.display = 'none';
         }
     } else {
         title.textContent = 'Add Brand';
@@ -4611,10 +4659,27 @@ function handleBrandLogoUpload(event) {
     reader.onload = (e) => {
         brandFormLogoData = e.target.result;
         const preview = $('#brand-form-logo-preview');
+        const previewWrap = $('#brand-logo-preview-wrap');
+        const uploadHint = $('#brand-logo-upload-hint');
         preview.src = brandFormLogoData;
         preview.style.display = 'block';
+        previewWrap.style.display = 'flex';
+        uploadHint.style.display = 'none';
     };
     reader.readAsDataURL(file);
+}
+
+function removeBrandLogo(event) {
+    event.stopPropagation();
+    brandFormLogoData = '';
+    const preview = $('#brand-form-logo-preview');
+    const previewWrap = $('#brand-logo-preview-wrap');
+    const uploadHint = $('#brand-logo-upload-hint');
+    preview.src = '';
+    preview.style.display = 'none';
+    previewWrap.style.display = 'none';
+    uploadHint.style.display = '';
+    $('#brand-form-logo-input').value = '';
 }
 
 async function saveBrandForm() {

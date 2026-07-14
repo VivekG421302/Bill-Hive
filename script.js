@@ -950,7 +950,10 @@ function previewDummyBill() {
     const printCfg = getPrintConfig(getPrintSetupOverrides());
     const previewContainer = $('#preview-bill-container');
     previewContainer.innerHTML = generatePOSBillHTML(billData, false, printCfg);
-    $('#preview-modal').classList.add('active');
+    const modal = $('#preview-modal');
+    modal.dataset.dummy = 'true';
+    delete modal.dataset.billId;
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
@@ -1256,7 +1259,10 @@ function previewBill() {
     const billData = getBillData();
     const previewContainer = $('#preview-bill-container');
     previewContainer.innerHTML = generatePOSBillHTML(billData, false, getPrintConfig());
-    $('#preview-modal').classList.add('active');
+    const modal = $('#preview-modal');
+    delete modal.dataset.dummy;
+    delete modal.dataset.billId;
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
@@ -1266,8 +1272,23 @@ function closePreview() {
 }
 
 function printFromPreview() {
-    const billData = getBillData();
-    printBill(billData, getPrintConfig());
+    const modal = $('#preview-modal');
+    const billId = modal?.dataset.billId;
+    const isDummy = modal?.dataset.dummy === 'true';
+    const cfg = getPrintConfig();
+
+    if (isDummy) {
+        // Came from Settings → Preview Dummy Bill
+        printBill(getDummyBillData(), getPrintConfig(getPrintSetupOverrides()));
+    } else if (billId) {
+        // Came from a past bill view
+        const bill = findBill(parseInt(billId, 10));
+        if (bill) printBill(bill, cfg);
+    } else {
+        // Came from the create-bill flow
+        const billData = getBillData();
+        printBill(billData, cfg);
+    }
     closePreview();
 }
 
@@ -2630,9 +2651,11 @@ function viewPastBill(id) {
     if (!bill) return;
     const previewContainer = $('#preview-bill-container');
     previewContainer.innerHTML = generatePOSBillHTML(bill, false, getPrintConfig());
-    $('#preview-modal').classList.add('active');
+    const modal = $('#preview-modal');
+    delete modal.dataset.dummy;
+    modal.dataset.billId = id;
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    $('#preview-modal').dataset.billId = id;
 }
 
 function reprintPastBill(id) {
@@ -2743,9 +2766,11 @@ function previewBillFromView() {
     if (!isSplitLayout()) closeBillViewModal();
     const previewContainer = $('#preview-bill-container');
     previewContainer.innerHTML = generatePOSBillHTML(bill, false, getPrintConfig());
-    $('#preview-modal').classList.add('active');
+    const modal = $('#preview-modal');
+    delete modal.dataset.dummy;
+    modal.dataset.billId = id;
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    $('#preview-modal').dataset.billId = id;
 }
 
 function printBillFromView() {
