@@ -4651,22 +4651,22 @@ function closeBrandModal() {
 function handleBrandLogoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-        showToast('Logo must be under 2MB');
-        return;
-    }
+    if (file.size > 2 * 1024 * 1024) { showToast('Logo must be under 2MB'); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
-        brandFormLogoData = e.target.result;
-        const preview = $('#brand-form-logo-preview');
-        const previewWrap = $('#brand-logo-preview-wrap');
-        const uploadHint = $('#brand-logo-upload-hint');
-        preview.src = brandFormLogoData;
-        preview.style.display = 'block';
-        previewWrap.style.display = 'flex';
-        uploadHint.style.display = 'none';
+        BHImageEditor.open(e.target.result, { title: 'Edit Brand Logo' }).then(dataUrl => {
+            brandFormLogoData = dataUrl;
+            const preview = $('#brand-form-logo-preview');
+            const previewWrap = $('#brand-logo-preview-wrap');
+            const uploadHint = $('#brand-logo-upload-hint');
+            preview.src = dataUrl;
+            preview.style.display = 'block';
+            previewWrap.style.display = 'flex';
+            uploadHint.style.display = 'none';
+        }).catch(() => {});
     };
     reader.readAsDataURL(file);
+    event.target.value = '';
 }
 
 function removeBrandLogo(event) {
@@ -4722,6 +4722,7 @@ document.addEventListener('DOMContentLoaded', loadBrands);
 
     </script>
 
+    <script src="image-editor.js"></script>
     <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
 
     <!-- ===================== SCREEN SAVER OVERLAY (v4.02.0 Part 1) ===================== -->

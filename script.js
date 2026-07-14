@@ -1321,28 +1321,20 @@ async function clearBill() {
 function handleLogoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-        showToast('Logo must be under 2MB');
-        return;
-    }
-
+    if (file.size > 2 * 1024 * 1024) { showToast('Logo must be under 2MB'); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
-        const dataUrl = e.target.result;
-        AppState.companyData.logo = dataUrl;
-
-        // Show preview
-        const preview = $('#company-logo-preview');
-        preview.src = dataUrl;
-        preview.style.display = 'block';
-
-        // Update header logo
-        updateHeaderLogo(dataUrl);
-
-        showToast('Logo uploaded');
+        BHImageEditor.open(e.target.result, { title: 'Edit Company Logo' }).then(dataUrl => {
+            AppState.companyData.logo = dataUrl;
+            const preview = $('#company-logo-preview');
+            if (preview) { preview.src = dataUrl; preview.style.display = 'block'; }
+            updateHeaderLogo(dataUrl);
+            showToast('Logo updated');
+        }).catch(() => {});
     };
     reader.readAsDataURL(file);
+    // Reset input so same file can be re-selected
+    event.target.value = '';
 }
 
 function updateHeaderLogo(logoUrl) {
@@ -2087,16 +2079,16 @@ function renderItemImageSlots() {
 function handleItemImageUpload(slot, event) {
     const file = event.target.files[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-        showToast('Image must be under 2MB');
-        return;
-    }
+    if (file.size > 2 * 1024 * 1024) { showToast('Image must be under 2MB'); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
-        itemFormImages[slot] = e.target.result;
-        renderItemImageSlots();
+        BHImageEditor.open(e.target.result, { title: `Edit Product Image ${slot + 1}` }).then(dataUrl => {
+            itemFormImages[slot] = dataUrl;
+            renderItemImageSlots();
+        }).catch(() => {});
     };
     reader.readAsDataURL(file);
+    event.target.value = '';
 }
 
 function removeItemImage(slot) {
