@@ -1174,9 +1174,8 @@ function resetBillFormForNext() {
 async function saveAndPrint() {
     const billData = await saveBill();
     if (!billData) return;
-
     setTimeout(() => {
-        printBill(billData);
+        printBill(billData, getPrintConfig());
     }, 300);
 }
 
@@ -1254,11 +1253,9 @@ function printBill(billData, printConfigOverride = null) {
 
 function previewBill() {
     if (!validateBill()) return;
-
     const billData = getBillData();
     const previewContainer = $('#preview-bill-container');
-    previewContainer.innerHTML = generatePOSBillHTML(billData);
-
+    previewContainer.innerHTML = generatePOSBillHTML(billData, false, getPrintConfig());
     $('#preview-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -1270,7 +1267,7 @@ function closePreview() {
 
 function printFromPreview() {
     const billData = getBillData();
-    printBill(billData);
+    printBill(billData, getPrintConfig());
     closePreview();
 }
 
@@ -2632,7 +2629,7 @@ function viewPastBill(id) {
     const bill = findBill(id);
     if (!bill) return;
     const previewContainer = $('#preview-bill-container');
-    previewContainer.innerHTML = generatePOSBillHTML(bill);
+    previewContainer.innerHTML = generatePOSBillHTML(bill, false, getPrintConfig());
     $('#preview-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
     $('#preview-modal').dataset.billId = id;
@@ -2641,7 +2638,7 @@ function viewPastBill(id) {
 function reprintPastBill(id) {
     const bill = findBill(id);
     if (!bill) return;
-    printBill(bill);
+    printBill(bill, getPrintConfig());
 }
 
 async function deletePastBill(id) {
@@ -2745,7 +2742,7 @@ function previewBillFromView() {
     if (!bill) return;
     if (!isSplitLayout()) closeBillViewModal();
     const previewContainer = $('#preview-bill-container');
-    previewContainer.innerHTML = generatePOSBillHTML(bill);
+    previewContainer.innerHTML = generatePOSBillHTML(bill, false, getPrintConfig());
     $('#preview-modal').classList.add('active');
     document.body.style.overflow = 'hidden';
     $('#preview-modal').dataset.billId = id;
@@ -2755,7 +2752,7 @@ function printBillFromView() {
     const id = _getCurrentBillViewId();
     const bill = findBill(id);
     if (!bill) return;
-    printBill(bill);
+    printBill(bill, getPrintConfig());
 }
 
 async function deleteBillFromView() {
