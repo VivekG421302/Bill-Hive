@@ -300,7 +300,7 @@ a {
     border-bottom: 1px solid var(--border-light);
     z-index: 300;
     display: grid;
-    grid-template-columns: 40px 1fr auto;
+    grid-template-columns: 40px 1fr 40px;
     align-items: center;
     padding: 0 16px;
     padding-left: max(16px, env(safe-area-inset-left));
@@ -3992,6 +3992,13 @@ body.side-left .sidebar-header {
     border-radius: var(--radius-xl, 20px);
     padding: 36px 32px;
     box-shadow: 0 24px 64px rgba(0,0,0,0.12);
+}
+
+.login-favicon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    object-fit: contain;
 }
 
 .login-logo {
