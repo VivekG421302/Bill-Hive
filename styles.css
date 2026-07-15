@@ -94,8 +94,12 @@ body {
     background: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
+    min-height: 100dvh;
     padding-top: var(--header-height);
     padding-bottom: var(--footer-height);
+    /* Safe-area insets for notch / home-indicator phones */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
     transition: background var(--transition-normal), color var(--transition-normal);
     overflow-x: hidden;
 }
@@ -191,8 +195,8 @@ a {
 }
 
 .sidebar-close {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
@@ -299,6 +303,8 @@ a {
     grid-template-columns: 40px 1fr auto;
     align-items: center;
     padding: 0 16px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
     gap: 8px;
     transition: background var(--transition-normal), border-color var(--transition-normal);
 }
@@ -507,6 +513,18 @@ a {
     width: 100%;
 }
 
+/* Prevent iOS Safari from auto-zooming on input focus (requires ≥ 16px) */
+@media (max-width: 768px) {
+    .form-group input,
+    .form-group textarea,
+    .form-group select,
+    .login-input,
+    .bhe-num,
+    .settings-textarea {
+        font-size: 1rem;
+    }
+}
+
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
@@ -580,8 +598,8 @@ a {
 }
 
 .line-item-delete {
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -910,6 +928,8 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Push content above home indicator on iPhone */
+    padding-bottom: env(safe-area-inset-bottom);
     transition: background var(--transition-normal), border-color var(--transition-normal);
 }
 
@@ -1008,8 +1028,8 @@ a {
 }
 
 .modal-close {
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -1904,8 +1924,8 @@ a {
 }
 
 .icon-btn {
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -3953,6 +3973,11 @@ body.side-left .sidebar-header {
     align-items: center;
     justify-content: center;
     padding: 20px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    /* Use dvh so virtual keyboard doesn't push the card off-screen */
+    min-height: 100dvh;
+    overflow-y: auto;
 }
 
 .login-screen.hidden {
@@ -4049,7 +4074,7 @@ body.side-left .sidebar-header {
     border-radius: var(--radius-md);
     background: var(--bg-input, var(--bg-primary));
     color: var(--text-primary);
-    font-size: 0.9375rem;
+    font-size: 1rem;
     transition: border-color 0.15s;
 }
 
@@ -4208,3 +4233,74 @@ body.side-left .sidebar-header {
     72%       { transform: translateX(5px); }
     90%       { transform: translateX(-2px); }
 }
+
+/* ===================== ACCESSIBILITY & RESPONSIVENESS FIXES (v4.05.5) ===================== */
+
+/* Focus-visible: clear keyboard focus ring for all interactive elements */
+*:focus { outline: none; }
+*:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+/* Suppress focus-visible on mouse click (only show for keyboard) */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* 320px: tighten header logo so it doesn't push into right buttons */
+@media (max-width: 360px) {
+    .header-center .header-logo-text,
+    .header-center .logo-placeholder-text {
+        font-size: 1rem;
+        letter-spacing: -0.02em;
+    }
+
+    .header-center img,
+    .header-center .company-logo-img {
+        max-height: 28px;
+    }
+
+    .login-card {
+        padding: 24px 18px;
+    }
+
+    .login-title {
+        font-size: 1.15rem;
+    }
+}
+
+/* Settings remove/delete icon buttons - ensure minimum touch target */
+.settings-remove,
+.data-remove-btn,
+.remove-btn {
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* Sidebar safe-area on landscape phones with notch */
+.sidebar {
+    padding-left: max(0px, env(safe-area-inset-left));
+}
+
+/* Bottom sheet column dropdown: respect safe area on iPhone */
+@media (max-width: 640px) {
+    .column-toggle-dropdown.open {
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+
+    /* Modals: also respect safe area at bottom */
+    .modal-content {
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+}
+
+/* Sidebar swipe-close area should cover safe area too */
+.sidebar-overlay {
+    top: 0;
+    left: 0;
+}
+
