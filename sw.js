@@ -2,7 +2,7 @@
 // Strategy: network-first for all app files so updates always reach the user.
 // Cache is used only as fallback when offline.
 
-const CACHE_NAME = 'billhive-v4.05.0';
+const CACHE_NAME = 'billhive-v4.6.0';
 
 const STATIC_ASSETS = [
   '/',

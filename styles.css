@@ -1083,10 +1083,11 @@ a {
     margin: 0 auto;
     font-size: var(--pw-size, 12px);
     font-weight: var(--pw-base, 500);
+    font-family: var(--pw-font, 'Courier New', monospace);
 }
 
 .pos-bill * {
-    font-family: 'Courier New', monospace !important;
+    font-family: var(--pw-font, 'Courier New', monospace) !important;
 }
 
 .pos-header {

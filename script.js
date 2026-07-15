@@ -411,6 +411,7 @@ const AppState = {
         currencySymbol: '₹',
         print: {
             fontWeight: 'bold',
+            fontFamily: 'typewriter',
             paperSize: '80mm',
             fontSize: 12,
             margins: 'normal',
@@ -848,7 +849,7 @@ function getBillData() {
 
 // ===================== PRINT SETUP (fonts / paper size) =====================
 const PRINT_WEIGHT_MAP = {
-    normal: { base: 500, strong: 700 },
+    normal: { base: 400, strong: 600 },
     bold:   { base: 700, strong: 800 },
     black:  { base: 800, strong: 900 }
 };
@@ -865,18 +866,28 @@ const PRINT_MARGIN_MAP = {
     wide:   '16mm'
 };
 
+// Available print font families — value is the CSS font-family stack
+const PRINT_FONT_MAP = {
+    typewriter: { label: 'Typewriter',    stack: "'Courier New', 'Courier', 'Lucida Console', monospace" },
+    mono:       { label: 'Monospace',     stack: "'JetBrains Mono', 'Consolas', 'SF Mono', 'Fira Code', monospace" },
+    receipt:    { label: 'Receipt (OCR)', stack: "'OCR A Std', 'Courier New', monospace" },
+    sans:       { label: 'Clean Sans',    stack: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" },
+    slab:       { label: 'Slab Serif',    stack: "'Rockwell', 'Courier New', Georgia, serif" },
+};
+
 function getPrintConfig(overrides = {}) {
     const saved = AppState.settings.print || {};
     const fontWeightKey = overrides.fontWeight || saved.fontWeight || 'bold';
-    const paperSizeKey = overrides.paperSize || saved.paperSize || '80mm';
-    const fontSizeVal = overrides.fontSize !== undefined ? overrides.fontSize : (saved.fontSize !== undefined ? saved.fontSize : null);
-    const marginsKey = overrides.margins || saved.margins || 'normal';
-    const sizeConfig = PRINT_SIZE_MAP[paperSizeKey] || PRINT_SIZE_MAP['80mm'];
+    const paperSizeKey  = overrides.paperSize  || saved.paperSize  || '80mm';
+    const fontFamilyKey = overrides.fontFamily  || saved.fontFamily  || 'typewriter';
+    const fontSizeVal   = overrides.fontSize !== undefined ? overrides.fontSize : (saved.fontSize !== undefined ? saved.fontSize : null);
+    const marginsKey    = overrides.margins  || saved.margins  || 'normal';
+    const sizeConfig    = PRINT_SIZE_MAP[paperSizeKey] || PRINT_SIZE_MAP['80mm'];
     return {
-        weights: PRINT_WEIGHT_MAP[fontWeightKey] || PRINT_WEIGHT_MAP.bold,
+        weights:    PRINT_WEIGHT_MAP[fontWeightKey] || PRINT_WEIGHT_MAP.bold,
+        fontFamily: (PRINT_FONT_MAP[fontFamilyKey] || PRINT_FONT_MAP.typewriter).stack,
         size: {
             ...sizeConfig,
-            // Override baseFont only if explicitly set
             baseFont: (fontSizeVal !== null && fontSizeVal !== undefined) ? parseInt(fontSizeVal, 10) : sizeConfig.baseFont
         },
         margins: PRINT_MARGIN_MAP[marginsKey] || PRINT_MARGIN_MAP.normal,
@@ -896,14 +907,14 @@ function getPrintConfig(overrides = {}) {
 // Reads the (possibly unsaved) Print Setup controls on the Settings page,
 // so Preview/Print Dummy Bill always reflects what's currently selected.
 function getPrintSetupOverrides() {
-    const fontWeight = $('#print-font-weight')?.value;
-    const paperSize = $('#print-paper-size')?.value;
-    const fontSize = $('#print-font-size')?.value;
-    const margins = $('#print-margins')?.value;
+    const fontWeight  = $('#print-font-weight')?.value;
+    const paperSize   = $('#print-paper-size')?.value;
+    const fontSize    = $('#print-font-size')?.value;
+    const margins     = $('#print-margins')?.value;
+    const fontFamily  = $('#print-font-family')?.value;
     return {
-        fontWeight, paperSize,
+        fontWeight, paperSize, margins, fontFamily,
         fontSize: fontSize ? parseInt(fontSize, 10) : undefined,
-        margins,
         showLogo:     $('#print-show-logo')?.checked,
         showGst:      $('#print-show-gst')?.checked,
         showAddress:  $('#print-show-address')?.checked,
@@ -1015,7 +1026,7 @@ function generatePOSBillHTML(billData, forPrint = false, printConfigOverride = n
     const marginVal = printCfg.margins || '8mm';
 
     return `
-        <div class="pos-bill" id="${forPrint ? 'print-bill' : ''}" style="--pw-base:${printCfg.weights.base};--pw-strong:${printCfg.weights.strong};--pw-size:${printCfg.size.baseFont}px;max-width:${printCfg.size.maxWidth}px;padding:${marginVal};">
+        <div class="pos-bill" id="${forPrint ? 'print-bill' : ''}" style="--pw-base:${printCfg.weights.base};--pw-strong:${printCfg.weights.strong};--pw-size:${printCfg.size.baseFont}px;--pw-font:${printCfg.fontFamily};max-width:${printCfg.size.maxWidth}px;padding:${marginVal};">
             <div class="pos-header">
                 ${logoHtml}
                 <div class="pos-company-name">${escapeHtml(company.name) || 'Your Company'}</div>
@@ -1198,7 +1209,7 @@ function printBill(billData, printConfigOverride = null) {
                 * { margin: 0; padding: 0; box-sizing: border-box; }
                 @page { margin: ${pageMargin}; }
                 body {
-                    font-family: 'Courier New', 'Consolas', monospace;
+                    font-family: ${resolvedCfg.fontFamily};
                     background: #fff;
                     color: #000;
                     padding: 0;
@@ -1469,6 +1480,7 @@ async function saveSettings() {
     // Print setup (extended)
     AppState.settings.print = {
         fontWeight: $('#print-font-weight')?.value || 'bold',
+        fontFamily: $('#print-font-family')?.value || 'typewriter',
         paperSize: $('#print-paper-size')?.value || '80mm',
         fontSize: parseInt($('#print-font-size')?.value || '12', 10),
         margins: $('#print-margins')?.value || 'normal',
@@ -1529,6 +1541,7 @@ async function loadSettings() {
 
             const printCfg = data.print || {};
             if ($('#print-font-weight')) $('#print-font-weight').value = printCfg.fontWeight || 'bold';
+            if ($('#print-font-family')) $('#print-font-family').value = printCfg.fontFamily || 'typewriter';
             if ($('#print-paper-size')) $('#print-paper-size').value = printCfg.paperSize || '80mm';
             const fsz = printCfg.fontSize || 12;
             if ($('#print-font-size')) { $('#print-font-size').value = fsz; }
