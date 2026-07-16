@@ -3609,82 +3609,97 @@ body.side-left .sidebar-header {
 }
 
 
-/* ===================== DESKTOP LAYOUT (≥1024px) — Part 1 =====================
-   On large screens the sidebar becomes a persistent left rail. The header
-   shrinks to just a title bar (no hamburger needed). Main content shifts
-   right of the rail and uses the full remaining width.
-   ========================================================================= */
+/* ===================== DESKTOP LAYOUT ≥1024px — SINGLE AUTHORITATIVE BLOCK =====================
+   All desktop overrides live HERE and only here. Never add desktop rules anywhere else.
+   Strategy: persistent left rail, wider content, master-detail splits on key pages.
+   ============================================================================================== */
+
+/* ── Column wrappers: transparent on mobile ── */
+.create-bill-left,
+.create-bill-right,
+.desktop-list-pane {
+    display: contents;
+}
+
+.desktop-detail-pane {
+    display: none;
+}
 
 @media (min-width: 1024px) {
 
-    /* ── Root adjustments ── */
+    /* ─────────────────────────────────────────────────────
+       1. CSS CUSTOM PROPERTIES
+    ───────────────────────────────────────────────────── */
     :root {
-        --desktop-rail-width: 240px;
+        --rail-width: 240px;
     }
 
-    /* ── Body: leave space for permanent rail ── */
+    /* ─────────────────────────────────────────────────────
+       2. BODY — offset for rail
+    ───────────────────────────────────────────────────── */
     body {
-        padding-left: var(--desktop-rail-width);
+        padding-left: var(--rail-width);
     }
 
-    /* ── Sidebar becomes a fixed left rail ── */
+    /* ─────────────────────────────────────────────────────
+       3. SIDEBAR → PERMANENT LEFT RAIL
+    ───────────────────────────────────────────────────── */
     .sidebar {
         left: 0;
         right: auto;
         top: 0;
-        width: var(--desktop-rail-width);
-        max-width: var(--desktop-rail-width);
-        transform: none !important;   /* always visible */
+        width: var(--rail-width);
+        max-width: var(--rail-width);
+        transform: none !important;
         border-left: none;
         border-right: 1px solid var(--border-light);
-        z-index: 90;                  /* below modals, above content */
+        z-index: 95;
         box-shadow: none;
     }
 
-    /* Keep side-left variant working on desktop too */
     body.side-left .sidebar {
         left: 0;
         right: auto;
+        transform: none !important;
         border-right: 1px solid var(--border-light);
         border-left: none;
-        transform: none !important;
     }
 
-    /* Hide overlay and close button — not needed on desktop */
-    .sidebar-overlay  { display: none !important; }
-    .sidebar-close    { display: none !important; }
+    .sidebar-overlay { display: none !important; }
+    .sidebar-close   { display: none !important; }
+    .header-menu-btn { display: none !important; }
 
-    /* Hide hamburger button on desktop */
-    .header-menu-btn  { display: none !important; }
-
-    /* ── Header: full-width but content starts after the rail ── */
+    /* ─────────────────────────────────────────────────────
+       4. HEADER — offset for rail, 2-slot grid
+    ───────────────────────────────────────────────────── */
     .app-header {
-        left: var(--desktop-rail-width);
-        grid-template-columns: 1fr 40px;  /* center + right slot */
+        left: var(--rail-width);
+        grid-template-columns: 1fr auto;
     }
 
     body.side-left .app-header {
-        left: var(--desktop-rail-width);
+        left: var(--rail-width);
         right: 0;
     }
 
-    /* ── Main content: full width, generous padding ── */
+    /* ─────────────────────────────────────────────────────
+       5. FOOTER — offset for rail
+    ───────────────────────────────────────────────────── */
+    .app-footer {
+        left: var(--rail-width);
+    }
+
+    /* ─────────────────────────────────────────────────────
+       6. MAIN CONTENT — wider, more padding
+    ───────────────────────────────────────────────────── */
     .main-content {
-        max-width: 1200px;
+        max-width: 1280px;
         padding: 24px 32px;
     }
 
-    /* ── Footer: also offset by rail ── */
-    .app-footer {
-        left: var(--desktop-rail-width);
-    }
-
-    /* ── Sidebar header: just the brand logo on desktop, no close btn row ── */
-    .sidebar-header {
-        padding: 20px 16px 16px;
-    }
-
-    /* ── Sidebar links: slightly more compact on desktop rail ── */
+    /* ─────────────────────────────────────────────────────
+       7. SIDEBAR LINK SIZING
+    ───────────────────────────────────────────────────── */
     .sidebar-link {
         padding: 10px 14px;
         font-size: 0.875rem;
@@ -3696,117 +3711,81 @@ body.side-left .sidebar-header {
         flex-shrink: 0;
     }
 
-    /* ── Stats grid: more columns on desktop ── */
+    /* ─────────────────────────────────────────────────────
+       8. GENERAL PAGE ELEMENTS
+    ───────────────────────────────────────────────────── */
+
+    /* Stats: 4 columns */
     .stats-grid {
         grid-template-columns: repeat(4, 1fr);
     }
 
-    /* ── Form grids: two columns on desktop ── */
-    .form-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    /* ── Toolbar: don't stack on desktop ── */
+    /* Toolbar: always single row */
     .toolbar {
         flex-direction: row;
         align-items: center;
     }
 
-    /* ── Data table: no forced min-width needed, table scrolls naturally ── */
+    /* Table: no forced min-width */
     .data-table {
         min-width: 0;
     }
 
-    /* ── Bill page: two-column layout (customer | items+totals) ── */
-    #page-create-bill.page.active {
-        display: grid;
-        grid-template-columns: 340px 1fr;
-        gap: 24px;
-        align-items: start;
-    }
-
-    /* Customer section stays in left column; everything else in right */
-    #page-create-bill .bill-section:first-child {
-        position: sticky;
-        top: calc(var(--header-height) + 16px);
-    }
-
-    /* ── Past Bills: two-pane split (list | detail preview) ── */
-    #page-past-bills.page.active {
-        display: grid;
-        grid-template-columns: 1fr 380px;
-        gap: 24px;
-        align-items: start;
-    }
-
-    /* ── Sale Summary: two columns ── */
-    #page-sale-summary .summary-cards-grid,
-    #page-sale-summary .bill-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-
-    #page-sale-summary .bill-section + .bill-section {
-        margin-top: 0;   /* gap handled by grid */
-    }
-
-    /* ── Settings: two columns ── */
-    #page-settings .settings-section {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        align-items: start;
-    }
-
-    /* ── Modals: a bit wider on desktop ── */
+    /* Modals: a little wider */
     .modal-content {
-        max-width: 600px;
+        max-width: 620px;
     }
 
     .modal {
         padding: 24px;
     }
 
-}
-
-@media (min-width: 1280px) {
-    :root { --desktop-rail-width: 260px; }
-
-    .main-content {
-        max-width: 1400px;
-        padding: 28px 40px;
+    /* ─────────────────────────────────────────────────────
+       9. CREATE BILL — 2-COL LAYOUT
+       Left: Bill To (sticky). Right: Items + Totals + Notes.
+    ───────────────────────────────────────────────────── */
+    .create-bill-left,
+    .create-bill-right {
+        display: block;   /* restore block — overrides display:contents */
     }
 
-    /* Three-column stats on very wide screens */
-    .stats-grid {
-        grid-template-columns: repeat(5, 1fr);
-    }
-}
-
-
-/* ===================== DESKTOP MASTER-DETAIL PANE — Part 2 ===================== */
-
-/* List pane takes full width on mobile, left column on desktop */
-.desktop-list-pane {
-    min-width: 0;
-}
-
-/* Detail pane hidden on mobile */
-.desktop-detail-pane {
-    display: none;
-}
-
-@media (min-width: 1024px) {
-
-    /* Past Bills: left list | right detail */
-    #page-past-bills.page.active {
+    #page-create-bill .bill-container {
         display: grid;
-        grid-template-columns: 1fr 360px;
+        grid-template-columns: 360px 1fr;
         gap: 24px;
         align-items: start;
     }
 
+    .create-bill-left {
+        position: sticky;
+        top: calc(var(--header-height) + 16px);
+    }
+
+    .create-bill-right {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Action buttons no longer sticky on desktop (right col scrolls naturally) */
+    .create-bill-right .action-buttons {
+        position: static;
+        margin-top: 0;
+    }
+
+    /* ─────────────────────────────────────────────────────
+       10. MASTER-DETAIL PAGES
+       Each page gets a specific 2-col grid. The left pane
+       holds the list; the right pane holds the detail panel.
+    ───────────────────────────────────────────────────── */
+
+    /* Restore list pane to normal block layout */
+    .desktop-list-pane {
+        display: block;
+        min-width: 0;
+    }
+
+    /* Detail pane: sticky, scrollable, card style */
     .desktop-detail-pane {
         display: flex;
         flex-direction: column;
@@ -3820,6 +3799,48 @@ body.side-left .sidebar-header {
         overflow: hidden;
     }
 
+    /* Past Bills: list | detail */
+    #page-past-bills.page.active {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* Items: list | detail */
+    #page-items.page.active {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* Sale Summary: 2-col stats */
+    #page-sale-summary.page.active {
+        display: block; /* let inner grid handle it */
+    }
+
+    #page-sale-summary .bill-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    #page-sale-summary .bill-section + .bill-section {
+        margin-top: 0;
+    }
+
+    /* Settings: 2-col */
+    #page-settings .settings-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    /* ─────────────────────────────────────────────────────
+       11. DETAIL PANE INTERNALS
+    ───────────────────────────────────────────────────── */
     .desktop-detail-empty {
         flex: 1;
         display: flex;
@@ -3850,126 +3871,33 @@ body.side-left .sidebar-header {
         min-width: 80px;
     }
 
-    #bills-detail-content {
+    #bills-detail-content,
+    #items-detail-content {
         flex: 1;
         overflow-y: auto;
         padding: 14px;
     }
 
-    /* Highlight selected row in list */
-    .bills-row-selected td {
+    /* Selected row highlight */
+    tr.bills-row-selected td {
         background: var(--accent-soft, rgba(79,140,255,0.08)) !important;
     }
 
-    /* Items page: list | product detail */
-    #page-items.page.active {
-        display: grid;
-        grid-template-columns: 1fr 320px;
-        gap: 24px;
-        align-items: start;
-    }
-
-    #items-detail-pane {
-        display: flex;
-        flex-direction: column;
-        position: sticky;
-        top: calc(var(--header-height) + 16px);
-        max-height: calc(100vh - var(--header-height) - 48px);
-        background: var(--bg-card);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-sm);
-        overflow: hidden;
-    }
 }
 
+/* ─────────────────────────────────────────────────────
+   WIDE SCREENS ≥1280px
+───────────────────────────────────────────────────── */
+@media (min-width: 1280px) {
+    :root { --rail-width: 260px; }
 
-/* Items page master-detail split (Part 3) */
-@media (min-width: 1024px) {
-    #page-items.page.active {
-        display: grid;
-        grid-template-columns: 1fr 320px;
-        gap: 24px;
-        align-items: start;
+    .main-content {
+        max-width: 1440px;
+        padding: 28px 40px;
     }
 
-    #items-detail-pane {
-        display: flex;
-        flex-direction: column;
-        position: sticky;
-        top: calc(var(--header-height) + 16px);
-        max-height: calc(100vh - var(--header-height) - 48px);
-        background: var(--bg-card);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-sm);
-        overflow: hidden;
+    .stats-grid {
+        grid-template-columns: repeat(5, 1fr);
     }
-}
-
-/* ===================== CREATE BILL 2-COL + OTHER FIXES (v4.05.0) ===================== */
-
-/* Create bill: left and right columns stack on mobile */
-.create-bill-left,
-.create-bill-right {
-    display: contents; /* transparent on mobile — bill-container flex handles layout */
-}
-
-@media (min-width: 1024px) {
-    /* Override bill-container flex with a 2-col grid on desktop */
-    #page-create-bill .bill-container {
-        display: grid;
-        grid-template-columns: 340px 1fr;
-        gap: 24px;
-        align-items: start;
-    }
-
-    .create-bill-left {
-        display: block;
-        position: sticky;
-        top: calc(var(--header-height) + 16px);
-    }
-
-    .create-bill-right {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    /* Right col: action buttons sit at bottom, not sticky-fixed */
-    .create-bill-right .action-buttons {
-        position: static;
-        margin-top: 4px;
-    }
-}
-
-/* Selected row highlight — shared between bills and items panels */
-tr.bills-row-selected td {
-    background: var(--accent-soft, rgba(79,140,255,0.08)) !important;
-}
-
-/* Desktop detail panel: auto-clear when deleteItem is called
-   (handled in JS; these styles ensure empty state renders correctly) */
-.desktop-detail-empty p {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    margin: 0;
-}
-
-/* Ensure items detail pane matches bills detail pane */
-#items-detail-pane .desktop-detail-actions {
-    display: flex;
-    gap: 8px;
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--border-light);
-    background: var(--bg-secondary);
-    flex-shrink: 0;
-    flex-wrap: wrap;
-}
-
-#items-detail-pane .desktop-detail-actions .action-btn {
-    flex: 1;
-    padding: 8px 10px;
-    font-size: 0.8125rem;
 }
 
