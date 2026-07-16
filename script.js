@@ -2116,10 +2116,139 @@ function viewItem(id) {
     const it = AppState.items.find(i => i.id === id);
     if (!it) return;
 
+    // Desktop: populate the sticky side panel
+    const detailPane = $('#items-detail-pane');
+    if (detailPane && window.innerWidth >= 1024) {
+        itemPGImages = Array.isArray(it.images) ? it.images.filter(Boolean) : [];
+        itemPGIndex = 0;
+
+        // Gallery HTML (reuse product-page gallery CSS)
+        const galleryHtml = itemPGImages.length
+            ? `<div class="product-page-gallery" id="item-pg-gallery" style="border-radius:0;aspect-ratio:16/9;">
+                <div class="product-page-gallery-track" id="item-pg-track">
+                    ${itemPGImages.map(src => `<img src="${src}" alt="product">`).join('')}
+                </div>
+                <button class="product-page-arrow prev" id="item-pg-prev" onclick="itemPGMove(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+                <button class="product-page-arrow next" id="item-pg-next" onclick="itemPGMove(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+                <div class="product-page-img-counter" id="item-pg-counter">${itemPGImages.length > 1 ? `1 / ${itemPGImages.length}` : ''}</div>
+               </div>
+               <div class="product-page-dots" id="item-pg-dots">
+                 ${itemPGImages.map((_, i) => `<button class="product-page-dot ${i === 0 ? 'active' : ''}" onclick="itemPGGoTo(${i})"></button>`).join('')}
+               </div>`
+            : '';
+
+        const stock = it.trackStock === false ? 'Not tracked'
+            : it.stock <= 0 ? 'Out of Stock'
+            : it.stock <= 5 ? `Low Stock — ${it.stock} left`
+            : `${it.stock} in stock`;
+
+        const stockClass = it.trackStock === false ? 'in-stock'
+            : it.stock <= 0 ? 'out-stock'
+            : it.stock <= 5 ? 'low-stock' : 'in-stock';
+
+        const specs = [
+            it.sku        ? ['SKU',          it.sku]        : null,
+            it.ean        ? ['EAN',           it.ean]        : null,
+            it.itemNumber ? ['Item No.',      it.itemNumber] : null,
+            it.brand      ? ['Brand',         it.brand]      : null,
+            ['Price',    formatCurrency(it.price || 0)],
+            it.cost       ? ['Cost',          formatCurrency(it.cost)] : null,
+            ['Discount', `${it.discount || 0}%`],
+            ['Tax',      `${it.tax || 0}%`],
+        ].filter(Boolean);
+
+        $('#items-detail-empty').style.display = 'none';
+        $('#items-detail-content').style.display = '';
+        $('#items-detail-actions').innerHTML = `
+            <button class="action-btn btn-save" onclick="openItemModal(${id})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                Edit
+            </button>
+            <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteItem(${id})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                Delete
+            </button>`;
+        $('#items-detail-body').innerHTML = `
+            ${galleryHtml}
+            <div style="padding:${galleryHtml ? '12px 0 0' : '0'};">
+                <div style="font-size:1.1rem;font-weight:800;color:var(--text-primary);margin-bottom:4px;">${escapeHtml(it.name)}</div>
+                <span class="product-page-stock-badge ${stockClass}" style="margin-bottom:10px;display:inline-flex;">${stock}</span>
+                <div class="product-page-specs" style="margin-top:8px;">
+                    ${specs.map(([l, v]) => `<div class="product-page-spec-row"><span class="product-page-spec-label">${escapeHtml(l)}</span><span class="product-page-spec-value">${escapeHtml(String(v))}</span></div>`).join('')}
+                </div>
+            </div>`;
+
+        // Highlight row
+        $$('#items-table-body tr[data-item-id]').forEach(r => r.classList.remove('bills-row-selected'));
+        const row = $(`#items-table-body tr[data-item-id="${id}"]`);
+        if (row) row.classList.add('bills-row-selected');
+
+        // Touch swipe for gallery
+        if (itemPGImages.length > 1) {
+            const g = $('#item-pg-gallery');
+            if (g) {
+                g.addEventListener('touchstart', itemPGTouchStart, { passive: true });
+                g.addEventListener('touchmove', itemPGTouchMove, { passive: false });
+                g.addEventListener('touchend', itemPGTouchEnd);
+                g.addEventListener('mousedown', itemPGMouseDown);
+                itemPGUpdatePosition(false);
+            }
+        }
+        return; // don't open modal on desktop
+    }
+
+    // Mobile: open the full-screen product page modal
     itemPGImages = Array.isArray(it.images) ? it.images.filter(Boolean) : [];
     itemPGIndex = 0;
 
     $('#item-product-title').textContent = it.name;
+    $('#item-pg-name').textContent = it.name;
+
+    const brandBadge = $('#item-pg-brand-badge');
+    if (it.brand) { brandBadge.textContent = it.brand; brandBadge.style.display = 'inline-block'; }
+    else { brandBadge.style.display = 'none'; }
+
+    $('#item-pg-price').textContent = formatCurrency(it.price || 0);
+    const costEl = $('#item-pg-cost');
+    costEl.textContent = it.cost ? `Cost: ${formatCurrency(it.cost)}` : '';
+
+    const stockEl = $('#item-pg-stock-badge');
+    if (it.trackStock === false) {
+        stockEl.className = 'product-page-stock-badge in-stock'; stockEl.textContent = 'Stock not tracked';
+    } else {
+        const s = it.stock || 0;
+        if (s <= 0) { stockEl.className = 'product-page-stock-badge out-stock'; stockEl.textContent = 'Out of Stock'; }
+        else if (s <= 5) { stockEl.className = 'product-page-stock-badge low-stock'; stockEl.textContent = `Low Stock — ${s} left`; }
+        else { stockEl.className = 'product-page-stock-badge in-stock'; stockEl.textContent = `In Stock — ${s} units`; }
+    }
+
+    const specs = [
+        it.sku        ? ['SKU',          it.sku]        : null,
+        it.ean        ? ['Barcode / EAN', it.ean]        : null,
+        it.itemNumber ? ['Item Number',   it.itemNumber] : null,
+        ['Discount',  `${it.discount || 0}%`],
+        ['Tax',       `${it.tax || 0}%`],
+    ].filter(Boolean);
+
+    $('#item-pg-specs').innerHTML = specs.map(([label, val]) => `
+        <div class="product-page-spec-row">
+            <span class="product-page-spec-label">${escapeHtml(label)}</span>
+            <span class="product-page-spec-value">${escapeHtml(String(val))}</span>
+        </div>`).join('');
+
+    itemPGRenderGallery();
+    $('#item-product-modal').dataset.itemId = id;
+    $('#item-product-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    const gallery = $('#item-pg-gallery');
+    if (gallery) {
+        gallery.addEventListener('touchstart', itemPGTouchStart, { passive: true });
+        gallery.addEventListener('touchmove', itemPGTouchMove, { passive: false });
+        gallery.addEventListener('touchend', itemPGTouchEnd);
+        gallery.addEventListener('mousedown', itemPGMouseDown);
+    }
+}
     $('#item-pg-name').textContent = it.name;
 
     // Brand badge
@@ -2170,21 +2299,6 @@ function viewItem(id) {
             <span class="product-page-spec-value">${escapeHtml(String(val))}</span>
         </div>
     `).join('');
-
-    // Gallery
-    itemPGRenderGallery();
-
-    $('#item-product-modal').dataset.itemId = id;
-    $('#item-product-modal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-
-    // Touch / drag swipe
-    const gallery = $('#item-pg-gallery');
-    gallery.addEventListener('touchstart', itemPGTouchStart, { passive: true });
-    gallery.addEventListener('touchmove', itemPGTouchMove, { passive: false });
-    gallery.addEventListener('touchend', itemPGTouchEnd);
-    gallery.addEventListener('mousedown', itemPGMouseDown);
-}
 
 function itemPGRenderGallery() {
     const track = $('#item-pg-track');

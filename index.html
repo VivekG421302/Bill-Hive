@@ -464,6 +464,7 @@
 
         <!-- ITEMS PAGE -->
         <section id="page-items" class="page">
+            <div class="desktop-list-pane">
             <div class="page-header">
                 <h1>Items</h1>
                 <p>Manage your product catalog</p>
@@ -508,6 +509,21 @@
                         <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
                     </svg>
                     <p>No items yet. Add your first product or service.</p>
+                </div>
+            </div>
+            </div><!-- end desktop-list-pane -->
+
+            <!-- Right pane: item detail (desktop only) -->
+            <div class="desktop-detail-pane" id="items-detail-pane">
+                <div class="desktop-detail-empty" id="items-detail-empty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px;opacity:0.2;">
+                        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+                    </svg>
+                    <p>Select an item to preview</p>
+                </div>
+                <div id="items-detail-content" style="display:none;overflow-y:auto;flex:1;">
+                    <div class="desktop-detail-actions" id="items-detail-actions"></div>
+                    <div id="items-detail-body" style="padding:14px;"></div>
                 </div>
             </div>
         </section>

@@ -3883,3 +3883,26 @@ body.side-left .sidebar-header {
     }
 }
 
+
+/* Items page master-detail split (Part 3) */
+@media (min-width: 1024px) {
+    #page-items.page.active {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    #items-detail-pane {
+        display: flex;
+        flex-direction: column;
+        position: sticky;
+        top: calc(var(--header-height) + 16px);
+        max-height: calc(100vh - var(--header-height) - 48px);
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+}
