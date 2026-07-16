@@ -2408,9 +2408,16 @@ function itemPGMouseDown(e) {
 }
 
 function closeItemProductPage() {
+    // Mobile: close the modal
     $('#item-product-modal').classList.remove('active');
     document.body.style.overflow = '';
-    // Clean up touch listeners
+    // Desktop: clear the side panel
+    const pane = $('#items-detail-pane');
+    if (pane && window.innerWidth >= 1024) {
+        $('#items-detail-empty').style.display = '';
+        $('#items-detail-content').style.display = 'none';
+        $$('#items-table-body tr').forEach(r => r.classList.remove('bills-row-selected'));
+    }
     const gallery = $('#item-pg-gallery');
     if (gallery) {
         gallery.removeEventListener('touchstart', itemPGTouchStart);
@@ -2421,18 +2428,21 @@ function closeItemProductPage() {
 }
 
 function editItemFromProductPage() {
-    const id = parseInt($('#item-product-modal').dataset.itemId, 10);
+    // Works for both mobile (modal dataset) and desktop (panel dataset via row highlight)
+    const id = parseInt($('#item-product-modal').dataset.itemId, 10)
+        || parseInt($('tr.bills-row-selected[data-item-id]')?.dataset.itemId, 10);
     closeItemProductPage();
-    openItemModal(id);
+    if (id) openItemModal(id);
 }
 
 async function deleteItemFromProductPage() {
-    const id = parseInt($('#item-product-modal').dataset.itemId, 10);
+    const id = parseInt($('#item-product-modal').dataset.itemId, 10)
+        || parseInt($('tr.bills-row-selected[data-item-id]')?.dataset.itemId, 10);
     closeItemProductPage();
-    await deleteItem(id);
+    if (id) await deleteItem(id);
 }
 
-// Keep old names as aliases so any stale references don't break
+// Keep old names as aliases
 function closeItemViewModal() { closeItemProductPage(); }
 function editItemFromView() { editItemFromProductPage(); }
 async function deleteItemFromView() { await deleteItemFromProductPage(); }
@@ -2746,6 +2756,14 @@ function openBillViewModal(id) {
 function closeBillViewModal() {
     $('#bill-view-modal').classList.remove('active');
     document.body.style.overflow = '';
+    // Desktop: clear the detail panel
+    if (window.innerWidth >= 1024) {
+        const empty = $('#bills-detail-empty');
+        const content = $('#bills-detail-content');
+        if (empty) empty.style.display = '';
+        if (content) content.style.display = 'none';
+        $$('#past-bills-body tr').forEach(r => r.classList.remove('bills-row-selected'));
+    }
 }
 
 function previewBillFromView() {
@@ -2768,9 +2786,10 @@ function printBillFromView() {
 }
 
 async function deleteBillFromView() {
-    const id = parseInt($('#bill-view-modal').dataset.billId, 10);
+    const id = parseInt($('#bill-view-modal').dataset.billId, 10)
+        || parseInt($('tr.bills-row-selected[data-bill-id]')?.dataset.billId, 10);
     closeBillViewModal();
-    await deletePastBill(id);
+    if (id) await deletePastBill(id);
 }
 
 // ===================== SALES RETURN =====================

@@ -213,7 +213,8 @@
         <!-- CREATE BILL PAGE -->
         <section id="page-create-bill" class="page active">
             <div class="bill-container">
-                <!-- Bill To Section -->
+                <!-- LEFT COL: customer -->
+                <div class="create-bill-left">
                 <div class="bill-section">
                     <div class="section-header">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -252,8 +253,11 @@
                             <textarea id="delivery-address" rows="2" placeholder="Enter delivery address"></textarea>
                         </div>
                     </div>
-                </div>
+                </div><!-- /bill-to -->
+                </div><!-- /create-bill-left -->
 
+                <!-- RIGHT COL: items + totals + notes -->
+                <div class="create-bill-right">
                 <!-- Line Items Section -->
                 <div class="bill-section">
                     <div class="section-header">
@@ -391,8 +395,9 @@
                         </svg>
                         Preview
                     </button>
-                </div>
-            </div>
+                </div><!-- /action-buttons -->
+                </div><!-- /create-bill-right -->
+            </div><!-- /bill-container -->
         </section>
 
         <!-- PAST BILLS PAGE -->

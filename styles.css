@@ -3906,3 +3906,70 @@ body.side-left .sidebar-header {
         overflow: hidden;
     }
 }
+
+/* ===================== CREATE BILL 2-COL + OTHER FIXES (v4.05.0) ===================== */
+
+/* Create bill: left and right columns stack on mobile */
+.create-bill-left,
+.create-bill-right {
+    display: contents; /* transparent on mobile — bill-container flex handles layout */
+}
+
+@media (min-width: 1024px) {
+    /* Override bill-container flex with a 2-col grid on desktop */
+    #page-create-bill .bill-container {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    .create-bill-left {
+        display: block;
+        position: sticky;
+        top: calc(var(--header-height) + 16px);
+    }
+
+    .create-bill-right {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Right col: action buttons sit at bottom, not sticky-fixed */
+    .create-bill-right .action-buttons {
+        position: static;
+        margin-top: 4px;
+    }
+}
+
+/* Selected row highlight — shared between bills and items panels */
+tr.bills-row-selected td {
+    background: var(--accent-soft, rgba(79,140,255,0.08)) !important;
+}
+
+/* Desktop detail panel: auto-clear when deleteItem is called
+   (handled in JS; these styles ensure empty state renders correctly) */
+.desktop-detail-empty p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Ensure items detail pane matches bills detail pane */
+#items-detail-pane .desktop-detail-actions {
+    display: flex;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+#items-detail-pane .desktop-detail-actions .action-btn {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 0.8125rem;
+}
+
