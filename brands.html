@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Your Brands — Bill-Hive</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#228be6">
@@ -310,7 +310,7 @@ a {
     border-bottom: 1px solid var(--border-light);
     z-index: 210;
     display: grid;
-    grid-template-columns: 40px 1fr 40px;
+    grid-template-columns: 1fr 48px;
     align-items: center;
     padding: 0 16px;
     gap: 8px;
@@ -1375,7 +1375,7 @@ a {
 .brand-card-logo {
     width: 100%;
     aspect-ratio: 4 / 1;
-    background: #ffffff;
+    background: var(--bg-tertiary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1605,50 +1605,13 @@ a {
 }
 
 #brand-form-logo-preview {
-    display: block;
-    max-width: 100%;
-    max-height: 90px;
-    object-fit: contain;
-    border-radius: var(--radius-sm);
-}
-
-.brand-logo-preview-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 4px 0;
-    position: relative;
-    z-index: 1;
-}
-
-.brand-logo-remove-btn {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--accent-danger, #e03131);
-    border: none;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 3;
-    padding: 0;
-    transition: transform var(--transition-fast);
-}
-
-.brand-logo-remove-btn:hover {
-    transform: scale(1.15);
-}
-
-.brand-logo-remove-btn svg {
-    width: 12px;
-    height: 12px;
+    inset: 8px;
+    max-width: calc(100% - 16px);
+    max-height: calc(100% - 16px);
+    object-fit: contain;
+    z-index: 1;
+    border-radius: var(--radius-sm);
 }
 
 /* ===================== SETTINGS PAGE ===================== */
@@ -3470,6 +3433,55 @@ body.side-left .sidebar-header {
     grid-column: 1 / -1;
 }
 
+
+/* ===================== DESKTOP RAIL ≥1024px ===================== */
+@media (min-width: 1024px) {
+    :root { --rail-width: 240px; }
+
+    body { padding-left: var(--rail-width); }
+
+    .sidebar {
+        left: 0; right: auto; top: 0;
+        width: var(--rail-width);
+        max-width: var(--rail-width);
+        transform: none !important;
+        border-left: none;
+        border-right: 1px solid var(--border-light);
+        z-index: 95;
+        box-shadow: none;
+    }
+
+    body.side-left .sidebar {
+        left: 0; right: auto;
+        transform: none !important;
+        border-right: 1px solid var(--border-light);
+        border-left: none;
+    }
+
+    .sidebar-overlay  { display: none !important; }
+    .sidebar-close    { display: none !important; }
+    .header-menu-btn  { display: none !important; }
+
+    .app-header {
+        left: var(--rail-width);
+        grid-template-columns: 1fr 48px;
+    }
+
+    body.side-left .app-header { left: var(--rail-width); right: 0; }
+
+    .app-footer { left: var(--rail-width); }
+
+    .main-content { max-width: 1280px; padding: 24px 32px; }
+
+    .sidebar-link { padding: 10px 14px; font-size: 0.875rem; }
+    .sidebar-link svg { width: 18px; height: 18px; flex-shrink: 0; }
+}
+
+@media (min-width: 1280px) {
+    :root { --rail-width: 260px; }
+    .main-content { max-width: 1440px; padding: 28px 40px; }
+}
+
 </style>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -3624,17 +3636,6 @@ body.side-left .sidebar-header {
 
     <!-- ===================== HEADER ===================== -->
     <header class="app-header">
-        <div class="header-left">
-            <svg class="header-brand-icon" viewBox="0 0 48 48" fill="none">
-                <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
-                <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
-                <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
-                <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
-                <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
-            </svg>
-        </div>
         <div class="header-center">
             <div class="logo-container" id="header-logo-container" onclick="window.location.reload()" style="cursor:pointer;" title="Reload">
                 <img id="header-logo" src="" alt="Company Logo" style="display:none;">
@@ -3735,7 +3736,7 @@ body.side-left .sidebar-header {
                         <label>Brand Logo</label>
                         <div class="logo-upload-area" id="brand-logo-upload-area">
                             <input type="file" id="brand-form-logo-input" accept="image/*" onchange="handleBrandLogoUpload(event)">
-                            <div class="logo-upload-content" id="brand-logo-upload-hint">
+                            <div class="logo-upload-content">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
                                     <polyline points="17 8 12 3 7 8"/>
@@ -3744,12 +3745,7 @@ body.side-left .sidebar-header {
                                 <span>Click to upload logo</span>
                                 <small>4:1 ratio recommended &middot; PNG, JPG, SVG &middot; max 2MB</small>
                             </div>
-                            <div class="brand-logo-preview-wrap" id="brand-logo-preview-wrap" style="display:none;">
-                                <img id="brand-form-logo-preview" src="" alt="Logo Preview">
-                                <button type="button" class="brand-logo-remove-btn" onclick="removeBrandLogo(event)" title="Remove logo">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                </button>
-                            </div>
+                            <img id="brand-form-logo-preview" src="" alt="Logo Preview" style="display:none;">
                         </div>
                     </div>
                     <div class="form-group full-width">
@@ -4608,12 +4604,8 @@ function openBrandModal(id = null) {
     brandFormLogoData = '';
     const title = $('#brand-modal-title');
     const preview = $('#brand-form-logo-preview');
-    const previewWrap = $('#brand-logo-preview-wrap');
-    const uploadHint = $('#brand-logo-upload-hint');
     preview.style.display = 'none';
     preview.src = '';
-    previewWrap.style.display = 'none';
-    uploadHint.style.display = '';
 
     if (id) {
         const b = Brands.find(x => x.id === id);
@@ -4628,8 +4620,6 @@ function openBrandModal(id = null) {
             brandFormLogoData = b.logo;
             preview.src = b.logo;
             preview.style.display = 'block';
-            previewWrap.style.display = 'flex';
-            uploadHint.style.display = 'none';
         }
     } else {
         title.textContent = 'Add Brand';
@@ -4651,35 +4641,18 @@ function closeBrandModal() {
 function handleBrandLogoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { showToast('Logo must be under 2MB'); return; }
+    if (file.size > 2 * 1024 * 1024) {
+        showToast('Logo must be under 2MB');
+        return;
+    }
     const reader = new FileReader();
     reader.onload = (e) => {
-        BHImageEditor.open(e.target.result, { title: 'Edit Brand Logo' }).then(dataUrl => {
-            brandFormLogoData = dataUrl;
-            const preview = $('#brand-form-logo-preview');
-            const previewWrap = $('#brand-logo-preview-wrap');
-            const uploadHint = $('#brand-logo-upload-hint');
-            preview.src = dataUrl;
-            preview.style.display = 'block';
-            previewWrap.style.display = 'flex';
-            uploadHint.style.display = 'none';
-        }).catch(() => {});
+        brandFormLogoData = e.target.result;
+        const preview = $('#brand-form-logo-preview');
+        preview.src = brandFormLogoData;
+        preview.style.display = 'block';
     };
     reader.readAsDataURL(file);
-    event.target.value = '';
-}
-
-function removeBrandLogo(event) {
-    event.stopPropagation();
-    brandFormLogoData = '';
-    const preview = $('#brand-form-logo-preview');
-    const previewWrap = $('#brand-logo-preview-wrap');
-    const uploadHint = $('#brand-logo-upload-hint');
-    preview.src = '';
-    preview.style.display = 'none';
-    previewWrap.style.display = 'none';
-    uploadHint.style.display = '';
-    $('#brand-form-logo-input').value = '';
 }
 
 async function saveBrandForm() {
@@ -4722,7 +4695,6 @@ document.addEventListener('DOMContentLoaded', loadBrands);
 
     </script>
 
-    <script src="image-editor.js"></script>
     <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
 
     <!-- ===================== SCREEN SAVER OVERLAY (v4.02.0 Part 1) ===================== -->
