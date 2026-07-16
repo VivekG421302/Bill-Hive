@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Fulfillment — Bill-Hive</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#228be6">
@@ -4142,29 +4142,63 @@ async function markPOOrdered(id) {
     const po = PurchaseOrders.find(p => p.id === id);
     if (!po) return;
     po.status = 'Ordered';
+    po.orderedAt = new Date().toISOString();
     await savePOStorage();
     renderPOTable();
-    showToast(`${po.poNumber} marked as ordered`);
+    showToast(`${po.poNumber} marked as Ordered`);
 }
 
 async function markPOReceived(id) {
     const po = PurchaseOrders.find(p => p.id === id);
     if (!po) return;
-    if (!await showConfirm(`Mark ${po.poNumber} as received? This will add the ordered quantities to stock.`, 'Mark Received')) return;
 
+    // Close the PO view modal FIRST so the confirm dialog is never stacked on top of it.
+    // Stacking two modals causes body.overflow conflicts and makes the confirm feel broken.
+    closePoModal();
+
+    const confirmed = await showConfirm(
+        `Mark ${po.poNumber} as Received?\n\nThis will add the ordered quantities to stock.`,
+        'Mark as Received'
+    );
+
+    if (!confirmed) {
+        // User cancelled — reopen the PO view so they can try again
+        viewPO(id);
+        return;
+    }
+
+    // Update stock for each line item
     for (const line of po.items) {
         const item = FItems.find(i => String(i.id) === String(line.itemId));
-        if (item) {
+        if (item && line.qty > 0) {
             item.stock = (item.stock || 0) + line.qty;
             await saveStockLogEntry(item.id, item.name, 'Purchase Received', line.qty, po.poNumber);
         }
     }
+
     await saveItemsStorage();
     po.status = 'Received';
+    po.receivedAt = new Date().toISOString();
     await savePOStorage();
     renderPOTable();
     renderRestockTable();
     showToast(`${po.poNumber} received — stock updated`);
+    // Reopen the PO view to show the updated Received status
+    viewPO(id);
+}
+
+async function advancePOStatus(id) {
+    const po = PurchaseOrders.find(p => p.id === id);
+    if (!po) return;
+    const next = getNextStatus(po.status);
+    if (next === 'Received') {
+        // markPOReceived handles close→confirm→reopen itself
+        await markPOReceived(id);
+    } else if (next === 'Ordered') {
+        await markPOOrdered(id);
+        // Refresh the modal content to show updated status and new action button
+        viewPO(id);
+    }
 }
 
 async function deletePO(id) {
@@ -4239,20 +4273,6 @@ function viewPO(id) {
 function getNextStatus(current) {
     const map = { 'Pending': 'Ordered', 'Ordered': 'Received' };
     return map[current] || current;
-}
-
-async function advancePOStatus(id) {
-    const po = PurchaseOrders.find(p => p.id === id);
-    if (!po) return;
-    const next = getNextStatus(po.status);
-    if (next === 'Received') {
-        await markPOReceived(id);
-    } else if (next === 'Ordered') {
-        await markPOOrdered(id);
-    }
-    // If the user cancelled a confirmation inside markPOReceived, po.status
-    // simply won't have changed — re-viewing is correct either way.
-    viewPO(id);
 }
 
 async function changePOStatus(id, newStatus) {
