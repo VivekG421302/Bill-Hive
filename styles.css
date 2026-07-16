@@ -94,12 +94,8 @@ body {
     background: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
-    min-height: 100dvh;
     padding-top: var(--header-height);
     padding-bottom: var(--footer-height);
-    /* Safe-area insets for notch / home-indicator phones */
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
     transition: background var(--transition-normal), color var(--transition-normal);
     overflow-x: hidden;
 }
@@ -195,8 +191,8 @@ a {
 }
 
 .sidebar-close {
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
@@ -298,13 +294,11 @@ a {
     height: var(--header-height);
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-light);
-    z-index: 300;
+    z-index: 210;
     display: grid;
     grid-template-columns: 40px 1fr 40px;
     align-items: center;
     padding: 0 16px;
-    padding-left: max(16px, env(safe-area-inset-left));
-    padding-right: max(16px, env(safe-area-inset-right));
     gap: 8px;
     transition: background var(--transition-normal), border-color var(--transition-normal);
 }
@@ -513,18 +507,6 @@ a {
     width: 100%;
 }
 
-/* Prevent iOS Safari from auto-zooming on input focus (requires ≥ 16px) */
-@media (max-width: 768px) {
-    .form-group input,
-    .form-group textarea,
-    .form-group select,
-    .login-input,
-    .bhe-num,
-    .settings-textarea {
-        font-size: 1rem;
-    }
-}
-
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
@@ -598,8 +580,8 @@ a {
 }
 
 .line-item-delete {
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -928,8 +910,6 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Push content above home indicator on iPhone */
-    padding-bottom: env(safe-area-inset-bottom);
     transition: background var(--transition-normal), border-color var(--transition-normal);
 }
 
@@ -1028,8 +1008,8 @@ a {
 }
 
 .modal-close {
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -1081,13 +1061,12 @@ a {
 .pos-bill {
     max-width: 300px;
     margin: 0 auto;
-    font-size: var(--pw-size, 12px);
+    font-size: var(--pw-size, 11px);
     font-weight: var(--pw-base, 500);
-    font-family: var(--pw-font, 'Courier New', monospace);
 }
 
 .pos-bill * {
-    font-family: var(--pw-font, 'Courier New', monospace) !important;
+    font-family: 'Courier New', monospace !important;
 }
 
 .pos-header {
@@ -1109,18 +1088,18 @@ a {
 }
 
 .pos-company-name {
-    font-size: 1.15em;
+    font-size: 13px;
     font-weight: var(--pw-strong, 700);
     margin-bottom: 2px;
 }
 
 .pos-gst {
-    font-size: 0.8em;
+    font-size: 9px;
     margin-bottom: 4px;
 }
 
 .pos-address, .pos-contact {
-    font-size: 0.82em;
+    font-size: 9px;
     line-height: 1.3;
 }
 
@@ -1133,7 +1112,7 @@ a {
 .pos-meta {
     display: flex;
     justify-content: space-between;
-    font-size: 0.85em;
+    font-size: 9px;
     margin-bottom: 4px;
 }
 
@@ -1147,17 +1126,17 @@ a {
 
 .pos-customer-label {
     font-weight: var(--pw-strong, 700);
-    font-size: 0.9em;
+    font-size: 9px;
 }
 
 .pos-customer-name {
-    font-size: 0.9em;
+    font-size: 10px;
 }
 
 .pos-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9em;
+    font-size: 9px;
     margin-bottom: 6px;
 }
 
@@ -1185,7 +1164,7 @@ a {
 .pos-totals {
     border-top: 1px solid #000;
     padding-top: 4px;
-    font-size: 0.9em;
+    font-size: 9px;
 }
 
 .pos-total-row {
@@ -1925,8 +1904,8 @@ a {
 }
 
 .icon-btn {
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -2372,10 +2351,10 @@ a {
         right: 0;
         border-radius: var(--radius-lg) var(--radius-lg) 0 0;
         padding: 16px;
-        max-height: calc(70vh - var(--header-height));
+        max-height: 70vh;
         overflow-y: auto;
         box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.22);
-        z-index: 250;
+        z-index: 220;
     }
 }
 
@@ -3135,9 +3114,9 @@ body.side-left .sidebar-header {
     display: none;
     position: fixed;
     inset: 0;
-    top: var(--header-height);
+    top: var(--header-height); /* never cover the header */
     background: rgba(0,0,0,0.4);
-    z-index: 240;
+    z-index: 199;
     pointer-events: none;
 }
 .column-toggle-backdrop.open {
@@ -3629,686 +3608,179 @@ body.side-left .sidebar-header {
     }
 }
 
-/* ===================== DESKTOP SPLIT-PANE LAYOUT (≥1100px) ===================== */
-/*
- * On wide screens, pages with a list + view use a two-column master-detail layout:
- * left pane = list (fixed width), right pane = inline detail panel.
- * Pages that opt in add class "split-page" to their <section>.
- */
-@media (min-width: 1100px) {
-    body {
-        /* Allow wider content on desktop */
+
+/* ===================== DESKTOP LAYOUT (≥1024px) — Part 1 =====================
+   On large screens the sidebar becomes a persistent left rail. The header
+   shrinks to just a title bar (no hamburger needed). Main content shifts
+   right of the rail and uses the full remaining width.
+   ========================================================================= */
+
+@media (min-width: 1024px) {
+
+    /* ── Root adjustments ── */
+    :root {
+        --desktop-rail-width: 240px;
     }
+
+    /* ── Body: leave space for permanent rail ── */
+    body {
+        padding-left: var(--desktop-rail-width);
+    }
+
+    /* ── Sidebar becomes a fixed left rail ── */
+    .sidebar {
+        left: 0;
+        right: auto;
+        top: 0;
+        width: var(--desktop-rail-width);
+        max-width: var(--desktop-rail-width);
+        transform: none !important;   /* always visible */
+        border-left: none;
+        border-right: 1px solid var(--border-light);
+        z-index: 90;                  /* below modals, above content */
+        box-shadow: none;
+    }
+
+    /* Keep side-left variant working on desktop too */
+    body.side-left .sidebar {
+        left: 0;
+        right: auto;
+        border-right: 1px solid var(--border-light);
+        border-left: none;
+        transform: none !important;
+    }
+
+    /* Hide overlay and close button — not needed on desktop */
+    .sidebar-overlay  { display: none !important; }
+    .sidebar-close    { display: none !important; }
+
+    /* Hide hamburger button on desktop */
+    .header-menu-btn  { display: none !important; }
+
+    /* ── Header: full-width but content starts after the rail ── */
+    .app-header {
+        left: var(--desktop-rail-width);
+        grid-template-columns: 1fr 40px;  /* center + right slot */
+    }
+
+    body.side-left .app-header {
+        left: var(--desktop-rail-width);
+        right: 0;
+    }
+
+    /* ── Main content: full width, generous padding ── */
+    .main-content {
+        max-width: 1200px;
+        padding: 24px 32px;
+    }
+
+    /* ── Footer: also offset by rail ── */
+    .app-footer {
+        left: var(--desktop-rail-width);
+    }
+
+    /* ── Sidebar header: just the brand logo on desktop, no close btn row ── */
+    .sidebar-header {
+        padding: 20px 16px 16px;
+    }
+
+    /* ── Sidebar links: slightly more compact on desktop rail ── */
+    .sidebar-link {
+        padding: 10px 14px;
+        font-size: 0.875rem;
+    }
+
+    .sidebar-link svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+
+    /* ── Stats grid: more columns on desktop ── */
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    /* ── Form grids: two columns on desktop ── */
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    /* ── Toolbar: don't stack on desktop ── */
+    .toolbar {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    /* ── Data table: no forced min-width needed, table scrolls naturally ── */
+    .data-table {
+        min-width: 0;
+    }
+
+    /* ── Bill page: two-column layout (customer | items+totals) ── */
+    #page-create-bill.page.active {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* Customer section stays in left column; everything else in right */
+    #page-create-bill .bill-section:first-child {
+        position: sticky;
+        top: calc(var(--header-height) + 16px);
+    }
+
+    /* ── Past Bills: two-pane split (list | detail preview) ── */
+    #page-past-bills.page.active {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* ── Sale Summary: two columns ── */
+    #page-sale-summary .summary-cards-grid,
+    #page-sale-summary .bill-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    #page-sale-summary .bill-section + .bill-section {
+        margin-top: 0;   /* gap handled by grid */
+    }
+
+    /* ── Settings: two columns ── */
+    #page-settings .settings-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    /* ── Modals: a bit wider on desktop ── */
+    .modal-content {
+        max-width: 600px;
+    }
+
+    .modal {
+        padding: 24px;
+    }
+
+}
+
+@media (min-width: 1280px) {
+    :root { --desktop-rail-width: 260px; }
 
     .main-content {
         max-width: 1400px;
-        padding: 20px 24px;
+        padding: 28px 40px;
     }
 
-    /* Past Bills: master-detail two-column layout — only when the page is visible */
-    .page.active.split-page {
-        display: grid;
-        grid-template-columns: minmax(320px, 400px) 1fr;
-        grid-template-rows: auto auto auto 1fr;
-        gap: 0;
-        min-height: calc(100vh - var(--header-height) - var(--footer-height) - 40px);
-        align-items: start;
+    /* Three-column stats on very wide screens */
+    .stats-grid {
+        grid-template-columns: repeat(5, 1fr);
     }
-
-    .page.active.split-page .page-header {
-        grid-column: 1 / -1;
-    }
-
-    .page.active.split-page .toolbar,
-    .page.active.split-page .bills-filter-bar {
-        grid-column: 1;
-        padding-right: 12px;
-    }
-
-    .page.active.split-page .table-wrap {
-        grid-column: 1;
-        grid-row: 3 / 5;
-        padding-right: 12px;
-        border-right: 1.5px solid var(--border-color);
-        min-height: 400px;
-        overflow-x: auto;
-    }
-
-    /* Detail pane — shown inline on desktop instead of a modal */
-    .split-detail-pane {
-        display: flex;
-        grid-column: 2;
-        grid-row: 2 / span 10;
-        padding-left: 24px;
-        position: sticky;
-        top: calc(var(--header-height) + 20px);
-        max-height: calc(100vh - var(--header-height) - var(--footer-height) - 40px);
-        overflow-y: auto;
-        flex-direction: column;
-        gap: 0;
-    }
-
-    .split-detail-pane.empty-state {
-        align-items: center;
-        justify-content: center;
-        color: var(--text-muted);
-        text-align: center;
-        gap: 16px;
-        padding-top: 60px;
-    }
-
-    .split-detail-pane.empty-state svg {
-        width: 56px;
-        height: 56px;
-        opacity: 0.35;
-        color: var(--text-muted);
-    }
-
-    .split-detail-pane.empty-state p {
-        font-size: 0.9rem;
-        max-width: 220px;
-        line-height: 1.5;
-    }
-
-    .split-detail-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-bottom: 14px;
-        border-bottom: 1.5px solid var(--border-color);
-        margin-bottom: 16px;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .split-detail-header h3 {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        letter-spacing: -0.01em;
-    }
-
-    .split-detail-actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .split-detail-body {
-        flex: 1;
-    }
-
-    /* Row highlight when selected */
-    .data-table tr.split-selected td {
-        background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-    }
-    .data-table tr.split-selected {
-        outline: 2px solid var(--accent-primary);
-        outline-offset: -1px;
-    }
-
-    /* Settings grid: two-column on desktop */
-    .settings-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0 32px;
-        align-items: start;
-    }
-
-    /* Let wide groups span full width */
-    .settings-group.full-width {
-        grid-column: 1 / -1;
-    }
-}
-
-/* ===================== PRINT SETTINGS ENHANCEMENTS ===================== */
-
-/* Split detail pane: hidden on mobile, shown by the desktop media query */
-.split-detail-pane {
-    display: none;
-}
-
-.print-content-toggles {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 8px;
-}
-
-.print-toggle-chip {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border: 1.5px solid var(--border-color);
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
-    user-select: none;
-}
-
-.print-toggle-chip input[type="checkbox"] {
-    accent-color: var(--accent-primary);
-    width: 14px;
-    height: 14px;
-    cursor: pointer;
-}
-
-.print-toggle-chip:has(input:checked) {
-    border-color: var(--accent-primary);
-    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-    color: var(--accent-primary);
-}
-
-.font-size-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 4px;
-}
-
-.font-size-row input[type="range"] {
-    flex: 1;
-    accent-color: var(--accent-primary);
-    height: 4px;
-}
-
-.font-size-value {
-    min-width: 42px;
-    text-align: right;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--accent-primary);
-}
-
-.print-page-size-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.print-size-card {
-    border: 1.5px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 10px 8px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color var(--transition-fast), background var(--transition-fast);
-    font-size: 0.8125rem;
-}
-
-.print-size-card:hover {
-    border-color: var(--accent-primary);
-    background: var(--bg-hover);
-}
-
-.print-size-card.selected {
-    border-color: var(--accent-primary);
-    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-    color: var(--accent-primary);
-    font-weight: 600;
-}
-
-.print-size-card .size-icon {
-    display: block;
-    font-size: 1.25rem;
-    margin-bottom: 4px;
-}
-
-
-
-/* ===================== SALE SUMMARY CARDS GRID ===================== */
-.summary-cards-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-/* ===================== DESKTOP LAYOUT IMPROVEMENTS (≥1100px) — v4.05.0 ===================== */
-@media (min-width: 1100px) {
-
-    /* ── Create Bill: sticky customer panel left, everything else right ── */
-    #page-create-bill .bill-container {
-        display: grid;
-        grid-template-columns: 320px 1fr;
-        grid-template-rows: auto auto auto;
-        gap: 16px;
-        align-items: start;
-    }
-
-    /* Bill To — sticky left column, spans all rows */
-    #page-create-bill .bill-section:nth-child(1) {
-        grid-column: 1;
-        grid-row: 1 / -1;
-        position: sticky;
-        top: calc(var(--header-height) + 16px);
-        max-height: calc(100vh - var(--header-height) - var(--footer-height) - 32px);
-        overflow-y: auto;
-    }
-
-    /* Line Items — right column row 1 */
-    #page-create-bill .bill-section:nth-child(2) {
-        grid-column: 2;
-        grid-row: 1;
-    }
-
-    /* Totals — right column row 2 */
-    #page-create-bill .bill-section:nth-child(3) {
-        grid-column: 2;
-        grid-row: 2;
-    }
-
-    /* Notes & Payment — right column row 3 */
-    #page-create-bill .bill-section:nth-child(4) {
-        grid-column: 2;
-        grid-row: 3;
-    }
-
-    /* ── Sale Summary: wider stats + side-by-side cards ── */
-    #page-sale-summary .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    }
-
-    /* summary-cards-grid: two columns on desktop */
-    .summary-cards-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        align-items: start;
-    }
-
-    /* Remove leftover top-margin — gap handles spacing */
-    #page-sale-summary .bill-section + .bill-section {
-        margin-top: 0;
-    }
-
-    /* ── Sales Return: form left, summary right ── */
-    #page-sales-return .bill-container {
-        display: grid;
-        grid-template-columns: 1fr 340px;
-        gap: 16px;
-        align-items: start;
-    }
-
-    #page-sales-return .bill-section:last-child {
-        position: sticky;
-        top: calc(var(--header-height) + 16px);
-    }
-
-    /* ── Tables: don't wrap cell text on wide screens ── */
-    #page-items .data-table th,
-    #page-items .data-table td,
-    #page-stock .data-table th,
-    #page-stock .data-table td,
-    #page-past-bills .data-table th,
-    #page-past-bills .data-table td {
-        white-space: nowrap;
-    }
-
-    /* ── Your Data: wider stat cards ── */
-    #page-your-data .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
-
-    /* ── Modals: a bit more room on large screens ── */
-    .modal-content {
-        max-width: 680px;
-    }
-
-    .preview-modal-content {
-        max-width: 580px;
-    }
-}
-
-/* ===================== LOGIN SCREEN ===================== */
-.login-screen {
-    position: fixed;
-    inset: 0;
-    z-index: 9000;
-    background: var(--bg-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    padding-top: max(20px, env(safe-area-inset-top));
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
-    /* Use dvh so virtual keyboard doesn't push the card off-screen */
-    min-height: 100dvh;
-    overflow-y: auto;
-}
-
-.login-screen.hidden {
-    display: none;
-}
-
-.login-card {
-    width: 100%;
-    max-width: 380px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-xl, 20px);
-    padding: 36px 32px;
-    box-shadow: 0 24px 64px rgba(0,0,0,0.12);
-}
-
-.login-favicon {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
-    object-fit: contain;
-}
-
-.login-logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    justify-content: center;
-    margin-bottom: 24px;
-}
-
-.login-brand {
-    font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: var(--text-primary);
-}
-
-.login-title {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    text-align: center;
-    margin-bottom: 6px;
-    letter-spacing: -0.02em;
-}
-
-.login-subtitle {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    text-align: center;
-    margin-bottom: 24px;
-}
-
-.login-error {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: color-mix(in srgb, var(--accent-danger, #e03131) 10%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent-danger, #e03131) 30%, transparent);
-    color: var(--accent-danger, #e03131);
-    border-radius: var(--radius-md);
-    padding: 10px 14px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    margin-bottom: 16px;
-}
-
-.login-error svg { width: 16px; height: 16px; flex-shrink: 0; }
-
-.login-form { display: flex; flex-direction: column; gap: 16px; }
-
-.login-field { display: flex; flex-direction: column; gap: 6px; }
-
-.login-label {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-}
-
-.login-input-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.login-input-wrap > svg:first-child {
-    position: absolute;
-    left: 12px;
-    width: 16px;
-    height: 16px;
-    color: var(--text-muted);
-    pointer-events: none;
-    flex-shrink: 0;
-}
-
-.login-input {
-    width: 100%;
-    padding: 10px 12px 10px 38px;
-    border: 1.5px solid var(--border-color);
-    border-radius: var(--radius-md);
-    background: var(--bg-input, var(--bg-primary));
-    color: var(--text-primary);
-    font-size: 1rem;
-    transition: border-color 0.15s;
-}
-
-.login-input:focus {
-    outline: none;
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 15%, transparent);
-}
-
-.login-pw-toggle {
-    position: absolute;
-    right: 10px;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-}
-
-.login-pw-toggle svg { width: 16px; height: 16px; }
-
-.login-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px;
-    background: var(--accent-primary);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: 0.9375rem;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 4px;
-    transition: background 0.15s, transform 0.1s;
-}
-
-.login-btn:hover { background: var(--accent-primary-hover, #1c7ed6); }
-.login-btn:active { transform: scale(0.98); }
-.login-btn svg { width: 16px; height: 16px; }
-
-.login-hint {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin-top: 20px;
-    font-size: 0.775rem;
-    color: var(--text-muted);
-    text-align: center;
-    line-height: 1.5;
-}
-
-.login-hint svg { width: 13px; height: 13px; flex-shrink: 0; }
-.login-hint strong { color: var(--accent-primary); }
-
-/* Header account button */
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.header-account-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 1.5px solid var(--border-color);
-    background: var(--bg-tertiary);
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.header-account-btn:hover {
-    background: var(--bg-hover);
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
-}
-
-.header-account-btn svg { width: 16px; height: 16px; }
-
-/* ===================== ACCOUNT PAGE ===================== */
-.account-avatar-wrap {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    margin-bottom: 4px;
-}
-
-.account-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--accent-primary);
-    color: #fff;
-    font-size: 1.25rem;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    letter-spacing: -0.02em;
-}
-
-.account-avatar-info {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.account-username {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-
-.account-role {
-    font-size: 0.8125rem;
-    color: var(--text-muted);
-}
-
-.account-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.725rem;
-    font-weight: 600;
-    color: #e67700;
-    background: #fff3cd;
-    border: 1px solid #ffd43b;
-    border-radius: 10px;
-    padding: 2px 8px;
-    margin-top: 2px;
-    width: fit-content;
-}
-
-.account-badge svg { width: 11px; height: 11px; }
-
-
-/* Login card shake on wrong password */
-@keyframes bhShake {
-    0%, 100% { transform: translateX(0); }
-    18%       { transform: translateX(-7px); }
-    36%       { transform: translateX(7px); }
-    54%       { transform: translateX(-5px); }
-    72%       { transform: translateX(5px); }
-    90%       { transform: translateX(-2px); }
-}
-
-/* ===================== ACCESSIBILITY & RESPONSIVENESS FIXES (v4.05.5) ===================== */
-
-/* Focus-visible: clear keyboard focus ring for all interactive elements */
-*:focus { outline: none; }
-*:focus-visible {
-    outline: 2px solid var(--accent-primary);
-    outline-offset: 2px;
-    border-radius: 3px;
-}
-/* Suppress focus-visible on mouse click (only show for keyboard) */
-button:focus:not(:focus-visible),
-a:focus:not(:focus-visible),
-input:focus:not(:focus-visible),
-select:focus:not(:focus-visible) {
-    outline: none;
-}
-
-/* 320px: tighten header logo so it doesn't push into right buttons */
-@media (max-width: 360px) {
-    .header-center .header-logo-text,
-    .header-center .logo-placeholder-text {
-        font-size: 1rem;
-        letter-spacing: -0.02em;
-    }
-
-    .header-center img,
-    .header-center .company-logo-img {
-        max-height: 28px;
-    }
-
-    .login-card {
-        padding: 24px 18px;
-    }
-
-    .login-title {
-        font-size: 1.15rem;
-    }
-}
-
-/* Settings remove/delete icon buttons - ensure minimum touch target */
-.settings-remove,
-.data-remove-btn,
-.remove-btn {
-    min-width: 44px;
-    min-height: 44px;
-}
-
-/* Sidebar safe-area on landscape phones with notch */
-.sidebar {
-    padding-left: max(0px, env(safe-area-inset-left));
-}
-
-/* Bottom sheet column dropdown: respect safe area on iPhone */
-@media (max-width: 640px) {
-    .column-toggle-dropdown.open {
-        padding-bottom: max(16px, env(safe-area-inset-bottom));
-    }
-
-    /* Modals: also respect safe area at bottom */
-    .modal-content {
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
-    }
-}
-
-/* Sidebar swipe-close area should cover safe area too */
-.sidebar-overlay {
-    top: 0;
-    left: 0;
 }
 
