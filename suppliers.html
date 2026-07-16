@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Suppliers — Bill-Hive</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#228be6">
@@ -310,7 +310,7 @@ a {
     border-bottom: 1px solid var(--border-light);
     z-index: 210;
     display: grid;
-    grid-template-columns: 1fr 48px;
+    grid-template-columns: 40px 1fr 40px;
     align-items: center;
     padding: 0 16px;
     gap: 8px;
@@ -3282,6 +3282,17 @@ body.side-left .sidebar-header {
 
     <!-- ===================== HEADER ===================== -->
     <header class="app-header">
+        <div class="header-left">
+            <svg class="header-brand-icon" viewBox="0 0 48 48" fill="none">
+                <path d="M24 2L4 13v22l20 11 20-11V13L24 2z" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                <path d="M24 2v22M4 13l20 11 20-11" stroke="currentColor" stroke-width="2" fill="none"/>
+                <rect x="14" y="30" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                <line x1="18" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.5"/>
+                <line x1="18" y1="38" x2="26" y2="38" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M28 38l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <line x1="14" y1="44" x2="34" y2="44" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+            </svg>
+        </div>
         <div class="header-center">
             <div class="logo-container" id="header-logo-container" onclick="window.location.reload()" style="cursor:pointer;" title="Reload">
                 <img id="header-logo" src="" alt="Company Logo" style="display:none;">
@@ -4058,56 +4069,7 @@ function printSupplierFromView() {
         <!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(s.name)} — Supplier</title>
         <style>body{font-family:'Courier New',monospace;font-weight:700;padding:24px;color:#000;}
         h2{border-bottom:2px solid #000;padding-bottom:8px;}
-        .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #999;font-size:13px;}
-/* ===================== DESKTOP RAIL ≥1024px ===================== */
-@media (min-width: 1024px) {
-    :root { --rail-width: 240px; }
-
-    body { padding-left: var(--rail-width); }
-
-    .sidebar {
-        left: 0; right: auto; top: 0;
-        width: var(--rail-width);
-        max-width: var(--rail-width);
-        transform: none !important;
-        border-left: none;
-        border-right: 1px solid var(--border-light);
-        z-index: 95;
-        box-shadow: none;
-    }
-
-    body.side-left .sidebar {
-        left: 0; right: auto;
-        transform: none !important;
-        border-right: 1px solid var(--border-light);
-        border-left: none;
-    }
-
-    .sidebar-overlay  { display: none !important; }
-    .sidebar-close    { display: none !important; }
-    .header-menu-btn  { display: none !important; }
-
-    .app-header {
-        left: var(--rail-width);
-        grid-template-columns: 1fr 48px;
-    }
-
-    body.side-left .app-header { left: var(--rail-width); right: 0; }
-
-    .app-footer { left: var(--rail-width); }
-
-    .main-content { max-width: 1280px; padding: 24px 32px; }
-
-    .sidebar-link { padding: 10px 14px; font-size: 0.875rem; }
-    .sidebar-link svg { width: 18px; height: 18px; flex-shrink: 0; }
-}
-
-@media (min-width: 1280px) {
-    :root { --rail-width: 260px; }
-    .main-content { max-width: 1440px; padding: 28px 40px; }
-}
-
-</style></head>
+        .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #999;font-size:13px;}</style></head>
         <body>
             <h2>${escapeHtml(s.name)}</h2>
             <div class="row"><span>Contact Person</span><span>${escapeHtml(s.contactPerson) || '—'}</span></div>

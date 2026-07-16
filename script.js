@@ -411,7 +411,14 @@ const AppState = {
         currencySymbol: '₹',
         print: {
             fontWeight: 'bold',
-            paperSize: '80mm'
+            fontFamily: 'typewriter',
+            paperSize: '80mm',
+            fontSize: 12,
+            margins: 'normal',
+            show: {
+                logo: true, gst: true, address: true, contact: true,
+                discount: true, tax: true, thankyou: true, terms: true
+            }
         },
         sidebarSide: 'right',       // v4.02.0 Part 1 — 'left' or 'right'
         accentColor: '',            // v4.02.0 Part 1 — empty = default theme accent
@@ -842,31 +849,81 @@ function getBillData() {
 
 // ===================== PRINT SETUP (fonts / paper size) =====================
 const PRINT_WEIGHT_MAP = {
-    normal: { base: 500, strong: 700 },
+    normal: { base: 400, strong: 600 },
     bold:   { base: 700, strong: 800 },
     black:  { base: 800, strong: 900 }
 };
 const PRINT_SIZE_MAP = {
     '58mm': { maxWidth: 220, baseFont: 10 },
-    '80mm': { maxWidth: 300, baseFont: 12 }
+    '80mm': { maxWidth: 300, baseFont: 12 },
+    'a4':   { maxWidth: 680, baseFont: 13 }
+};
+
+const PRINT_MARGIN_MAP = {
+    none:   '0',
+    narrow: '4mm',
+    normal: '8mm',
+    wide:   '16mm'
+};
+
+// Available print font families — value is the CSS font-family stack
+const PRINT_FONT_MAP = {
+    typewriter: { label: 'Typewriter',    stack: "'Courier New', 'Courier', 'Lucida Console', monospace" },
+    mono:       { label: 'Monospace',     stack: "'JetBrains Mono', 'Consolas', 'SF Mono', 'Fira Code', monospace" },
+    receipt:    { label: 'Receipt (OCR)', stack: "'OCR A Std', 'Courier New', monospace" },
+    sans:       { label: 'Clean Sans',    stack: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" },
+    slab:       { label: 'Slab Serif',    stack: "'Rockwell', 'Courier New', Georgia, serif" },
 };
 
 function getPrintConfig(overrides = {}) {
     const saved = AppState.settings.print || {};
     const fontWeightKey = overrides.fontWeight || saved.fontWeight || 'bold';
-    const paperSizeKey = overrides.paperSize || saved.paperSize || '80mm';
+    const paperSizeKey  = overrides.paperSize  || saved.paperSize  || '80mm';
+    const fontFamilyKey = overrides.fontFamily  || saved.fontFamily  || 'typewriter';
+    const fontSizeVal   = overrides.fontSize !== undefined ? overrides.fontSize : (saved.fontSize !== undefined ? saved.fontSize : null);
+    const marginsKey    = overrides.margins  || saved.margins  || 'normal';
+    const sizeConfig    = PRINT_SIZE_MAP[paperSizeKey] || PRINT_SIZE_MAP['80mm'];
     return {
-        weights: PRINT_WEIGHT_MAP[fontWeightKey] || PRINT_WEIGHT_MAP.bold,
-        size: PRINT_SIZE_MAP[paperSizeKey] || PRINT_SIZE_MAP['80mm']
+        weights:    PRINT_WEIGHT_MAP[fontWeightKey] || PRINT_WEIGHT_MAP.bold,
+        fontFamily: (PRINT_FONT_MAP[fontFamilyKey] || PRINT_FONT_MAP.typewriter).stack,
+        size: {
+            ...sizeConfig,
+            baseFont: (fontSizeVal !== null && fontSizeVal !== undefined) ? parseInt(fontSizeVal, 10) : sizeConfig.baseFont
+        },
+        margins: PRINT_MARGIN_MAP[marginsKey] || PRINT_MARGIN_MAP.normal,
+        show: {
+            logo:     overrides.showLogo     !== undefined ? overrides.showLogo     : (saved.show?.logo     !== false),
+            gst:      overrides.showGst      !== undefined ? overrides.showGst      : (saved.show?.gst      !== false),
+            address:  overrides.showAddress  !== undefined ? overrides.showAddress  : (saved.show?.address  !== false),
+            contact:  overrides.showContact  !== undefined ? overrides.showContact  : (saved.show?.contact  !== false),
+            discount: overrides.showDiscount !== undefined ? overrides.showDiscount : (saved.show?.discount !== false),
+            tax:      overrides.showTax      !== undefined ? overrides.showTax      : (saved.show?.tax      !== false),
+            thankyou: overrides.showThankyou !== undefined ? overrides.showThankyou : (saved.show?.thankyou !== false),
+            terms:    overrides.showTerms    !== undefined ? overrides.showTerms    : (saved.show?.terms    !== false)
+        }
     };
 }
 
-// Reads the (possibly unsaved) Print Setup selects on the Settings page,
+// Reads the (possibly unsaved) Print Setup controls on the Settings page,
 // so Preview/Print Dummy Bill always reflects what's currently selected.
 function getPrintSetupOverrides() {
-    const fontWeight = $('#print-font-weight')?.value;
-    const paperSize = $('#print-paper-size')?.value;
-    return { fontWeight, paperSize };
+    const fontWeight  = $('#print-font-weight')?.value;
+    const paperSize   = $('#print-paper-size')?.value;
+    const fontSize    = $('#print-font-size')?.value;
+    const margins     = $('#print-margins')?.value;
+    const fontFamily  = $('#print-font-family')?.value;
+    return {
+        fontWeight, paperSize, margins, fontFamily,
+        fontSize: fontSize ? parseInt(fontSize, 10) : undefined,
+        showLogo:     $('#print-show-logo')?.checked,
+        showGst:      $('#print-show-gst')?.checked,
+        showAddress:  $('#print-show-address')?.checked,
+        showContact:  $('#print-show-contact')?.checked,
+        showDiscount: $('#print-show-discount')?.checked,
+        showTax:      $('#print-show-tax')?.checked,
+        showThankyou: $('#print-show-thankyou')?.checked,
+        showTerms:    $('#print-show-terms')?.checked
+    };
 }
 
 function getDummyBillData() {
@@ -904,7 +961,10 @@ function previewDummyBill() {
     const printCfg = getPrintConfig(getPrintSetupOverrides());
     const previewContainer = $('#preview-bill-container');
     previewContainer.innerHTML = generatePOSBillHTML(billData, false, printCfg);
-    $('#preview-modal').classList.add('active');
+    const modal = $('#preview-modal');
+    modal.dataset.dummy = 'true';
+    delete modal.dataset.billId;
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
@@ -935,10 +995,16 @@ function generatePOSBillHTML(billData, forPrint = false, printConfigOverride = n
     const dateStr = formatDate(billData.invoiceDate || now);
     const timeStr = formatTime(now);
 
+    const show = printCfg.show || {};
+
     let logoHtml = '';
-    if (company.logo) {
+    if (company.logo && show.logo !== false) {
         logoHtml = `<img src="${company.logo}" class="pos-logo" alt="Logo" style="filter:grayscale(100%) contrast(1.15);">`;
     }
+
+    // Build items table columns based on show settings
+    const showDisc = show.discount !== false;
+    const showTax  = show.tax     !== false;
 
     let itemsHtml = billData.lineItems.map((item, idx) => {
         const discStr = item.discount > 0 ? `${item.discount}%` : '-';
@@ -949,24 +1015,25 @@ function generatePOSBillHTML(billData, forPrint = false, printConfigOverride = n
                 <td>${escapeHtml(item.name) || 'Item'}</td>
                 <td class="pos-td-center">${item.qty}</td>
                 <td class="pos-td-right">${symbol}${item.price.toFixed(2)}</td>
-                <td class="pos-td-center">${discStr}</td>
-                <td class="pos-td-center">${taxStr}</td>
+                ${showDisc ? `<td class="pos-td-center">${discStr}</td>` : ''}
+                ${showTax  ? `<td class="pos-td-center">${taxStr}</td>`  : ''}
                 <td class="pos-td-right">${symbol}${item.total.toFixed(2)}</td>
             </tr>
         `;
     }).join('');
 
     const totalQty = billData.lineItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
+    const marginVal = printCfg.margins || '8mm';
 
     return `
-        <div class="pos-bill" id="${forPrint ? 'print-bill' : ''}" style="--pw-base:${printCfg.weights.base};--pw-strong:${printCfg.weights.strong};--pw-size:${printCfg.size.baseFont}px;max-width:${printCfg.size.maxWidth}px;">
+        <div class="pos-bill" id="${forPrint ? 'print-bill' : ''}" style="--pw-base:${printCfg.weights.base};--pw-strong:${printCfg.weights.strong};--pw-size:${printCfg.size.baseFont}px;--pw-font:${printCfg.fontFamily};max-width:${printCfg.size.maxWidth}px;padding:${marginVal};">
             <div class="pos-header">
                 ${logoHtml}
                 <div class="pos-company-name">${escapeHtml(company.name) || 'Your Company'}</div>
-                ${company.gst ? `<div class="pos-gst">GSTIN: ${escapeHtml(company.gst)}</div>` : ''}
-                ${company.address ? `<div class="pos-address">${escapeHtml(company.address).replace(/\n/g, '<br>')}</div>` : ''}
-                ${company.phone ? `<div class="pos-contact">Ph: ${escapeHtml(company.phone)}</div>` : ''}
-                ${company.email ? `<div class="pos-contact">${escapeHtml(company.email)}</div>` : ''}
+                ${(company.gst && show.gst !== false) ? `<div class="pos-gst">GSTIN: ${escapeHtml(company.gst)}</div>` : ''}
+                ${(company.address && show.address !== false) ? `<div class="pos-address">${escapeHtml(company.address).replace(/\n/g, '<br>')}</div>` : ''}
+                ${(company.phone && show.contact !== false) ? `<div class="pos-contact">Ph: ${escapeHtml(company.phone)}</div>` : ''}
+                ${(company.email && show.contact !== false) ? `<div class="pos-contact">${escapeHtml(company.email)}</div>` : ''}
             </div>
 
             <hr class="pos-divider">
@@ -993,8 +1060,8 @@ function generatePOSBillHTML(billData, forPrint = false, printConfigOverride = n
                         <th>Item</th>
                         <th class="pos-td-center">Qty</th>
                         <th class="pos-td-right">Rate</th>
-                        <th class="pos-td-center">Disc</th>
-                        <th class="pos-td-center">Tax</th>
+                        ${showDisc ? '<th class="pos-td-center">Disc</th>' : ''}
+                        ${showTax  ? '<th class="pos-td-center">Tax</th>'  : ''}
                         <th class="pos-td-right">Amt</th>
                     </tr>
                 </thead>
@@ -1012,14 +1079,8 @@ function generatePOSBillHTML(billData, forPrint = false, printConfigOverride = n
                     <span>Bill Amount</span>
                     <span>${symbol}${billData.billAmount.toFixed(2)}</span>
                 </div>
-                <div class="pos-total-row">
-                    <span>Item Discount</span>
-                    <span>${symbol}${billData.discountAmount.toFixed(2)}</span>
-                </div>
-                <div class="pos-total-row">
-                    <span>GST/Tax</span>
-                    <span>${symbol}${billData.taxAmount.toFixed(2)}</span>
-                </div>
+                ${showDisc ? `<div class="pos-total-row"><span>Item Discount</span><span>${symbol}${billData.discountAmount.toFixed(2)}</span></div>` : ''}
+                ${showTax  ? `<div class="pos-total-row"><span>GST/Tax</span><span>${symbol}${billData.taxAmount.toFixed(2)}</span></div>` : ''}
                 <div class="pos-total-row grand">
                     <span>Net Amount</span>
                     <span>${symbol}${billData.grandTotal.toFixed(2)}</span>
@@ -1034,9 +1095,9 @@ function generatePOSBillHTML(billData, forPrint = false, printConfigOverride = n
 
             <hr class="pos-divider">
 
-            <div class="pos-thankyou">${escapeHtml(thankYouMsg)}</div>
+            ${show.thankyou !== false ? `<div class="pos-thankyou">${escapeHtml(thankYouMsg)}</div>` : ''}
 
-            ${settings.termsConditions ? `<div class="pos-terms">${escapeHtml(settings.termsConditions).replace(/\n/g, '<br>')}</div>` : ''}
+            ${(settings.termsConditions && show.terms !== false) ? `<div class="pos-terms">${escapeHtml(settings.termsConditions).replace(/\n/g, '<br>')}</div>` : ''}
 
             <div style="text-align:center;font-size:9px;font-weight:700;margin-top:6px;color:#444;">
                 Powered by Bill-Hive
@@ -1127,15 +1188,16 @@ function resetBillFormForNext() {
 async function saveAndPrint() {
     const billData = await saveBill();
     if (!billData) return;
-
     setTimeout(() => {
-        printBill(billData);
+        printBill(billData, getPrintConfig());
     }, 300);
 }
 
 function printBill(billData, printConfigOverride = null) {
     const printWindow = window.open('', '_blank');
-    const posHtml = generatePOSBillHTML(billData, true, printConfigOverride);
+    const resolvedCfg = printConfigOverride || getPrintConfig();
+    const posHtml = generatePOSBillHTML(billData, true, resolvedCfg);
+    const pageMargin = resolvedCfg.margins || '8mm';
 
     printWindow.document.write(`
         <!DOCTYPE html>
@@ -1145,44 +1207,44 @@ function printBill(billData, printConfigOverride = null) {
             <title>Bill ${billData.invoiceNo}</title>
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { 
-                    font-family: 'Courier New', 'Consolas', monospace; 
-                    font-weight: var(--pw-base, 700);
-                    background: #fff; 
+                @page { margin: ${pageMargin}; }
+                body {
+                    font-family: ${resolvedCfg.fontFamily};
+                    background: #fff;
                     color: #000;
                     padding: 0;
                     -webkit-print-color-adjust: exact;
                     print-color-adjust: exact;
                     -webkit-font-smoothing: antialiased;
                 }
-                .pos-bill { 
-                    max-width: 300px; 
-                    margin: 0 auto; 
+                .pos-bill {
+                    max-width: ${resolvedCfg.size.maxWidth}px;
+                    margin: 0 auto;
                     padding: 8px;
-                    font-size: var(--pw-size, 12px);
-                    font-weight: var(--pw-base, 700);
+                    font-size: ${resolvedCfg.size.baseFont}px;
+                    font-weight: ${resolvedCfg.weights.base};
                     line-height: 1.45;
                 }
                 .pos-header { text-align: center; padding-bottom: 6px; border-bottom: 2px dashed #000; margin-bottom: 6px; }
                 .pos-logo { width: 100%; max-width: 160px; height: auto; aspect-ratio: 4 / 1; object-fit: contain; margin: 0 auto 4px; display: block; }
-                .pos-company-name { font-size: 14px; font-weight: var(--pw-strong, 800); }
-                .pos-gst, .pos-address, .pos-contact { font-size: 11px; font-weight: var(--pw-base, 700); line-height: 1.35; }
+                .pos-company-name { font-size: 1.15em; font-weight: ${resolvedCfg.weights.strong}; }
+                .pos-gst, .pos-address, .pos-contact { font-size: 0.82em; font-weight: ${resolvedCfg.weights.base}; line-height: 1.35; }
                 .pos-divider { border: none; border-top: 2px dashed #000; margin: 5px 0; }
-                .pos-meta { display: flex; justify-content: space-between; font-size: 11px; font-weight: var(--pw-base, 700); margin-bottom: 2px; }
-                .pos-meta-label { font-weight: var(--pw-strong, 800); }
-                .pos-customer-label { font-weight: var(--pw-strong, 800); font-size: 11px; }
-                .pos-table { width: 100%; border-collapse: collapse; font-size: 11px; font-weight: var(--pw-base, 700); margin: 4px 0; }
-                .pos-table th { border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 3px 2px; text-align: left; font-weight: var(--pw-strong, 800); }
-                .pos-table td { padding: 2px 2px; vertical-align: top; font-weight: var(--pw-base, 700); }
+                .pos-meta { display: flex; justify-content: space-between; font-size: 0.85em; font-weight: ${resolvedCfg.weights.base}; margin-bottom: 2px; }
+                .pos-meta-label { font-weight: ${resolvedCfg.weights.strong}; }
+                .pos-customer-label { font-weight: ${resolvedCfg.weights.strong}; font-size: 0.9em; }
+                .pos-table { width: 100%; border-collapse: collapse; font-size: 0.9em; font-weight: ${resolvedCfg.weights.base}; margin: 4px 0; }
+                .pos-table th { border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 3px 2px; text-align: left; font-weight: ${resolvedCfg.weights.strong}; }
+                .pos-table td { padding: 2px 2px; vertical-align: top; font-weight: ${resolvedCfg.weights.base}; }
                 .pos-td-right { text-align: right; }
                 .pos-td-center { text-align: center; }
-                .pos-totals { border-top: 2px solid #000; padding-top: 3px; font-size: 11px; font-weight: var(--pw-base, 700); }
+                .pos-totals { border-top: 2px solid #000; padding-top: 3px; font-size: 0.9em; font-weight: ${resolvedCfg.weights.base}; }
                 .pos-total-row { display: flex; justify-content: space-between; margin-bottom: 1px; }
-                .pos-total-row.grand { font-weight: var(--pw-strong, 800); font-size: 13px; border-top: 2px solid #000; padding-top: 3px; margin-top: 2px; }
-                .pos-saved { text-align: center; font-size: 11px; font-weight: var(--pw-base, 700); margin: 4px 0; font-style: italic; }
-                .pos-payment { font-size: 11px; font-weight: var(--pw-base, 700); margin: 3px 0; }
-                .pos-thankyou { text-align: center; font-size: 12px; font-weight: var(--pw-strong, 800); margin: 4px 0; }
-                .pos-terms { font-size: 10px; font-weight: var(--pw-base, 700); text-align: center; line-height: 1.35; margin-top: 3px; padding-top: 3px; border-top: 2px dashed #000; }
+                .pos-total-row.grand { font-weight: ${resolvedCfg.weights.strong}; font-size: 1.1em; border-top: 2px solid #000; padding-top: 3px; margin-top: 2px; }
+                .pos-saved { text-align: center; font-size: 0.9em; font-weight: ${resolvedCfg.weights.base}; margin: 4px 0; font-style: italic; }
+                .pos-payment { font-size: 0.9em; font-weight: ${resolvedCfg.weights.base}; margin: 3px 0; }
+                .pos-thankyou { text-align: center; font-size: 1em; font-weight: ${resolvedCfg.weights.strong}; margin: 4px 0; }
+                .pos-terms { font-size: 0.82em; font-weight: ${resolvedCfg.weights.base}; text-align: center; line-height: 1.35; margin-top: 3px; padding-top: 3px; border-top: 2px dashed #000; }
                 @media print { body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
             </style>
         </head>
@@ -1204,12 +1266,13 @@ function printBill(billData, printConfigOverride = null) {
 
 function previewBill() {
     if (!validateBill()) return;
-
     const billData = getBillData();
     const previewContainer = $('#preview-bill-container');
-    previewContainer.innerHTML = generatePOSBillHTML(billData);
-
-    $('#preview-modal').classList.add('active');
+    previewContainer.innerHTML = generatePOSBillHTML(billData, false, getPrintConfig());
+    const modal = $('#preview-modal');
+    delete modal.dataset.dummy;
+    delete modal.dataset.billId;
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
@@ -1219,8 +1282,23 @@ function closePreview() {
 }
 
 function printFromPreview() {
-    const billData = getBillData();
-    printBill(billData);
+    const modal = $('#preview-modal');
+    const billId = modal?.dataset.billId;
+    const isDummy = modal?.dataset.dummy === 'true';
+    const cfg = getPrintConfig();
+
+    if (isDummy) {
+        // Came from Settings → Preview Dummy Bill
+        printBill(getDummyBillData(), getPrintConfig(getPrintSetupOverrides()));
+    } else if (billId) {
+        // Came from a past bill view
+        const bill = findBill(parseInt(billId, 10));
+        if (bill) printBill(bill, cfg);
+    } else {
+        // Came from the create-bill flow
+        const billData = getBillData();
+        printBill(billData, cfg);
+    }
     closePreview();
 }
 
@@ -1253,28 +1331,20 @@ async function clearBill() {
 function handleLogoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-        showToast('Logo must be under 2MB');
-        return;
-    }
-
+    if (file.size > 2 * 1024 * 1024) { showToast('Logo must be under 2MB'); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
-        const dataUrl = e.target.result;
-        AppState.companyData.logo = dataUrl;
-
-        // Show preview
-        const preview = $('#company-logo-preview');
-        preview.src = dataUrl;
-        preview.style.display = 'block';
-
-        // Update header logo
-        updateHeaderLogo(dataUrl);
-
-        showToast('Logo uploaded');
+        BHImageEditor.open(e.target.result, { title: 'Edit Company Logo' }).then(dataUrl => {
+            AppState.companyData.logo = dataUrl;
+            const preview = $('#company-logo-preview');
+            if (preview) { preview.src = dataUrl; preview.style.display = 'block'; }
+            updateHeaderLogo(dataUrl);
+            showToast('Logo updated');
+        }).catch(() => {});
     };
     reader.readAsDataURL(file);
+    // Reset input so same file can be re-selected
+    event.target.value = '';
 }
 
 function updateHeaderLogo(logoUrl) {
@@ -1407,10 +1477,23 @@ async function saveSettings() {
     // Currency
     AppState.settings.currencySymbol = $('#currency-symbol').value || '₹';
 
-    // Print setup
+    // Print setup (extended)
     AppState.settings.print = {
         fontWeight: $('#print-font-weight')?.value || 'bold',
-        paperSize: $('#print-paper-size')?.value || '80mm'
+        fontFamily: $('#print-font-family')?.value || 'typewriter',
+        paperSize: $('#print-paper-size')?.value || '80mm',
+        fontSize: parseInt($('#print-font-size')?.value || '12', 10),
+        margins: $('#print-margins')?.value || 'normal',
+        show: {
+            logo:     !!$('#print-show-logo')?.checked,
+            gst:      !!$('#print-show-gst')?.checked,
+            address:  !!$('#print-show-address')?.checked,
+            contact:  !!$('#print-show-contact')?.checked,
+            discount: !!$('#print-show-discount')?.checked,
+            tax:      !!$('#print-show-tax')?.checked,
+            thankyou: !!$('#print-show-thankyou')?.checked,
+            terms:    !!$('#print-show-terms')?.checked
+        }
     };
 
     // v4.02.0 Part 1 — Menu position, accent color, screen saver
@@ -1458,7 +1541,23 @@ async function loadSettings() {
 
             const printCfg = data.print || {};
             if ($('#print-font-weight')) $('#print-font-weight').value = printCfg.fontWeight || 'bold';
+            if ($('#print-font-family')) $('#print-font-family').value = printCfg.fontFamily || 'typewriter';
             if ($('#print-paper-size')) $('#print-paper-size').value = printCfg.paperSize || '80mm';
+            const fsz = printCfg.fontSize || 12;
+            if ($('#print-font-size')) { $('#print-font-size').value = fsz; }
+            const fszDisplay = $('#print-font-size-display');
+            if (fszDisplay) fszDisplay.textContent = fsz + 'px';
+            if ($('#print-margins')) $('#print-margins').value = printCfg.margins || 'normal';
+            const showCfg = printCfg.show || {};
+            const boolField = (id, key) => { const el = $(id); if (el) el.checked = showCfg[key] !== false; };
+            boolField('#print-show-logo',     'logo');
+            boolField('#print-show-gst',      'gst');
+            boolField('#print-show-address',  'address');
+            boolField('#print-show-contact',  'contact');
+            boolField('#print-show-discount', 'discount');
+            boolField('#print-show-tax',      'tax');
+            boolField('#print-show-thankyou', 'thankyou');
+            boolField('#print-show-terms',    'terms');
 
             // v4.02.0 Part 1 — Menu position, accent color, screen saver
             const sidebarSide = data.sidebarSide || 'right';
@@ -1992,16 +2091,16 @@ function renderItemImageSlots() {
 function handleItemImageUpload(slot, event) {
     const file = event.target.files[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-        showToast('Image must be under 2MB');
-        return;
-    }
+    if (file.size > 2 * 1024 * 1024) { showToast('Image must be under 2MB'); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
-        itemFormImages[slot] = e.target.result;
-        renderItemImageSlots();
+        BHImageEditor.open(e.target.result, { title: `Edit Product Image ${slot + 1}` }).then(dataUrl => {
+            itemFormImages[slot] = dataUrl;
+            renderItemImageSlots();
+        }).catch(() => {});
     };
     reader.readAsDataURL(file);
+    event.target.value = '';
 }
 
 function removeItemImage(slot) {
@@ -2116,139 +2215,10 @@ function viewItem(id) {
     const it = AppState.items.find(i => i.id === id);
     if (!it) return;
 
-    // Desktop: populate the sticky side panel
-    const detailPane = $('#items-detail-pane');
-    if (detailPane && window.innerWidth >= 1024) {
-        itemPGImages = Array.isArray(it.images) ? it.images.filter(Boolean) : [];
-        itemPGIndex = 0;
-
-        // Gallery HTML (reuse product-page gallery CSS)
-        const galleryHtml = itemPGImages.length
-            ? `<div class="product-page-gallery" id="item-pg-gallery" style="border-radius:0;aspect-ratio:16/9;">
-                <div class="product-page-gallery-track" id="item-pg-track">
-                    ${itemPGImages.map(src => `<img src="${src}" alt="product">`).join('')}
-                </div>
-                <button class="product-page-arrow prev" id="item-pg-prev" onclick="itemPGMove(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
-                <button class="product-page-arrow next" id="item-pg-next" onclick="itemPGMove(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
-                <div class="product-page-img-counter" id="item-pg-counter">${itemPGImages.length > 1 ? `1 / ${itemPGImages.length}` : ''}</div>
-               </div>
-               <div class="product-page-dots" id="item-pg-dots">
-                 ${itemPGImages.map((_, i) => `<button class="product-page-dot ${i === 0 ? 'active' : ''}" onclick="itemPGGoTo(${i})"></button>`).join('')}
-               </div>`
-            : '';
-
-        const stock = it.trackStock === false ? 'Not tracked'
-            : it.stock <= 0 ? 'Out of Stock'
-            : it.stock <= 5 ? `Low Stock — ${it.stock} left`
-            : `${it.stock} in stock`;
-
-        const stockClass = it.trackStock === false ? 'in-stock'
-            : it.stock <= 0 ? 'out-stock'
-            : it.stock <= 5 ? 'low-stock' : 'in-stock';
-
-        const specs = [
-            it.sku        ? ['SKU',          it.sku]        : null,
-            it.ean        ? ['EAN',           it.ean]        : null,
-            it.itemNumber ? ['Item No.',      it.itemNumber] : null,
-            it.brand      ? ['Brand',         it.brand]      : null,
-            ['Price',    formatCurrency(it.price || 0)],
-            it.cost       ? ['Cost',          formatCurrency(it.cost)] : null,
-            ['Discount', `${it.discount || 0}%`],
-            ['Tax',      `${it.tax || 0}%`],
-        ].filter(Boolean);
-
-        $('#items-detail-empty').style.display = 'none';
-        $('#items-detail-content').style.display = '';
-        $('#items-detail-actions').innerHTML = `
-            <button class="action-btn btn-save" onclick="openItemModal(${id})">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-                Edit
-            </button>
-            <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteItem(${id})">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-                Delete
-            </button>`;
-        $('#items-detail-body').innerHTML = `
-            ${galleryHtml}
-            <div style="padding:${galleryHtml ? '12px 0 0' : '0'};">
-                <div style="font-size:1.1rem;font-weight:800;color:var(--text-primary);margin-bottom:4px;">${escapeHtml(it.name)}</div>
-                <span class="product-page-stock-badge ${stockClass}" style="margin-bottom:10px;display:inline-flex;">${stock}</span>
-                <div class="product-page-specs" style="margin-top:8px;">
-                    ${specs.map(([l, v]) => `<div class="product-page-spec-row"><span class="product-page-spec-label">${escapeHtml(l)}</span><span class="product-page-spec-value">${escapeHtml(String(v))}</span></div>`).join('')}
-                </div>
-            </div>`;
-
-        // Highlight row
-        $$('#items-table-body tr[data-item-id]').forEach(r => r.classList.remove('bills-row-selected'));
-        const row = $(`#items-table-body tr[data-item-id="${id}"]`);
-        if (row) row.classList.add('bills-row-selected');
-
-        // Touch swipe for gallery
-        if (itemPGImages.length > 1) {
-            const g = $('#item-pg-gallery');
-            if (g) {
-                g.addEventListener('touchstart', itemPGTouchStart, { passive: true });
-                g.addEventListener('touchmove', itemPGTouchMove, { passive: false });
-                g.addEventListener('touchend', itemPGTouchEnd);
-                g.addEventListener('mousedown', itemPGMouseDown);
-                itemPGUpdatePosition(false);
-            }
-        }
-        return; // don't open modal on desktop
-    }
-
-    // Mobile: open the full-screen product page modal
     itemPGImages = Array.isArray(it.images) ? it.images.filter(Boolean) : [];
     itemPGIndex = 0;
 
     $('#item-product-title').textContent = it.name;
-    $('#item-pg-name').textContent = it.name;
-
-    const brandBadge = $('#item-pg-brand-badge');
-    if (it.brand) { brandBadge.textContent = it.brand; brandBadge.style.display = 'inline-block'; }
-    else { brandBadge.style.display = 'none'; }
-
-    $('#item-pg-price').textContent = formatCurrency(it.price || 0);
-    const costEl = $('#item-pg-cost');
-    costEl.textContent = it.cost ? `Cost: ${formatCurrency(it.cost)}` : '';
-
-    const stockEl = $('#item-pg-stock-badge');
-    if (it.trackStock === false) {
-        stockEl.className = 'product-page-stock-badge in-stock'; stockEl.textContent = 'Stock not tracked';
-    } else {
-        const s = it.stock || 0;
-        if (s <= 0) { stockEl.className = 'product-page-stock-badge out-stock'; stockEl.textContent = 'Out of Stock'; }
-        else if (s <= 5) { stockEl.className = 'product-page-stock-badge low-stock'; stockEl.textContent = `Low Stock — ${s} left`; }
-        else { stockEl.className = 'product-page-stock-badge in-stock'; stockEl.textContent = `In Stock — ${s} units`; }
-    }
-
-    const specs = [
-        it.sku        ? ['SKU',          it.sku]        : null,
-        it.ean        ? ['Barcode / EAN', it.ean]        : null,
-        it.itemNumber ? ['Item Number',   it.itemNumber] : null,
-        ['Discount',  `${it.discount || 0}%`],
-        ['Tax',       `${it.tax || 0}%`],
-    ].filter(Boolean);
-
-    $('#item-pg-specs').innerHTML = specs.map(([label, val]) => `
-        <div class="product-page-spec-row">
-            <span class="product-page-spec-label">${escapeHtml(label)}</span>
-            <span class="product-page-spec-value">${escapeHtml(String(val))}</span>
-        </div>`).join('');
-
-    itemPGRenderGallery();
-    $('#item-product-modal').dataset.itemId = id;
-    $('#item-product-modal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-
-    const gallery = $('#item-pg-gallery');
-    if (gallery) {
-        gallery.addEventListener('touchstart', itemPGTouchStart, { passive: true });
-        gallery.addEventListener('touchmove', itemPGTouchMove, { passive: false });
-        gallery.addEventListener('touchend', itemPGTouchEnd);
-        gallery.addEventListener('mousedown', itemPGMouseDown);
-    }
-}
     $('#item-pg-name').textContent = it.name;
 
     // Brand badge
@@ -2299,6 +2269,21 @@ function viewItem(id) {
             <span class="product-page-spec-value">${escapeHtml(String(val))}</span>
         </div>
     `).join('');
+
+    // Gallery
+    itemPGRenderGallery();
+
+    $('#item-product-modal').dataset.itemId = id;
+    $('#item-product-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Touch / drag swipe
+    const gallery = $('#item-pg-gallery');
+    gallery.addEventListener('touchstart', itemPGTouchStart, { passive: true });
+    gallery.addEventListener('touchmove', itemPGTouchMove, { passive: false });
+    gallery.addEventListener('touchend', itemPGTouchEnd);
+    gallery.addEventListener('mousedown', itemPGMouseDown);
+}
 
 function itemPGRenderGallery() {
     const track = $('#item-pg-track');
@@ -2408,16 +2393,9 @@ function itemPGMouseDown(e) {
 }
 
 function closeItemProductPage() {
-    // Mobile: close the modal
     $('#item-product-modal').classList.remove('active');
     document.body.style.overflow = '';
-    // Desktop: clear the side panel
-    const pane = $('#items-detail-pane');
-    if (pane && window.innerWidth >= 1024) {
-        $('#items-detail-empty').style.display = '';
-        $('#items-detail-content').style.display = 'none';
-        $$('#items-table-body tr').forEach(r => r.classList.remove('bills-row-selected'));
-    }
+    // Clean up touch listeners
     const gallery = $('#item-pg-gallery');
     if (gallery) {
         gallery.removeEventListener('touchstart', itemPGTouchStart);
@@ -2428,21 +2406,18 @@ function closeItemProductPage() {
 }
 
 function editItemFromProductPage() {
-    // Works for both mobile (modal dataset) and desktop (panel dataset via row highlight)
-    const id = parseInt($('#item-product-modal').dataset.itemId, 10)
-        || parseInt($('tr.bills-row-selected[data-item-id]')?.dataset.itemId, 10);
+    const id = parseInt($('#item-product-modal').dataset.itemId, 10);
     closeItemProductPage();
-    if (id) openItemModal(id);
+    openItemModal(id);
 }
 
 async function deleteItemFromProductPage() {
-    const id = parseInt($('#item-product-modal').dataset.itemId, 10)
-        || parseInt($('tr.bills-row-selected[data-item-id]')?.dataset.itemId, 10);
+    const id = parseInt($('#item-product-modal').dataset.itemId, 10);
     closeItemProductPage();
-    if (id) await deleteItem(id);
+    await deleteItem(id);
 }
 
-// Keep old names as aliases
+// Keep old names as aliases so any stale references don't break
 function closeItemViewModal() { closeItemProductPage(); }
 function editItemFromView() { editItemFromProductPage(); }
 async function deleteItemFromView() { await deleteItemFromProductPage(); }
@@ -2679,16 +2654,18 @@ function viewPastBill(id) {
     const bill = findBill(id);
     if (!bill) return;
     const previewContainer = $('#preview-bill-container');
-    previewContainer.innerHTML = generatePOSBillHTML(bill);
-    $('#preview-modal').classList.add('active');
+    previewContainer.innerHTML = generatePOSBillHTML(bill, false, getPrintConfig());
+    const modal = $('#preview-modal');
+    delete modal.dataset.dummy;
+    modal.dataset.billId = id;
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    $('#preview-modal').dataset.billId = id;
 }
 
 function reprintPastBill(id) {
     const bill = findBill(id);
     if (!bill) return;
-    printBill(bill);
+    printBill(bill, getPrintConfig());
 }
 
 async function deletePastBill(id) {
@@ -2700,11 +2677,13 @@ async function deletePastBill(id) {
 }
 
 // ===================== BILL VIEW MODAL (Task 4 — Part 3) =====================
-function openBillViewModal(id) {
-    const bill = findBill(id);
-    if (!bill) return;
+// Returns true if we should use the desktop split-pane for Past Bills
+function isSplitLayout() {
+    return window.matchMedia('(min-width: 1100px)').matches;
+}
 
-    const detailHtml = `
+function _buildBillDetailHTML(bill) {
+    return `
         <div class="view-detail-row"><span class="view-detail-label">Invoice No</span><span class="view-detail-value">${escapeHtml(bill.invoiceNo)}</span></div>
         <div class="view-detail-row"><span class="view-detail-label">Date</span><span class="view-detail-value">${formatDate(bill.invoiceDate)}</span></div>
         <div class="view-detail-row"><span class="view-detail-label">Customer</span><span class="view-detail-value">${escapeHtml(bill.customerName) || '—'}</span></div>
@@ -2714,82 +2693,101 @@ function openBillViewModal(id) {
         <div class="view-detail-row"><span class="view-detail-label">Items</span><span class="view-detail-value">${bill.lineItems ? bill.lineItems.map(i => `${escapeHtml(i.name)} × ${i.qty}`).join(', ') : '—'}</span></div>
         ${bill.notes ? `<div class="view-detail-row"><span class="view-detail-label">Notes</span><span class="view-detail-value">${escapeHtml(bill.notes)}</span></div>` : ''}
     `;
+}
 
-    const actionsHtml = `
-        <button class="action-btn btn-save" onclick="previewBillFromView()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            Preview
-        </button>
-        <button class="action-btn btn-clear" onclick="printBillFromView()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Print
-        </button>
-        <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteBillFromView()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-            Delete
-        </button>`;
+function openBillViewModal(id) {
+    const bill = findBill(id);
+    if (!bill) return;
 
-    // Desktop: populate the sticky detail pane instead of a modal
-    const detailPane = $('#bills-detail-pane');
-    if (detailPane && window.innerWidth >= 1024) {
-        $('#bills-detail-empty').style.display = 'none';
-        $('#bills-detail-content').style.display = '';
-        $('#bills-detail-actions').innerHTML = actionsHtml;
-        $('#bills-detail-body').innerHTML = detailHtml;
-        $('#bill-view-modal').dataset.billId = id;
-
+    if (isSplitLayout()) {
+        // Desktop: populate inline detail pane
+        const pane = $('#bills-split-pane');
+        if (!pane) return;
+        pane.classList.remove('empty-state');
+        pane.dataset.billId = id;
+        pane.innerHTML = `
+            <div class="split-detail-header">
+                <h3>Invoice ${escapeHtml(bill.invoiceNo)}</h3>
+                <div class="split-detail-actions">
+                    <button class="action-btn btn-save" onclick="previewBillFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Preview
+                    </button>
+                    <button class="action-btn btn-clear" onclick="printBillFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Print
+                    </button>
+                    <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteBillFromView()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                        Delete
+                    </button>
+                </div>
+            </div>
+            <div class="split-detail-body">${_buildBillDetailHTML(bill)}</div>
+        `;
         // Highlight selected row
-        $$('#past-bills-body tr[data-bill-id]').forEach(r => r.classList.remove('bills-row-selected'));
-        const selectedRow = $(`#past-bills-body tr[data-bill-id="${id}"]`);
-        if (selectedRow) selectedRow.classList.add('bills-row-selected');
-        return; // don't open modal on desktop
+        $$('#past-bills-body tr').forEach(tr => tr.classList.remove('split-selected'));
+        const selectedRow = document.querySelector(`#past-bills-body tr[data-bill-id="${id}"]`);
+        if (selectedRow) selectedRow.classList.add('split-selected');
+    } else {
+        // Mobile: use modal
+        $('#bill-view-title').textContent = `Invoice ${bill.invoiceNo}`;
+        $('#bill-view-modal').dataset.billId = id;
+        $('#bill-view-body').innerHTML = _buildBillDetailHTML(bill);
+        $('#bill-view-modal').classList.add('active');
+        document.body.style.overflow = 'hidden';
     }
-
-    // Mobile: open the modal as before
-    $('#bill-view-title').textContent = `Invoice ${bill.invoiceNo}`;
-    $('#bill-view-modal').dataset.billId = id;
-    $('#bill-view-body').innerHTML = detailHtml;
-    $('#bill-view-modal').classList.add('active');
-    document.body.style.overflow = 'hidden';
 }
 
 function closeBillViewModal() {
     $('#bill-view-modal').classList.remove('active');
     document.body.style.overflow = '';
-    // Desktop: clear the detail panel
-    if (window.innerWidth >= 1024) {
-        const empty = $('#bills-detail-empty');
-        const content = $('#bills-detail-content');
-        if (empty) empty.style.display = '';
-        if (content) content.style.display = 'none';
-        $$('#past-bills-body tr').forEach(r => r.classList.remove('bills-row-selected'));
+    // Reset split pane to empty state on desktop
+    const pane = $('#bills-split-pane');
+    if (pane && isSplitLayout()) {
+        pane.classList.add('empty-state');
+        pane.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <p>Select a bill to view details</p>
+        `;
+        $$('#past-bills-body tr').forEach(tr => tr.classList.remove('split-selected'));
+        delete pane.dataset.billId;
     }
 }
 
+function _getCurrentBillViewId() {
+    if (isSplitLayout()) {
+        const pane = $('#bills-split-pane');
+        return pane ? parseInt(pane.dataset.billId, 10) : NaN;
+    }
+    return parseInt($('#bill-view-modal').dataset.billId, 10);
+}
+
 function previewBillFromView() {
-    const id = parseInt($('#bill-view-modal').dataset.billId, 10);
+    const id = _getCurrentBillViewId();
     const bill = findBill(id);
     if (!bill) return;
-    closeBillViewModal();
+    if (!isSplitLayout()) closeBillViewModal();
     const previewContainer = $('#preview-bill-container');
-    previewContainer.innerHTML = generatePOSBillHTML(bill);
-    $('#preview-modal').classList.add('active');
+    previewContainer.innerHTML = generatePOSBillHTML(bill, false, getPrintConfig());
+    const modal = $('#preview-modal');
+    delete modal.dataset.dummy;
+    modal.dataset.billId = id;
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    $('#preview-modal').dataset.billId = id;
 }
 
 function printBillFromView() {
-    const id = parseInt($('#bill-view-modal').dataset.billId, 10);
+    const id = _getCurrentBillViewId();
     const bill = findBill(id);
     if (!bill) return;
-    printBill(bill);
+    printBill(bill, getPrintConfig());
 }
 
 async function deleteBillFromView() {
-    const id = parseInt($('#bill-view-modal').dataset.billId, 10)
-        || parseInt($('tr.bills-row-selected[data-bill-id]')?.dataset.billId, 10);
+    const id = _getCurrentBillViewId();
     closeBillViewModal();
-    if (id) await deletePastBill(id);
+    await deletePastBill(id);
 }
 
 // ===================== SALES RETURN =====================
@@ -3574,7 +3572,106 @@ async function loadInvoiceMeta() {
 }
 
 // ===================== INIT =====================
+/* ─── Auth ─── */
+const AUTH_KEY = 'bh_auth_v1';
+// Dev credentials (replace with real auth when going to production)
+const DEV_CREDENTIALS = { username: 'admin', password: 'password' };
+
+function isLoggedIn() {
+    try { return JSON.parse(sessionStorage.getItem(AUTH_KEY))?.ok === true; } catch { return false; }
+}
+
+function doLogin() {
+    const u = document.getElementById('login-username')?.value.trim();
+    const p = document.getElementById('login-password')?.value;
+    const errEl = document.getElementById('login-error');
+    if (u === DEV_CREDENTIALS.username && p === DEV_CREDENTIALS.password) {
+        sessionStorage.setItem(AUTH_KEY, JSON.stringify({ ok: true, username: u, ts: Date.now() }));
+        document.getElementById('login-screen')?.classList.add('hidden');
+        _syncAccountUI(u);
+        _bootApp();
+    } else {
+        if (errEl) { errEl.style.display = 'flex'; }
+        document.getElementById('login-password').value = '';
+        document.getElementById('login-password').focus();
+        // Shake animation
+        const card = document.querySelector('.login-card');
+        if (card) {
+            card.style.animation = 'none';
+            card.offsetHeight; // reflow
+            card.style.animation = 'bhShake 0.4s ease';
+        }
+    }
+}
+
+function doLogout() {
+    sessionStorage.removeItem(AUTH_KEY);
+    // Clear sensitive fields
+    document.getElementById('login-username').value = '';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-error').style.display = 'none';
+    document.getElementById('login-screen')?.classList.remove('hidden');
+    document.getElementById('login-username')?.focus();
+}
+
+function toggleLoginPw() {
+    const inp = document.getElementById('login-password');
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function _syncAccountUI(username) {
+    const initials = username.slice(0, 2).toUpperCase();
+    const el = document.getElementById('account-avatar-display');
+    if (el) el.textContent = initials;
+    const nameEl = document.getElementById('account-display-name');
+    if (nameEl) nameEl.textContent = username;
+    const sessionEl = document.getElementById('session-username-display');
+    if (sessionEl) sessionEl.textContent = username;
+}
+
+function saveAccountProfile() {
+    const name = document.getElementById('account-name-input')?.value.trim() || 'Admin';
+    const initials = name.slice(0, 2).toUpperCase();
+    const el = document.getElementById('account-avatar-display');
+    if (el) el.textContent = initials;
+    const dispEl = document.getElementById('account-display-name');
+    if (dispEl) dispEl.textContent = name;
+    showToast('Profile saved');
+}
+
+function changePassword() {
+    const current = document.getElementById('account-current-pw')?.value;
+    const newPw   = document.getElementById('account-new-pw')?.value;
+    const confirm = document.getElementById('account-confirm-pw')?.value;
+    if (current !== DEV_CREDENTIALS.password) { showToast('Current password is incorrect'); return; }
+    if (!newPw || newPw.length < 4) { showToast('New password must be at least 4 characters'); return; }
+    if (newPw !== confirm) { showToast('Passwords do not match'); return; }
+    // In dev mode just update the in-memory credential
+    DEV_CREDENTIALS.password = newPw;
+    document.getElementById('account-current-pw').value = '';
+    document.getElementById('account-new-pw').value = '';
+    document.getElementById('account-confirm-pw').value = '';
+    showToast('Password updated ✓');
+}
+
 async function init() {
+    // Auth gate — show login if not authenticated
+    if (!isLoggedIn()) {
+        document.getElementById('login-screen')?.classList.remove('hidden');
+        document.getElementById('login-username')?.focus();
+        // Don't boot the rest of the app until login succeeds
+        return;
+    }
+    // Restore account UI from session
+    try {
+        const session = JSON.parse(sessionStorage.getItem(AUTH_KEY));
+        if (session?.username) _syncAccountUI(session.username);
+    } catch {}
+    _bootApp();
+}
+
+async function _bootApp() {
     // v4.01.0: open/migrate IndexedDB before anything else reads storage
     await dbInit();
 
