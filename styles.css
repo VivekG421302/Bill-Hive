@@ -411,10 +411,17 @@ a {
 
 /* ===================== MAIN CONTENT ===================== */
 .main-content {
-    max-width: 720px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 16px;
     min-height: calc(100vh - var(--header-height) - var(--footer-height));
+}
+
+@media (min-width: 768px) {
+    .main-content {
+        max-width: 760px;
+        padding: 20px;
+    }
 }
 
 .page {
@@ -1844,7 +1851,7 @@ a {
     align-items: center;
     gap: 8px;
     flex: 1;
-    min-width: 220px;
+    min-width: 0;
     padding: 10px 14px;
     border: 1.5px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -2133,7 +2140,7 @@ a {
     }
 
     .data-table {
-        min-width: 460px;
+        min-width: 320px;
     }
 }
 
@@ -2352,7 +2359,7 @@ a {
     border-radius: var(--radius-md);
     padding: 8px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-    z-index: 200;
+    z-index: 260;
     min-width: 180px;
     max-height: 60vh;
     overflow-y: auto;
@@ -3038,10 +3045,18 @@ body.side-left .sidebar-header {
 /* Task 3: Past Bills date filter toolbar row */
 .bills-filter-bar {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 6px;
     margin-top: 10px;
     align-items: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+.bills-filter-bar::-webkit-scrollbar {
+    display: none;
 }
 
 .bills-filter-bar .filter-btn {
@@ -3769,7 +3784,6 @@ body.side-left .sidebar-header {
     .modal-content {
         max-width: 680px;
     }
-}
 
     .preview-modal-content {
         max-width: 580px;
