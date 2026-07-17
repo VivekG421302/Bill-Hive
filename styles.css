@@ -3629,146 +3629,7 @@ body.side-left .sidebar-header {
     }
 }
 
-/* ===================== DESKTOP SPLIT-PANE LAYOUT (≥1100px) ===================== */
-/*
- * On wide screens, pages with a list + view use a two-column master-detail layout:
- * left pane = list (fixed width), right pane = inline detail panel.
- * Pages that opt in add class "split-page" to their <section>.
- */
-@media (min-width: 1100px) {
-    body {
-        /* Allow wider content on desktop */
-    }
-
-    .main-content {
-        max-width: 1400px;
-        padding: 20px 24px;
-    }
-
-    /* Past Bills: master-detail two-column layout — only when the page is visible */
-    .page.active.split-page {
-        display: grid;
-        grid-template-columns: minmax(320px, 400px) 1fr;
-        grid-template-rows: auto auto auto 1fr;
-        gap: 0;
-        min-height: calc(100vh - var(--header-height) - var(--footer-height) - 40px);
-        align-items: start;
-    }
-
-    .page.active.split-page .page-header {
-        grid-column: 1 / -1;
-    }
-
-    .page.active.split-page .toolbar,
-    .page.active.split-page .bills-filter-bar {
-        grid-column: 1;
-        padding-right: 12px;
-    }
-
-    .page.active.split-page .table-wrap {
-        grid-column: 1;
-        grid-row: 3 / 5;
-        padding-right: 12px;
-        border-right: 1.5px solid var(--border-color);
-        min-height: 400px;
-        overflow-x: auto;
-    }
-
-    /* Detail pane — shown inline on desktop instead of a modal */
-    .split-detail-pane {
-        display: flex;
-        grid-column: 2;
-        grid-row: 2 / span 10;
-        padding-left: 24px;
-        position: sticky;
-        top: calc(var(--header-height) + 20px);
-        max-height: calc(100vh - var(--header-height) - var(--footer-height) - 40px);
-        overflow-y: auto;
-        flex-direction: column;
-        gap: 0;
-    }
-
-    .split-detail-pane.empty-state {
-        align-items: center;
-        justify-content: center;
-        color: var(--text-muted);
-        text-align: center;
-        gap: 16px;
-        padding-top: 60px;
-    }
-
-    .split-detail-pane.empty-state svg {
-        width: 56px;
-        height: 56px;
-        opacity: 0.35;
-        color: var(--text-muted);
-    }
-
-    .split-detail-pane.empty-state p {
-        font-size: 0.9rem;
-        max-width: 220px;
-        line-height: 1.5;
-    }
-
-    .split-detail-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-bottom: 14px;
-        border-bottom: 1.5px solid var(--border-color);
-        margin-bottom: 16px;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .split-detail-header h3 {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        letter-spacing: -0.01em;
-    }
-
-    .split-detail-actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .split-detail-body {
-        flex: 1;
-    }
-
-    /* Row highlight when selected */
-    .data-table tr.split-selected td {
-        background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-    }
-    .data-table tr.split-selected {
-        outline: 2px solid var(--accent-primary);
-        outline-offset: -1px;
-    }
-
-    /* Settings grid: two-column on desktop */
-    .settings-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0 32px;
-        align-items: start;
-    }
-
-    /* Let wide groups span full width */
-    .settings-group.full-width {
-        grid-column: 1 / -1;
-    }
-}
-
-/* ===================== PRINT SETTINGS ENHANCEMENTS ===================== */
-
-/* Split detail pane: hidden on mobile, shown by the desktop media query */
-.split-detail-pane {
-    display: none;
-}
-
-.print-content-toggles {
+/* ===================== PRINT SETTINGS ENHANCEMENTS ===================== */.print-content-toggles {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -3871,12 +3732,16 @@ body.side-left .sidebar-header {
 /* ===================== DESKTOP LAYOUT IMPROVEMENTS (≥1100px) — v4.05.0 ===================== */
 @media (min-width: 1100px) {
 
+    .main-content {
+        max-width: 1400px;
+        padding: 20px 24px;
+    }
+
     /* ── Sale Summary: wider stats + side-by-side cards ── */
     #page-sale-summary .stats-grid {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     }
 
-    /* summary-cards-grid: two columns on desktop */
     .summary-cards-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -3884,30 +3749,27 @@ body.side-left .sidebar-header {
         align-items: start;
     }
 
-    /* Remove leftover top-margin — gap handles spacing */
     #page-sale-summary .bill-section + .bill-section {
         margin-top: 0;
     }
 
-    /* ── Tables: don't wrap cell text on wide screens ── */
-    #page-items .data-table th,
-    #page-items .data-table td,
-    #page-stock .data-table th,
-    #page-stock .data-table td,
-    #page-past-bills .data-table th,
-    #page-past-bills .data-table td {
-        white-space: nowrap;
+    /* ── Settings: two columns ── */
+    .settings-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 32px;
+        align-items: start;
     }
 
-    /* ── Your Data: wider stat cards ── */
-    #page-your-data .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    .settings-group.full-width {
+        grid-column: 1 / -1;
     }
 
     /* ── Modals: a bit more room on large screens ── */
     .modal-content {
         max-width: 680px;
     }
+}
 
     .preview-modal-content {
         max-width: 580px;

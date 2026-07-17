@@ -2676,12 +2676,7 @@ async function deletePastBill(id) {
     showToast('Bill deleted');
 }
 
-// ===================== BILL VIEW MODAL (Task 4 — Part 3) =====================
-// Returns true if we should use the desktop split-pane for Past Bills
-function isSplitLayout() {
-    return window.matchMedia('(min-width: 1100px)').matches;
-}
-
+// ===================== BILL VIEW MODAL =====================
 function _buildBillDetailHTML(bill) {
     return `
         <div class="view-detail-row"><span class="view-detail-label">Invoice No</span><span class="view-detail-value">${escapeHtml(bill.invoiceNo)}</span></div>
@@ -2698,68 +2693,19 @@ function _buildBillDetailHTML(bill) {
 function openBillViewModal(id) {
     const bill = findBill(id);
     if (!bill) return;
-
-    if (isSplitLayout()) {
-        // Desktop: populate inline detail pane
-        const pane = $('#bills-split-pane');
-        if (!pane) return;
-        pane.classList.remove('empty-state');
-        pane.dataset.billId = id;
-        pane.innerHTML = `
-            <div class="split-detail-header">
-                <h3>Invoice ${escapeHtml(bill.invoiceNo)}</h3>
-                <div class="split-detail-actions">
-                    <button class="action-btn btn-save" onclick="previewBillFromView()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        Preview
-                    </button>
-                    <button class="action-btn btn-clear" onclick="printBillFromView()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                        Print
-                    </button>
-                    <button class="action-btn" style="background:transparent;border:1.5px solid var(--accent-danger);color:var(--accent-danger);" onclick="deleteBillFromView()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-                        Delete
-                    </button>
-                </div>
-            </div>
-            <div class="split-detail-body">${_buildBillDetailHTML(bill)}</div>
-        `;
-        // Highlight selected row
-        $$('#past-bills-body tr').forEach(tr => tr.classList.remove('split-selected'));
-        const selectedRow = document.querySelector(`#past-bills-body tr[data-bill-id="${id}"]`);
-        if (selectedRow) selectedRow.classList.add('split-selected');
-    } else {
-        // Mobile: use modal
-        $('#bill-view-title').textContent = `Invoice ${bill.invoiceNo}`;
-        $('#bill-view-modal').dataset.billId = id;
-        $('#bill-view-body').innerHTML = _buildBillDetailHTML(bill);
-        $('#bill-view-modal').classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
+    $('#bill-view-title').textContent = `Invoice ${bill.invoiceNo}`;
+    $('#bill-view-modal').dataset.billId = id;
+    $('#bill-view-body').innerHTML = _buildBillDetailHTML(bill);
+    $('#bill-view-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeBillViewModal() {
     $('#bill-view-modal').classList.remove('active');
     document.body.style.overflow = '';
-    // Reset split pane to empty state on desktop
-    const pane = $('#bills-split-pane');
-    if (pane && isSplitLayout()) {
-        pane.classList.add('empty-state');
-        pane.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            <p>Select a bill to view details</p>
-        `;
-        $$('#past-bills-body tr').forEach(tr => tr.classList.remove('split-selected'));
-        delete pane.dataset.billId;
-    }
 }
 
 function _getCurrentBillViewId() {
-    if (isSplitLayout()) {
-        const pane = $('#bills-split-pane');
-        return pane ? parseInt(pane.dataset.billId, 10) : NaN;
-    }
     return parseInt($('#bill-view-modal').dataset.billId, 10);
 }
 
@@ -2767,7 +2713,7 @@ function previewBillFromView() {
     const id = _getCurrentBillViewId();
     const bill = findBill(id);
     if (!bill) return;
-    if (!isSplitLayout()) closeBillViewModal();
+    closeBillViewModal();
     const previewContainer = $('#preview-bill-container');
     previewContainer.innerHTML = generatePOSBillHTML(bill, false, getPrintConfig());
     const modal = $('#preview-modal');
