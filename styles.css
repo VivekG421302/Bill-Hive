@@ -3871,43 +3871,6 @@ body.side-left .sidebar-header {
 /* ===================== DESKTOP LAYOUT IMPROVEMENTS (≥1100px) — v4.05.0 ===================== */
 @media (min-width: 1100px) {
 
-    /* ── Create Bill: sticky customer panel left, everything else right ── */
-    #page-create-bill .bill-container {
-        display: grid;
-        grid-template-columns: 320px 1fr;
-        grid-template-rows: auto auto auto;
-        gap: 16px;
-        align-items: start;
-    }
-
-    /* Bill To — sticky left column, spans all rows */
-    #page-create-bill .bill-section:nth-child(1) {
-        grid-column: 1;
-        grid-row: 1 / -1;
-        position: sticky;
-        top: calc(var(--header-height) + 16px);
-        max-height: calc(100vh - var(--header-height) - var(--footer-height) - 32px);
-        overflow-y: auto;
-    }
-
-    /* Line Items — right column row 1 */
-    #page-create-bill .bill-section:nth-child(2) {
-        grid-column: 2;
-        grid-row: 1;
-    }
-
-    /* Totals — right column row 2 */
-    #page-create-bill .bill-section:nth-child(3) {
-        grid-column: 2;
-        grid-row: 2;
-    }
-
-    /* Notes & Payment — right column row 3 */
-    #page-create-bill .bill-section:nth-child(4) {
-        grid-column: 2;
-        grid-row: 3;
-    }
-
     /* ── Sale Summary: wider stats + side-by-side cards ── */
     #page-sale-summary .stats-grid {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -3924,19 +3887,6 @@ body.side-left .sidebar-header {
     /* Remove leftover top-margin — gap handles spacing */
     #page-sale-summary .bill-section + .bill-section {
         margin-top: 0;
-    }
-
-    /* ── Sales Return: form left, summary right ── */
-    #page-sales-return .bill-container {
-        display: grid;
-        grid-template-columns: 1fr 340px;
-        gap: 16px;
-        align-items: start;
-    }
-
-    #page-sales-return .bill-section:last-child {
-        position: sticky;
-        top: calc(var(--header-height) + 16px);
     }
 
     /* ── Tables: don't wrap cell text on wide screens ── */
